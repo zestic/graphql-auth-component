@@ -37,7 +37,7 @@ class EmailTokenFactoryTest extends TestCase
         $this->assertEquals($userId, $token->userId);
         $this->assertEqualsWithDelta(
             (new \DateTime())->modify('+60 minutes'),
-            $token->expirationTime,
+            $token->expiration,
             60 // Allow 1 minute difference due to execution time
         );
         $this->assertNotEmpty($token->token);
@@ -56,7 +56,7 @@ class EmailTokenFactoryTest extends TestCase
         $this->assertEquals($userId, $token->userId);
         $this->assertEqualsWithDelta(
             (new \DateTime())->modify('+30 minutes'),
-            $token->expirationTime,
+            $token->expiration,
             60 // Allow 1 minute difference due to execution time
         );
         $this->assertNotEmpty($token->token);

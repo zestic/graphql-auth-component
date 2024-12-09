@@ -1,25 +1,29 @@
 {
-    "name": "zestic/graphql-auth-component",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.3",
-        "matomo/device-detector": "^6.4",
-        "mll-lab/graphql-php-scalars": "^6.3",
-        "psr/log": "^3.0",
-        "webonyx/graphql-php": "^15.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^11.4"
-    },
-    "autoload": {
-        "psr-4": {
-            "Zestic\\GraphQL\\AuthComponent\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
+  "name": "zestic/graphql-auth-component",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.3",
+    "matomo/device-detector": "^6.4",
+    "mll-lab/graphql-php-scalars": "^6.3",
+    "psr/log": "^3.0",
+    "webonyx/graphql-php": "^15.0",
+    "robmorgan/phinx": "^0.16.5",
+    "symfony/yaml": "^7.2",
+    "symfony/dotenv": "^7.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.4",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Zestic\\GraphQL\\AuthComponent\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
 }

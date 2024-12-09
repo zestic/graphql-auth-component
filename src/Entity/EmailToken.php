@@ -7,7 +7,7 @@ namespace Zestic\GraphQL\AuthComponent\Entity;
 class EmailToken
 {
     public function __construct(
-        public \DateTimeInterface $expirationTime,
+        public \DateTimeInterface $expiration,
         public string $token,
         public EmailTokenType $tokenType,
         public array $userAgent,

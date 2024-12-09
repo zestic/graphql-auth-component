@@ -1,4 +1,4 @@
-name: Run Tests
+name: PHP Tests
 
 on:
   push:
@@ -10,17 +10,38 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-    - name: Setup PHP
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.3'
+        php-version: '8.1'
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Run PHPUnit
-      run: vendor/bin/phpunit
+    - name: Set up MySQL
+      run: |
+        mysql -h127.0.0.1 -uroot -prootpassword -e "CREATE DATABASE IF NOT EXISTS testing;"
+        mysql -h127.0.0.1 -uroot -prootpassword -e "CREATE USER 'tester'@'%' IDENTIFIED BY 'testpassword';"
+        mysql -h127.0.0.1 -uroot -prootpassword -e "GRANT ALL PRIVILEGES ON testing.* TO 'tester'@'%';"
+        mysql -h127.0.0.1 -uroot -prootpassword -e "FLUSH PRIVILEGES;"
 
+    - name: Run tests
+      run: vendor/bin/phpunit
+      env:
+        TEST_DB_HOST: 127.0.0.1
+        TEST_DB_NAME: testing
+        TEST_DB_USER: tester
+        TEST_DB_PASS: testpassword
+        TEST_DB_PORT: 3306

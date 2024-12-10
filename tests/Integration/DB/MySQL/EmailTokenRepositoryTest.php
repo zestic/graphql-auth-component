@@ -23,7 +23,6 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
             new \DateTime('+1 hour'),
             'test_token',
             EmailTokenType::REGISTRATION,
-            ['user_agent' => 'PHPUnit Test'],
             'user123'
         );
 

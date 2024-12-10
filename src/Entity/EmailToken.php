@@ -10,7 +10,6 @@ class EmailToken
         public \DateTimeInterface $expiration,
         public string $token,
         public EmailTokenType $tokenType,
-        public array $userAgent,
         public string $userId,
     ) {
     }

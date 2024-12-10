@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\Tests\Unit\Interactor;
+namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationCommunicationInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
-use Zestic\GraphQL\AuthComponent\Interactor\SendRegistrationVerification;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class RegisterUserTest extends TestCase
 {
-    private $emailTokenFactory;
-    private $sendRegistrationVerification;
-    private $userRepository;
-    private $registerUser;
+    private EmailTokenFactory $emailTokenFactory;
+    private SendVerificationCommunicationInterface $sendRegistrationVerification;
+    private UserRepositoryInterface $userRepository;
+    private RegisterUser $registerUser;
 
     protected function setUp(): void
     {
         $this->emailTokenFactory = $this->createMock(EmailTokenFactory::class);
-        $this->sendRegistrationVerification = $this->createMock(SendRegistrationVerification::class);
+        $this->sendRegistrationVerification = $this->createMock(SendVerificationCommunicationInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
 
         $this->registerUser = new RegisterUser(

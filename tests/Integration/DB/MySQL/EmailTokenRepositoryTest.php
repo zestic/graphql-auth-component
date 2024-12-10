@@ -40,6 +40,4 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         $this->assertEquals($token->userId, $row['user_id']);
         $this->assertEquals($token->tokenType->value, $row['token_type']);
     }
-
-    // Add more test methods as needed
 }

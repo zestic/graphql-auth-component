@@ -24,10 +24,13 @@ class UserRepositoryTest extends DatabaseTestCase
 
         $context = new RegistrationContext($email, $additionalData);
 
-        $this->userRepository->create($context);
+        $userId = $this->userRepository->create($context);
 
-        $stmt = self::$pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+        $this->assertNotEmpty($userId);
+        $this->assertIsString($userId);
+
+        $stmt = self::$pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($user);
@@ -42,10 +45,13 @@ class UserRepositoryTest extends DatabaseTestCase
         $displayName = 'Test User';
         $context = new RegistrationContext($email, ['displayName' => $displayName]);
 
-        $this->userRepository->create($context);
+        $userId = $this->userRepository->create($context);
 
-        $stmt = self::$pdo->prepare("SELECT * FROM users WHERE email =?");
-        $stmt->execute([$email]);
+        $this->assertNotEmpty($userId);
+        $this->assertIsString($userId);
+
+        $stmt = self::$pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($user);
@@ -62,5 +68,28 @@ class UserRepositoryTest extends DatabaseTestCase
 
         $this->assertTrue($this->userRepository->emailExists($email));
         $this->assertFalse($this->userRepository->emailExists('nonexistent@zestic.com'));
+    }
+
+    public function testFindUserByEmail()
+    {
+        $email = 'testfind@zestic.com';
+        $displayName = 'Find Test User';
+        $additionalData = ['displayName' => $displayName, 'age' => 30];
+
+        $context = new RegistrationContext($email, $additionalData);
+        $userId = $this->userRepository->create($context);
+
+        $foundUser = $this->userRepository->findUserByEmail($email);
+
+        $this->assertNotNull($foundUser);
+        $this->assertEquals($userId, $foundUser->getId());
+        $this->assertEquals($email, $foundUser->getEmail());
+        $this->assertEquals($displayName, $foundUser->displayName);
+        $this->assertEquals(30, $foundUser->additionalData['age']);
+        $this->assertEquals('unverified', $foundUser->status);
+
+        // Test for non-existent email
+        $nonExistentUser = $this->userRepository->findUserByEmail('nonexistent@zestic.com');
+        $this->assertNull($nonExistentUser);
     }
 }

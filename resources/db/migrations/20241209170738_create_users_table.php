@@ -10,9 +10,10 @@ final class CreateUsersTable extends AbstractMigration
     {
         $table = $this->table('users');
         $table
-            ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('display_name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('additional_data', 'json', ['null' => false])
+            ->addColumn('display_name', 'string', ['limit' => 255, 'null' => true])
+            ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
+            ->addColumn('status','string', ['limit' => 20, 'default' => 'unverified'])
             ->addTimestamps()
             ->addIndex(['email'], ['unique' => true])
             ->create();

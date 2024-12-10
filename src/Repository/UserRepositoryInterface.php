@@ -9,7 +9,10 @@ use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 
 interface UserRepositoryInterface
 {
+    public function beginTransaction(): void;
+    public function commit(): void;
     public function create(RegistrationContext $context): string|int;
     public function emailExists(string $email): bool;
     public function findUserByEmail(string $email): ?UserInterface;
+    public function rollback(): void;
 }

@@ -72,7 +72,7 @@ class UserRepositoryTest extends DatabaseTestCase
 
     public function testFindUserByEmail()
     {
-        $email = 'testfind@zestic.com';
+        $email = 'testFind@zestic.com';
         $displayName = 'Find Test User';
         $additionalData = ['displayName' => $displayName, 'age' => 30];
 
@@ -91,5 +91,46 @@ class UserRepositoryTest extends DatabaseTestCase
         // Test for non-existent email
         $nonExistentUser = $this->userRepository->findUserByEmail('nonexistent@zestic.com');
         $this->assertNull($nonExistentUser);
+    }
+    public function testTransactionMethods()
+    {
+        // Test successful transaction
+        $this->userRepository->beginTransaction();
+
+        $email = 'transaction_test@zestic.com';
+        $context = new RegistrationContext($email, ['displayName' => 'Transaction Test']);
+        $userId = $this->userRepository->create($context);
+
+        $this->userRepository->commit();
+
+        $foundUser = $this->userRepository->findUserByEmail($email);
+        $this->assertNotNull($foundUser);
+        $this->assertEquals($email, $foundUser->getEmail());
+
+        // Test transaction rollback
+        $this->userRepository->beginTransaction();
+
+        $rollbackEmail = 'rollback_test@zestic.com';
+        $rollbackContext = new RegistrationContext($rollbackEmail, ['displayName' => 'Rollback Test']);
+        $this->userRepository->create($rollbackContext);
+
+        // Verify the user exists before rollback
+        $userBeforeRollback = $this->userRepository->findUserByEmail($rollbackEmail);
+        $this->assertNotNull($userBeforeRollback);
+
+        $this->userRepository->rollback();
+
+        // Verify the user doesn't exist after rollback
+        $userAfterRollback = $this->userRepository->findUserByEmail($rollbackEmail);
+        $this->assertNull($userAfterRollback);
+
+        // Test that operations outside of a transaction are committed automatically
+        $autoCommitEmail = 'auto_commit@zestic.com';
+        $autoCommitContext = new RegistrationContext($autoCommitEmail, ['displayName' => 'Auto Commit Test']);
+        $this->userRepository->create($autoCommitContext);
+
+        $autoCommitUser = $this->userRepository->findUserByEmail($autoCommitEmail);
+        $this->assertNotNull($autoCommitUser);
+        $this->assertEquals($autoCommitEmail, $autoCommitUser->getEmail());
     }
 }

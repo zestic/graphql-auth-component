@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
 
+use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;
+use League\OAuth2\Server\Repositories\UserRepositoryInterface as OAuth2UserRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInterface
 {
     public function __construct(
         private \PDO $pdo,
@@ -77,6 +80,15 @@ class UserRepository implements UserRepositoryInterface
         $stmt->execute(['email' => $email]);
 
         return (int)$stmt->fetchColumn() > 0;
+    }
+
+    public function getUserEntityByUserCredentials(
+        string $username,
+        string $password,
+        string $grantType,
+        ClientEntityInterface $clientEntity
+    ): ?OAuth2UserInterface {
+        return $this->findUserByEmail($username);
     }
 
     public function rollback(): void

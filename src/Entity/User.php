@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
-class User implements UserInterface
+use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserEntityInterface;
+
+class User implements UserInterface, OAuth2UserEntityInterface
 {
     public function __construct(
         public array $additionalData,
@@ -15,6 +17,11 @@ class User implements UserInterface
     ) {
     }
     public function getId(): string|int
+    {
+        return $this->id;
+    }
+
+    public function getIdentifier(): string
     {
         return $this->id;
     }

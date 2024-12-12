@@ -11,6 +11,12 @@ class EmailToken
         public string $token,
         public EmailTokenType $tokenType,
         public string $userId,
+        public ?string $id = null,
     ) {
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiration < new \DateTime();
     }
 }

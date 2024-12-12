@@ -9,4 +9,5 @@ use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 interface EmailTokenRepositoryInterface
 {
     public function create(EmailToken $emailToken): bool;
+    public function findByToken(string $token):?EmailToken;
 }

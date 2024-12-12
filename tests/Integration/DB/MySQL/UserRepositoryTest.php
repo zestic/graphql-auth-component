@@ -18,6 +18,7 @@ class UserRepositoryTest extends DatabaseTestCase
 
     public function testCreateUser()
     {
+        xdebug_break();
         $email = 'testCreate@zestic.com';
         $displayName = 'Test User';
         $additionalData = ['displayName' => $displayName, 'referredById' => 2345];
@@ -37,6 +38,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertEquals($email, $user['email']);
         $this->assertEquals($displayName, $user['display_name']);
         $this->assertEquals($context->data, json_decode($user['additional_data'], true));
+        $this->assertNull($user['verified_at']);
     }
 
     public function testCreateUserEmptyAdditionalData()
@@ -58,6 +60,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertEquals($email, $user['email']);
         $this->assertEquals($displayName, $user['display_name']);
         $this->assertEquals(json_encode([]), $user['additional_data']);
+        $this->assertNull($user['verified_at']);
     }
 
     public function testEmailExists()
@@ -86,12 +89,13 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertEquals($email, $foundUser->getEmail());
         $this->assertEquals($displayName, $foundUser->displayName);
         $this->assertEquals(30, $foundUser->additionalData['age']);
-        $this->assertEquals('unverified', $foundUser->status);
+        $this->assertNull($foundUser->verifiedAt);
 
         // Test for non-existent email
         $nonExistentUser = $this->userRepository->findUserByEmail('nonexistent@zestic.com');
         $this->assertNull($nonExistentUser);
     }
+
     public function testTransactionMethods()
     {
         // Test successful transaction

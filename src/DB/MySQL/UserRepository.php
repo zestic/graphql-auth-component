@@ -32,8 +32,8 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
     public function create(RegistrationContext $context): string|int
     {
         $stmt = $this->pdo->prepare(
-        "INSERT INTO users (email, display_name, additional_data, status)
-            VALUES (:email, :display_name, :additional_data, :status)"
+        "INSERT INTO users (email, display_name, additional_data, verified_at)
+            VALUES (:email, :display_name, :additional_data, :verified_at)"
         );
         $displayName = $context->extractAndRemove('displayName');
         try {
@@ -41,7 +41,7 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
                 'email'           => $context->email,
                 'display_name'    => $displayName,
                 'additional_data' => json_encode($context->data),
-                'status'          => 'unverified',
+                'verified_at'     => null,
             ]);
 
             return $this->pdo->lastInsertId();
@@ -53,7 +53,7 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
     public function findUserByEmail(string $email): ?UserInterface
     {
         $stmt = $this->pdo->prepare(
-            "SELECT additional_data, email, display_name, id, status
+            "SELECT additional_data, email, display_name, id, verified_at
             FROM users
             WHERE email = :email"
         );
@@ -68,7 +68,7 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
             $userData['display_name'],
             $userData['email'],
             $userData['id'],
-            $userData['status'],
+            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
         );
     }
 

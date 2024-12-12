@@ -13,7 +13,7 @@ final class CreateUsersTable extends AbstractMigration
             ->addColumn('additional_data', 'json', ['null' => false])
             ->addColumn('display_name', 'string', ['limit' => 255, 'null' => true])
             ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('status','string', ['limit' => 20, 'default' => 'unverified'])
+            ->addColumn('verified_at', 'timestamp', ['null' => true, 'default' => null])
             ->addTimestamps()
             ->addIndex(['email'], ['unique' => true])
             ->create();

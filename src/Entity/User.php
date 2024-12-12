@@ -13,7 +13,7 @@ class User implements UserInterface, OAuth2UserEntityInterface
         public string $displayName,
         public string $email,
         public string|int $id,
-        public string $status,
+        public ?\DateTimeInterface $verifiedAt,
     ) {
     }
     public function getId(): string|int
@@ -29,5 +29,10 @@ class User implements UserInterface, OAuth2UserEntityInterface
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verifiedAt !== null;
     }
 }

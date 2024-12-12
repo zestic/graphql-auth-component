@@ -30,6 +30,18 @@ class EmailTokenRepository implements EmailTokenRepositoryInterface
         ]);
     }
 
+    public function delete(EmailToken|string $emailToken): bool
+    {
+        $token = $emailToken instanceof EmailToken ? $emailToken->token : $emailToken;
+
+        $stmt = $this->pdo->prepare("
+            DELETE FROM email_tokens
+            WHERE token = :token
+        ");
+
+        return $stmt->execute(['token' => $token]);
+    }
+
     public function findByToken(string $token): ?EmailToken
     {
         $stmt = $this->pdo->prepare("

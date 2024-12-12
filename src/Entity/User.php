@@ -13,7 +13,7 @@ class User implements UserInterface, OAuth2UserEntityInterface
         public string $displayName,
         public string $email,
         public string|int $id,
-        public ?\DateTimeInterface $verifiedAt,
+        public ?\DateTimeInterface $verifiedAt = null,
     ) {
     }
     public function getId(): string|int

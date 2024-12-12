@@ -13,6 +13,8 @@ interface UserRepositoryInterface
     public function commit(): void;
     public function create(RegistrationContext $context): string|int;
     public function emailExists(string $email): bool;
+    public function findUserById(string $id): ?UserInterface;
     public function findUserByEmail(string $email): ?UserInterface;
     public function rollback(): void;
+    public function update(UserInterface $user): bool;
 }

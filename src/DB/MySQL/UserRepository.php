@@ -32,7 +32,7 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
     public function create(RegistrationContext $context): string|int
     {
         $stmt = $this->pdo->prepare(
-        "INSERT INTO users (email, display_name, additional_data, verified_at)
+            "INSERT INTO users (email, display_name, additional_data, verified_at)
             VALUES (:email, :display_name, :additional_data, :verified_at)"
         );
         $displayName = $context->extractAndRemove('displayName');
@@ -72,10 +72,32 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
         );
     }
 
+    public function findUserById(string $id): ?UserInterface
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT additional_data, email, display_name, id, verified_at
+            FROM users
+            WHERE id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$userData) {
+            return null;
+        }
+
+        return new User(
+            json_decode($userData['additional_data'], true),
+            $userData['display_name'],
+            $userData['email'],
+            $userData['id'],
+            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
+        );
+    }
+
     public function emailExists(string $email): bool
     {
         $stmt = $this->pdo->prepare(
-        "SELECT COUNT(*) FROM users WHERE email = :email"
+            "SELECT COUNT(*) FROM users WHERE email = :email"
         );
         $stmt->execute(['email' => $email]);
 
@@ -94,5 +116,30 @@ class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInt
     public function rollback(): void
     {
         $this->pdo->rollBack();
+    }
+
+    public function update(UserInterface $user): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE users 
+        SET email = :email, 
+            display_name = :display_name, 
+            additional_data = :additional_data, 
+            verified_at = :verified_at
+        WHERE id = :id"
+        );
+        try {
+            $result = $stmt->execute([
+                'id'              => $user->getId(),
+                'email'           => $user->getEmail(),
+                'display_name'    => $user->displayName,
+                'additional_data' => json_encode($user->additionalData),
+                'verified_at'     => $user->verifiedAt ? $user->verifiedAt->format('Y-m-d H:i:s') : null,
+            ]);
+
+            return $result && $stmt->rowCount() > 0;
+        } catch (\PDOException $e) {
+            throw new \RuntimeException('Failed to update user', 0, $e);
+        }
     }
 }

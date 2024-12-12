@@ -18,7 +18,6 @@ class UserRepositoryTest extends DatabaseTestCase
 
     public function testCreateUser()
     {
-        xdebug_break();
         $email = 'testCreate@zestic.com';
         $displayName = 'Test User';
         $additionalData = ['displayName' => $displayName, 'referredById' => 2345];
@@ -96,6 +95,29 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertNull($nonExistentUser);
     }
 
+    public function testFindUserById()
+    {
+        $email = 'testFindById@zestic.com';
+        $displayName = 'Find Test User';
+        $additionalData = ['displayName' => $displayName, 'age' => 30];
+
+        $context = new RegistrationContext($email, $additionalData);
+        $userId = $this->userRepository->create($context);
+
+        $foundUser = $this->userRepository->findUserById($userId);
+
+        $this->assertNotNull($foundUser);
+        $this->assertEquals($userId, $foundUser->getId());
+        $this->assertEquals($email, $foundUser->getEmail());
+        $this->assertEquals($displayName, $foundUser->displayName);
+        $this->assertEquals(30, $foundUser->additionalData['age']);
+        $this->assertNull($foundUser->verifiedAt);
+
+        // Test for non-existent email
+        $nonExistentUser = $this->userRepository->findUserByid(82828282);
+        $this->assertNull($nonExistentUser);
+    }
+
     public function testTransactionMethods()
     {
         // Test successful transaction
@@ -136,5 +158,52 @@ class UserRepositoryTest extends DatabaseTestCase
         $autoCommitUser = $this->userRepository->findUserByEmail($autoCommitEmail);
         $this->assertNotNull($autoCommitUser);
         $this->assertEquals($autoCommitEmail, $autoCommitUser->getEmail());
+    }
+
+    public function testUpdate(): void
+    {
+        // First, create a user
+        $userId = $this->createTestUser();
+
+        // Fetch the user
+        $user = $this->userRepository->findUserById($userId);
+        $this->assertNotNull($user);
+
+        // Modify user data
+        $user->displayName = 'Updated Name';
+        $user->additionalData['new_field'] = 'new value';
+        $user->verifiedAt = new \DateTimeImmutable();
+
+        // Update the user
+        $result = $this->userRepository->update($user);
+
+        // Assert the update was successful
+        $this->assertTrue($result);
+
+        // Fetch the user again to verify changes
+        $updatedUser = $this->userRepository->findUserById($userId);
+        $this->assertNotNull($updatedUser);
+
+        // Assert the changes were applied
+        $this->assertEquals('Updated Name', $updatedUser->displayName);
+        $this->assertEquals('new value', $updatedUser->additionalData['new_field']);
+        $this->assertNotNull($updatedUser->verifiedAt);
+        $this->assertEquals($user->verifiedAt->format('Y-m-d H:i:s'), $updatedUser->verifiedAt->format('Y-m-d H:i:s'));
+    }
+
+    private function createTestUser(): string
+    {
+        $stmt = self::$pdo->prepare(
+            "INSERT INTO users (email, display_name, additional_data, verified_at)
+            VALUES (:email, :display_name, :additional_data, :verified_at)"
+        );
+        $stmt->execute([
+            'email' => 'test@example.com',
+            'display_name' => 'Test User',
+            'additional_data' => json_encode(['test_field' => 'test_value']),
+            'verified_at' => null,
+        ]);
+
+        return self::$pdo->lastInsertId();
     }
 }

@@ -6,13 +6,12 @@ namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;
-use League\OAuth2\Server\Repositories\UserRepositoryInterface as OAuth2UserRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
-class UserRepository implements UserRepositoryInterface, OAuth2UserRepositoryInterface
+class UserRepository implements UserRepositoryInterface
 {
     public function __construct(
         private \PDO $pdo,

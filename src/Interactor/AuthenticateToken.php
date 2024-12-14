@@ -35,7 +35,7 @@ class AuthenticateToken
             $request = $request
                 ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
                 ->withBody(Stream::create(http_build_query([
-                    'grant_type' => 'magicLink',
+                    'grant_type' => 'magic_link',
                     'client_id' => $this->oauthConfig->getClientId(),
                     'client_secret' => $this->oauthConfig->getClientSecret(),
                     'token' => $token,

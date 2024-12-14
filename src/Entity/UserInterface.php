@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
-interface UserInterface
+use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserEntityInterface;
+
+interface UserInterface extends OAuth2UserEntityInterface
 {
     public function getId(): string|int;
     public function getEmail(): string;

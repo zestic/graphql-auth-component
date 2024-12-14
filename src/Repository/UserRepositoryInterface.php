@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Repository;
 
+use League\OAuth2\Server\Repositories\UserRepositoryInterface as OAuth2UserRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 
-interface UserRepositoryInterface
+interface UserRepositoryInterface extends OAuth2UserRepositoryInterface
 {
     public function beginTransaction(): void;
     public function commit(): void;

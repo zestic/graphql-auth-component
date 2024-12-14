@@ -15,6 +15,11 @@ class EmailToken
     ) {
     }
 
+    public function getUserId(): string
+    {
+        return $this->userId;
+    }
+
     public function isExpired(): bool
     {
         return $this->expiration < new \DateTime();

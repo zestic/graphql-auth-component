@@ -5,11 +5,13 @@ namespace Tests\Integration;
 use \PDO;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\DB\MigrationRunner;
+use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 abstract class DatabaseTestCase extends TestCase
 {
-    protected static ?PDO $pdo;
     protected static MigrationRunner $migrationRunner;
+    protected static ?PDO $pdo;
+    protected static TokenConfig $tokenConfig;
 
     public static function setUpBeforeClass(): void
     {
@@ -23,6 +25,12 @@ abstract class DatabaseTestCase extends TestCase
         self::$pdo = new PDO($dsn, $username, $password);
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        self::$tokenConfig = new TokenConfig(
+            1,
+            1,
+            1,
+            1,
+        );
         // Initialize MigrationRunner
         self::$migrationRunner = new MigrationRunner();
 

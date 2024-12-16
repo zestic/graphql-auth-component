@@ -8,8 +8,7 @@ final class CreateOauthClientTable extends AbstractMigration
 {
     public function change(): void
     {
-        $table = $this->table('oauth_clients');
-        $table
+        $this->table('oauth_clients')
             ->addColumn('client_id', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('redirect_uri', 'json', ['null' => true])

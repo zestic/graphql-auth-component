@@ -4,7 +4,7 @@ namespace Tests\Unit\Factory;
 
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenConfig;
+use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
@@ -12,14 +12,14 @@ use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
 class EmailTokenFactoryTest extends TestCase
 {
     private EmailTokenFactory $factory;
-    private EmailTokenConfig $config;
+    private TokenConfig $config;
     private EmailTokenRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = new EmailTokenConfig(30, 60);
+        $this->config = new TokenConfig(30, 60, 90, 120);
         $this->repository = $this->createMock(EmailTokenRepositoryInterface::class);
         $this->factory = new EmailTokenFactory($this->config, $this->repository);
     }
@@ -39,7 +39,7 @@ class EmailTokenFactoryTest extends TestCase
         $this->assertEquals($userId, $token->userId);
         $this->assertGreaterThan(new \DateTime(), $token->expiration);
         $this->assertLessThanOrEqual(
-            (new \DateTime())->modify('+' . $this->config->getRegistrationTimeOfLifeMinutes() . ' minutes'),
+            (new \DateTime())->modify('+' . $this->config->getRegistrationTTLMinutes() . ' minutes'),
             $token->expiration
         );
     }
@@ -59,7 +59,7 @@ class EmailTokenFactoryTest extends TestCase
         $this->assertEquals($userId, $token->userId);
         $this->assertGreaterThan(new \DateTime(), $token->expiration);
         $this->assertLessThanOrEqual(
-            (new \DateTime())->modify('+' . $this->config->getLoginTimeOfLifeMinutes() . ' minutes'),
+            (new \DateTime())->modify('+' . $this->config->getLoginTTLMinutes() . ' minutes'),
             $token->expiration
         );
     }

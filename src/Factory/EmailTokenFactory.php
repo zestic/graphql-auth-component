@@ -5,27 +5,27 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Factory;
 
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenConfig;
+use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
 use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
 
 class EmailTokenFactory
 {
     public function __construct(
-        private EmailTokenConfig $config,
+        private TokenConfig $config,
         private EmailTokenRepositoryInterface $emailTokenRepository,
     ) {
     }
 
-    public function createRegistrationToken(string $userId): EmailToken
+    public function createLoginToken(string $userId): EmailToken
     {
         $expiration = new \DateTime();
-        $expiration->modify("+{$this->config->getRegistrationTimeOfLifeMinutes()} minutes");
+        $expiration->modify("+{$this->config->getLoginTTLMinutes()} minutes");
 
         $token = new EmailToken(
             $expiration,
             bin2hex(random_bytes(16)),
-            EmailTokenType::REGISTRATION,
+            EmailTokenType::LOGIN,
             $userId,
         );
 
@@ -36,15 +36,15 @@ class EmailTokenFactory
         throw new \Exception('Failed to create email token');
     }
 
-    public function createLoginToken(string $userId): EmailToken
+    public function createRegistrationToken(string $userId): EmailToken
     {
         $expiration = new \DateTime();
-        $expiration->modify("+{$this->config->getLoginTimeOfLifeMinutes()} minutes");
+        $expiration->modify("+{$this->config->getRegistrationTTLMinutes()} minutes");
 
         $token = new EmailToken(
             $expiration,
             bin2hex(random_bytes(16)),
-            EmailTokenType::LOGIN,
+            EmailTokenType::REGISTRATION,
             $userId,
         );
 

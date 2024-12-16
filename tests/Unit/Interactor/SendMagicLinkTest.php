@@ -26,9 +26,9 @@ class SendMagicLinkTest extends TestCase
         $this->communication = $this->createMock(SendMagicLinkCommunicationInterface::class);
 
         $this->sendMagicLink = new SendMagicLink(
-            $this->userRepository,
             $this->emailTokenFactory,
-            $this->communication
+            $this->communication,
+            $this->userRepository,
         );
     }
 

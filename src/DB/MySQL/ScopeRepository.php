@@ -37,6 +37,9 @@ class ScopeRepository implements ScopeRepositoryInterface
         ?string $userIdentifier = null,
         ?string $authCodeId = null
     ): array {
+        if (empty($scopes)) {
+            return $scopes;
+        }
         // Retrieve allowed scopes for the client
         $stmt = $this->pdo->prepare('SELECT scope FROM oauth_client_scopes WHERE client_id = :clientId');
         $stmt->execute(['clientId' => $clientEntity->getIdentifier()]);

@@ -51,7 +51,23 @@ class ScopeRepositoryTest extends DatabaseTestCase
         $this->assertEquals('write', $finalizedScopes[1]->getIdentifier());
     }
 
-    private function seedDatabase(): void
+    public function testFinalizeScopesWithEmptyArray(): void
+    {
+        $clientMock = $this->createMock(ClientEntityInterface::class);
+        $clientMock->method('getIdentifier')->willReturn('test_client');
+
+        $emptyScopes = [];
+        $finalizedScopes = $this->scopeRepository->finalizeScopes(
+            $emptyScopes,
+            'authorization_code',
+            $clientMock
+        );
+
+        $this->assertIsArray($finalizedScopes);
+        $this->assertEmpty($finalizedScopes);
+    }
+
+    protected function seedDatabase(): void
     {
         $this->seedClientRepository();
 

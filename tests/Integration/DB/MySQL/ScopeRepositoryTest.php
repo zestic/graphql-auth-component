@@ -53,14 +53,13 @@ class ScopeRepositoryTest extends DatabaseTestCase
 
     private function seedDatabase(): void
     {
+        $this->seedClientRepository();
+
         // Insert test scopes
         self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('read', 'Read access')");
         self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('write', 'Write access')");
         self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('delete', 'Delete access')");
-        // Insert test client
-        self::$pdo->exec(
-            "INSERT INTO oauth_clients (client_id, name) VALUES ('test_client', 'Test Client')"
-        );
+
         // Insert client scopes
         self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'read')");
         self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'write')");

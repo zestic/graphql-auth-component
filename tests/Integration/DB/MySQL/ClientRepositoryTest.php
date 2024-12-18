@@ -21,8 +21,8 @@ class ClientRepositoryTest extends DatabaseTestCase
     public function testCreateAndGetClient(): void
     {
         $clientEntity = new ClientEntity(
-            'test_client',
-            'Test Client',
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
             'https://example.com/callback',
             true
         );
@@ -32,10 +32,10 @@ class ClientRepositoryTest extends DatabaseTestCase
         $this->assertTrue($result);
 
         // Test get
-        $retrievedClient = $this->repository->getClientEntity('test_client');
+        $retrievedClient = $this->repository->getClientEntity(self::TEST_CLIENT_ID);
         $this->assertInstanceOf(ClientEntity::class, $retrievedClient);
-        $this->assertEquals('test_client', $retrievedClient->getIdentifier());
-        $this->assertEquals('Test Client', $retrievedClient->getName());
+        $this->assertEquals(self::TEST_CLIENT_ID, $retrievedClient->getIdentifier());
+        $this->assertEquals(self::TEST_CLIENT_NAME, $retrievedClient->getName());
         $this->assertEquals('https://example.com/callback', $retrievedClient->getRedirectUri());
         $this->assertTrue($retrievedClient->isConfidential());
     }
@@ -43,15 +43,15 @@ class ClientRepositoryTest extends DatabaseTestCase
     public function testValidateClient(): void
     {
         $clientEntity = new ClientEntity(
-            'test_client',
-            'Test Client',
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
             'https://example.com/callback',
             true
         );
         $this->repository->create($clientEntity);
 
         // Test valid client
-        $isValid = $this->repository->validateClient('test_client', null, null);
+        $isValid = $this->repository->validateClient(self::TEST_CLIENT_ID, null, null);
         $this->assertTrue($isValid);
 
         // Test invalid client
@@ -62,8 +62,8 @@ class ClientRepositoryTest extends DatabaseTestCase
     public function testDeleteClient(): void
     {
         $clientEntity = new ClientEntity(
-            'test_client',
-            'Test Client',
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
             'https://example.com/callback',
             true
         );
@@ -74,12 +74,12 @@ class ClientRepositoryTest extends DatabaseTestCase
         $this->assertTrue($result);
 
         // Verify the client is soft deleted
-        $retrievedClient = $this->repository->getClientEntity('test_client');
+        $retrievedClient = $this->repository->getClientEntity(self::TEST_CLIENT_ID);
         $this->assertNull($retrievedClient);
 
         // Verify the client still exists in the database but is marked as deleted
         $stmt = self::$pdo->prepare('SELECT * FROM oauth_clients WHERE client_id = :clientId');
-        $stmt->execute(['clientId' => 'test_client']);
+        $stmt->execute(['clientId' => self::TEST_CLIENT_ID]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($result);
         $this->assertNotNull($result['deleted_at']);

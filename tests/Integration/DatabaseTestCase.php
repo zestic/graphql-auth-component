@@ -9,6 +9,10 @@ use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 abstract class DatabaseTestCase extends TestCase
 {
+    const string TEST_CLIENT_ID = 'test_client';
+    const string TEST_CLIENT_NAME = 'Test Client';
+    const string TEST_CLIENT_SECRET = 'test_secret';
+
     protected static MigrationRunner $migrationRunner;
     protected static ?PDO $pdo;
     protected static TokenConfig $tokenConfig;
@@ -44,6 +48,18 @@ abstract class DatabaseTestCase extends TestCase
         self::$migrationRunner->rollback('testing', '0');
 
         self::$pdo = null;
+    }
+
+    protected function seedDatabase(): void
+    {
+        $this->seedClientRepository();
+    }
+
+    protected function seedClientRepository(): void
+    {
+        self::$pdo->exec(
+            "INSERT INTO oauth_clients (client_id, name) VALUES ('" . self::TEST_CLIENT_ID . "', '" . self::TEST_CLIENT_NAME . "')"
+        );
     }
 
     protected function setUp(): void

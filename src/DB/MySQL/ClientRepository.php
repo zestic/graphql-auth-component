@@ -73,7 +73,6 @@ class ClientRepository implements ClientRepositoryInterface
         ');
         $stmt->execute(['clientId' => $clientIdentifier]);
 
-
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$result) {

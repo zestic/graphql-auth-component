@@ -11,9 +11,9 @@ use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkCommunicationInterfa
 class SendMagicLink
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
         private EmailTokenFactory $emailTokenFactory,
         private SendMagicLinkCommunicationInterface $communication,
+        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -28,7 +28,7 @@ class SendMagicLink
                 ];
             }
 
-            $loginToken = $this->emailTokenFactory->createLoginToken($user->getId());
+            $loginToken = $this->emailTokenFactory->createLoginToken((string)$user->getId());
             $sent = $this->communication->send($loginToken);
 
             if (!$sent) {

@@ -13,7 +13,7 @@ final class CreateOauthClientScopesTable extends AbstractMigration
             ->addColumn('scope', 'string', ['limit' => 100])
             ->addTimestamps()
             ->addIndex(['client_id', 'scope'], ['unique' => true])
-            ->addForeignKey('client_id', 'oauth_clients', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('client_id', 'oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->addForeignKey('scope', 'oauth_scopes', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->create();
     }

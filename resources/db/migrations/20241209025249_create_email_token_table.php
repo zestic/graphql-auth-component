@@ -6,8 +6,7 @@ class CreateEmailTokenTable extends AbstractMigration
 {
     public function change()
     {
-        $table = $this->table('email_tokens');
-        $table
+        $this->table('email_tokens')
             ->addColumn('expiration', 'datetime', ['null' => false])
             ->addColumn('token', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('token_type', 'string', ['limit' => 20, 'null' => false])

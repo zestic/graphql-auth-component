@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
+use DateTime;
+
 class TokenConfig
 {
     public function __construct(
@@ -19,9 +21,19 @@ class TokenConfig
         return $this->accessTokenTTLMinutes;
     }
 
+    public function getAccessTokenTTLTimestamp(): int
+    {
+        return (new DateTime("+ $this->accessTokenTTLMinutes minutes"))->getTimestamp();
+    }
+
     public function getLoginTTLMinutes(): int
     {
         return $this->loginTTLMinutes;
+    }
+
+    public function getLoginTTLTimestamp(): int
+    {
+        return (new DateTime("+ $this->loginTTLMinutes minutes"))->getTimestamp();
     }
 
     public function getRefreshTokenTTLMinutes(): int
@@ -29,8 +41,18 @@ class TokenConfig
         return $this->refreshTokenTTLMinutes;
     }
 
+    public function getRefreshTokenTTLTimestamp(): int
+    {
+        return (new DateTime("+ $this->refreshTokenTTLMinutes minutes"))->getTimestamp();
+    }
+
     public function getRegistrationTTLMinutes(): int
     {
         return $this->registrationTTLMinutes;
+    }
+
+    public function getRegistrationTTLTimestamp(): int
+    {
+        return (new DateTime("+ $this->registrationTTLMinutes minutes"))->getTimestamp();
     }
 }

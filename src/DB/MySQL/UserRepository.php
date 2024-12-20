@@ -7,12 +7,15 @@ namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
+use Zestic\GraphQL\AuthComponent\Entity\GenerateUniqueIdentifierTrait;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class UserRepository implements UserRepositoryInterface
 {
+    use GenerateUniqueIdentifierTrait;
+    
     public function __construct(
         private \PDO $pdo,
     ) {
@@ -30,20 +33,22 @@ class UserRepository implements UserRepositoryInterface
 
     public function create(RegistrationContext $context): string|int
     {
+        $id = $this->generateUniqueIdentifier();
         $stmt = $this->pdo->prepare(
-            "INSERT INTO users (email, display_name, additional_data, verified_at)
-            VALUES (:email, :display_name, :additional_data, :verified_at)"
+            "INSERT INTO users (id, email, display_name, additional_data, verified_at)
+            VALUES (:id, :email, :display_name, :additional_data, :verified_at)"
         );
         $displayName = $context->extractAndRemove('displayName');
         try {
             $stmt->execute([
+                'id'              => $id,
                 'email'           => $context->email,
                 'display_name'    => $displayName,
                 'additional_data' => json_encode($context->data),
                 'verified_at'     => null,
             ]);
 
-            return $this->pdo->lastInsertId();
+            return $id;
         } catch (\PDOException $e) {
             throw new \RuntimeException('Failed to create user', 0, $e);
         }

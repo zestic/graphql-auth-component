@@ -163,10 +163,10 @@ class UserRepositoryTest extends DatabaseTestCase
     public function testUpdate(): void
     {
         // First, create a user
-        $userId = $this->createTestUser();
+        $userId = $this->seedUserRepository();
 
         // Fetch the user
-        $user = $this->userRepository->findUserById($userId);
+        $user = $this->userRepository->findUserById(self::TEST_USER_ID);
         $this->assertNotNull($user);
 
         // Modify user data
@@ -181,7 +181,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertTrue($result);
 
         // Fetch the user again to verify changes
-        $updatedUser = $this->userRepository->findUserById($userId);
+        $updatedUser = $this->userRepository->findUserById(self::TEST_USER_ID);
         $this->assertNotNull($updatedUser);
 
         // Assert the changes were applied
@@ -189,21 +189,5 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertEquals('new value', $updatedUser->additionalData['new_field']);
         $this->assertNotNull($updatedUser->verifiedAt);
         $this->assertEquals($user->verifiedAt->format('Y-m-d H:i:s'), $updatedUser->verifiedAt->format('Y-m-d H:i:s'));
-    }
-
-    private function createTestUser(): string
-    {
-        $stmt = self::$pdo->prepare(
-            "INSERT INTO users (email, display_name, additional_data, verified_at)
-            VALUES (:email, :display_name, :additional_data, :verified_at)"
-        );
-        $stmt->execute([
-            'email' => 'test@example.com',
-            'display_name' => 'Test User',
-            'additional_data' => json_encode(['test_field' => 'test_value']),
-            'verified_at' => null,
-        ]);
-
-        return self::$pdo->lastInsertId();
     }
 }

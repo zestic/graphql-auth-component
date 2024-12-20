@@ -2,16 +2,20 @@
 
 namespace Tests\Integration;
 
-use \PDO;
+use PDO;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\DB\MigrationRunner;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 abstract class DatabaseTestCase extends TestCase
 {
+    const string TEST_ACCESS_TOKEN_ID = 'test_access_token';
     const string TEST_CLIENT_ID = 'test_client';
     const string TEST_CLIENT_NAME = 'Test Client';
     const string TEST_CLIENT_SECRET = 'test_secret';
+    const string TEST_EMAIL = 'test@zestic.com';
+    const string TEST_USER_DISPLAY_NAME = 'Test User';
+    const string TEST_USER_ID = 'test_user';
 
     protected static MigrationRunner $migrationRunner;
     protected static ?PDO $pdo;
@@ -50,15 +54,66 @@ abstract class DatabaseTestCase extends TestCase
         self::$pdo = null;
     }
 
+    protected function generateUniqueIdentifier(int $length = 40): string
+    {
+        return bin2hex(random_bytes($length));
+    }
+
     protected function seedDatabase(): void
     {
+        // order matters
         $this->seedClientRepository();
+        $this->seedUserRepository();
+        $this->seedAccessTokenTable();
+    }
+
+    protected function seedAccessTokenTable(): void
+    {
+        $values = $this->formatValues([
+            self::TEST_ACCESS_TOKEN_ID,
+            self::TEST_CLIENT_ID,
+            self::TEST_USER_ID,
+            self::$tokenConfig->getAccessTokenTTLTimestamp(),
+        ]);
+        self::$pdo->exec(
+            "INSERT INTO oauth_access_tokens (
+                id, client_id, user_id, expires_at
+            ) VALUES (
+                " . $values . "
+            )"
+        );
     }
 
     protected function seedClientRepository(): void
     {
+        $values = $this->formatValues([
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
+        ]);
+
         self::$pdo->exec(
-            "INSERT INTO oauth_clients (client_id, name) VALUES ('" . self::TEST_CLIENT_ID . "', '" . self::TEST_CLIENT_NAME . "')"
+            "INSERT INTO oauth_clients (
+                client_id, name
+            ) VALUES (
+                " . $values . "
+            )"
+        );
+    }
+
+    protected function seedUserRepository(): void
+    {
+        $values = $this->formatValues([
+            self::TEST_USER_ID,
+            self::TEST_EMAIL,
+            self::TEST_USER_DISPLAY_NAME,
+            json_encode([]),
+        ]);
+        self::$pdo->exec(
+            "INSERT INTO users (
+                id, email, display_name, additional_data
+            ) VALUES (
+                " . $values . "
+            )"
         );
     }
 
@@ -74,5 +129,12 @@ abstract class DatabaseTestCase extends TestCase
         // This depends on your specific needs. You might want to truncate tables instead of dropping them.
         // For example:
         // self::$pdo->exec("TRUNCATE TABLE users");
+    }
+
+    protected function formatValues(array $values): string
+    {
+        return implode(', ', array_map(function ($value) {
+            return "'" . $value . "'";
+        }, $values));
     }
 }

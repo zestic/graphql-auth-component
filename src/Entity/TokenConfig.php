@@ -21,9 +21,9 @@ class TokenConfig
         return $this->accessTokenTTLMinutes;
     }
 
-    public function getAccessTokenTTLTimestamp(): int
+    public function getAccessTokenTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->accessTokenTTLMinutes minutes"))->getTimestamp();
+        return (new DateTime("+ $this->accessTokenTTLMinutes minutes"))->format('Y-m-d H:i:s');
     }
 
     public function getLoginTTLMinutes(): int
@@ -31,9 +31,9 @@ class TokenConfig
         return $this->loginTTLMinutes;
     }
 
-    public function getLoginTTLTimestamp(): int
+    public function getLoginTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->loginTTLMinutes minutes"))->getTimestamp();
+        return (new DateTime("+ $this->loginTTLMinutes minutes"))->format('Y-m-d H:i:s');
     }
 
     public function getRefreshTokenTTLMinutes(): int
@@ -41,9 +41,9 @@ class TokenConfig
         return $this->refreshTokenTTLMinutes;
     }
 
-    public function getRefreshTokenTTLTimestamp(): int
+    public function getRefreshTokenTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->refreshTokenTTLMinutes minutes"))->getTimestamp();
+        return (new DateTime("+ $this->refreshTokenTTLMinutes minutes"))->format('Y-m-d H:i:s');
     }
 
     public function getRegistrationTTLMinutes(): int
@@ -51,8 +51,8 @@ class TokenConfig
         return $this->registrationTTLMinutes;
     }
 
-    public function getRegistrationTTLTimestamp(): int
+    public function getRegistrationTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->registrationTTLMinutes minutes"))->getTimestamp();
+        return (new DateTime("+ $this->registrationTTLMinutes minutes"))->format('Y-m-d H:i:s');
     }
 }

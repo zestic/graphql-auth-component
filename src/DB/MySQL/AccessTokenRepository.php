@@ -22,15 +22,13 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, ?string $userIdentifier = null): AccessTokenEntityInterface
     {
         $accessToken = new AccessTokenEntity();
-        $accessToken->setExpiryDateTime(new \DateTimeImmutable('+'.$this->tokenConfig->getAccessTokenTTLMinutes().' minutes'));
         $accessToken->setClient($clientEntity);
         $accessToken->setUserIdentifier($userIdentifier);
+        $accessToken->setExpiryDateTime($this->tokenConfig->getAccessTokenTTLDateTime());
 
         foreach ($scopes as $scope) {
             $accessToken->addScope($scope);
         }
-
-        $this->persistNewAccessToken($accessToken);
 
         return $accessToken;
     }
@@ -38,11 +36,12 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO oauth_access_tokens (user_id, client_id, scopes, revoked, expires_at)
-            VALUES (:user_id, :client_id, :scopes, :revoked, :expires_at)
+            INSERT INTO oauth_access_tokens (id, user_id, client_id, scopes, revoked, expires_at)
+            VALUES (:id, :user_id, :client_id, :scopes, :revoked, :expires_at)
         ");
 
         $stmt->execute([
+            'id' => $accessTokenEntity->getIdentifier(),
             'user_id' => $accessTokenEntity->getUserIdentifier(),
             'client_id' => $accessTokenEntity->getClient()->getIdentifier(),
             'scopes' => json_encode($accessTokenEntity->getScopes()),
@@ -53,8 +52,6 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
         if ($stmt->rowCount() === 0) {
             throw new UniqueTokenIdentifierConstraintViolationException('Could not persist access token');
         }
-
-        $accessTokenEntity->setIdentifier($this->pdo->lastInsertId());
     }
 
     public function revokeAccessToken(string $tokenId): void

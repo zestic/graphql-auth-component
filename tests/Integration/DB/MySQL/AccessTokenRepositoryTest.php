@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\MySQL;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
-use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
+use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;
 
 class AccessTokenRepositoryTest extends DatabaseTestCase
 {
     private AccessTokenRepository $repository;
+    private ClientEntity $clientEntity;
 
     protected function setUp(): void
     {
@@ -21,62 +22,71 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
         $this->repository = new AccessTokenRepository(
             self::$pdo,
             self::$tokenConfig,
-        );
+        ); 
+
+        $this->clientEntity = $this->seedClientEntity();
     }
 
     public function testGetNewTokenAndPersist(): void
     {
-        $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $clientEntity->method('getIdentifier')->willReturn('test_client');
+        $this->seedUserRepository();
+        $this->seedClientRepository();
 
         $scope = new ScopeEntity('test_scope');
 
-        $token = $this->repository->getNewToken($clientEntity, [$scope], 'user123');
+        $accessToken = $this->repository->getNewToken($this->clientEntity, [$scope], self::TEST_USER_ID);
 
-        $this->assertInstanceOf(AccessTokenEntity::class, $token);
-        $this->assertEquals('user123', $token->getUserIdentifier());
-        $this->assertSame($clientEntity, $token->getClient());
-        $this->assertCount(1, $token->getScopes());
+        $this->assertInstanceOf(AccessTokenEntity::class, $accessToken);
+        $this->assertEquals(self::TEST_USER_ID, $accessToken->getUserIdentifier());
+        $this->assertSame($this->clientEntity, $accessToken->getClient());
+        $this->assertCount(1, $accessToken->getScopes());
+
+        $dateTime = new \DateTimeImmutable('+1 minute');
+        $accessToken->setExpiryDateTime($dateTime);
+        $accessToken->setIdentifier($this->generateUniqueIdentifier());
 
         // Check if the token was persisted
+        $this->repository->persistNewAccessToken($accessToken);
         $stmt = self::$pdo->prepare("SELECT * FROM oauth_access_tokens WHERE id = :id");
-        $stmt->execute(['id' => $token->getIdentifier()]);
+        $stmt->execute(['id' => $accessToken->getIdentifier()]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($result);
-        $this->assertEquals('user123', $result['user_id']);
+        $this->assertEquals(self::TEST_USER_ID, $result['user_id']);
         $this->assertEquals('test_client', $result['client_id']);
         $this->assertStringContainsString('test_scope', $result['scopes']);
+        $persistedExpiryTime = new \DateTimeImmutable($result['expires_at']);
+        $this->assertEquals($dateTime->format('Y-m-d H:i:s'), $persistedExpiryTime->format('Y-m-d H:i:s'));
     }
 
     public function testRevokeAccessToken(): void
     {
         // First, create and persist a token
-        $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $clientEntity->method('getIdentifier')->willReturn('test_client');
-        $token = $this->repository->getNewToken($clientEntity, [], 'user123');
+        $accessToken = $this->repository->getNewToken($this->clientEntity, [], self::TEST_USER_ID);
+        $accessToken->setIdentifier($this->generateUniqueIdentifier());
+        $this->repository->persistNewAccessToken($accessToken);
 
         // Now revoke it
-        $this->repository->revokeAccessToken($token->getIdentifier());
+        $this->repository->revokeAccessToken($accessToken->getIdentifier());
 
         // Check if it's revoked
-        $this->assertTrue($this->repository->isAccessTokenRevoked($token->getIdentifier()));
+        $this->assertTrue($this->repository->isAccessTokenRevoked($accessToken->getIdentifier()));
     }
 
     public function testIsAccessTokenRevoked(): void
     {
         // Create a non-revoked token
-        $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $clientEntity->method('getIdentifier')->willReturn('test_client');
-        $token = $this->repository->getNewToken($clientEntity, [], 'user123');
+        $accessToken = $this->repository->getNewToken($this->clientEntity, [], self::TEST_USER_ID);
+        $accessToken->setIdentifier($this->generateUniqueIdentifier());
+        $this->repository->persistNewAccessToken($accessToken);
 
         // Check that it's not revoked
-        $this->assertFalse($this->repository->isAccessTokenRevoked($token->getIdentifier()));
+        $this->assertFalse($this->repository->isAccessTokenRevoked($accessToken->getIdentifier()));
 
         // Revoke it
-        $this->repository->revokeAccessToken($token->getIdentifier());
+        $this->repository->revokeAccessToken($accessToken->getIdentifier());
 
         // Check that it's now revoked
-        $this->assertTrue($this->repository->isAccessTokenRevoked($token->getIdentifier()));
+        $this->assertTrue($this->repository->isAccessTokenRevoked($accessToken->getIdentifier()));
     }
 }

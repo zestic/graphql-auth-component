@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
-use DateTime;
+use DateTimeImmutable;
 
 class TokenConfig
 {
@@ -21,9 +21,14 @@ class TokenConfig
         return $this->accessTokenTTLMinutes;
     }
 
+    public function getAccessTokenTTLDateTime(): DateTimeImmutable 
+    {
+        return new DateTimeImmutable("+ $this->accessTokenTTLMinutes minutes");
+    }
+
     public function getAccessTokenTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->accessTokenTTLMinutes minutes"))->format('Y-m-d H:i:s');
+        return $this->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s'); 
     }
 
     public function getLoginTTLMinutes(): int
@@ -31,9 +36,14 @@ class TokenConfig
         return $this->loginTTLMinutes;
     }
 
+    public function getLoginTTLDateTime(): DateTimeImmutable
+    {
+        return new DateTimeImmutable("+ $this->loginTTLMinutes minutes");
+    }
+
     public function getLoginTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->loginTTLMinutes minutes"))->format('Y-m-d H:i:s');
+        return $this->getLoginTTLDateTime()->format('Y-m-d H:i:s');
     }
 
     public function getRefreshTokenTTLMinutes(): int
@@ -41,9 +51,14 @@ class TokenConfig
         return $this->refreshTokenTTLMinutes;
     }
 
+    public function getRefreshTokenTTLDateTime(): DateTimeImmutable
+    {   
+        return new DateTimeImmutable("+ $this->refreshTokenTTLMinutes minutes");
+    }
+
     public function getRefreshTokenTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->refreshTokenTTLMinutes minutes"))->format('Y-m-d H:i:s');
+        return $this->getRefreshTokenTTLDateTime()->format('Y-m-d H:i:s');
     }
 
     public function getRegistrationTTLMinutes(): int
@@ -51,8 +66,13 @@ class TokenConfig
         return $this->registrationTTLMinutes;
     }
 
+    public function getRegistrationTTLDateTime(): DateTimeImmutable
+    {
+        return new DateTimeImmutable("+ $this->registrationTTLMinutes minutes");
+    }
+
     public function getRegistrationTTLDateTimeString(): string
     {
-        return (new DateTime("+ $this->registrationTTLMinutes minutes"))->format('Y-m-d H:i:s');
+        return $this->getRegistrationTTLDateTime()->format('Y-m-d H:i:s');
     }
 }

@@ -33,6 +33,12 @@ class TokenConfigTest extends TestCase
         $this->assertEquals(60, $this->tokenConfig->getAccessTokenTTLMinutes());
     }
 
+    public function testGetAccessTokenTTLDateTime(): void
+    {
+        $expected = (new \DateTime())->modify('+ 60 minutes');
+        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s'));
+    }
+
     public function testGetAccessTokenTTLDateTimeString(): void
     {
         $expected = (new \DateTime())
@@ -42,12 +48,18 @@ class TokenConfigTest extends TestCase
         $this->assertEquals($expected, $this->tokenConfig->getAccessTokenTTLDateTimeString());
     }
 
-    public function testGetLoginTimeOfLifeMinutes()
+    public function testGetLoginTTLMinutes()
     {
         $this->assertEquals(30, $this->tokenConfig->getLoginTTLMinutes());
     }
 
-    public function testGetLoginTTLTimestamp(): void
+    public function testGetLoginTTLDateTime(): void
+    {
+        $expected = (new \DateTime())->modify('+ 30 minutes');
+        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getLoginTTLDateTime()->format('Y-m-d H:i:s'));
+    }
+
+    public function testGetLoginTTLDateTimeString(): void
     {
         $expected = (new \DateTime())
             ->modify('+ 30 minutes')
@@ -56,9 +68,15 @@ class TokenConfigTest extends TestCase
         $this->assertEquals($expected, $this->tokenConfig->getLoginTTLDateTimeString());
     }
 
-    public function testGetRefreshTokenTimeOfLifeMinutes()
+    public function testGetRefreshTokenTTLMinutes()
     {
         $this->assertEquals(90, $this->tokenConfig->getRefreshTokenTTLMinutes());
+    }
+
+    public function testGetRefreshTokenTTLDateTime(): void
+    {
+        $expected = (new \DateTime())->modify('+ 90 minutes');
+        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getRefreshTokenTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetRefreshTokenTTLDateTimeString(): void
@@ -70,9 +88,15 @@ class TokenConfigTest extends TestCase
         $this->assertEquals($expected, $this->tokenConfig->getRefreshTokenTTLDateTimeString());
     }
 
-    public function testGetRegistrationTimeOfLifeMinutes()
+    public function testGetRegistrationTTLMinutes()
     {
         $this->assertEquals(120, $this->tokenConfig->getRegistrationTTLMinutes());
+    }
+
+    public function testGetRegistrationTTLDateTime(): void
+    {
+        $expected = (new \DateTime())->modify('+ 120 minutes');
+        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getRegistrationTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetRegistrationTTLDateTimeString(): void

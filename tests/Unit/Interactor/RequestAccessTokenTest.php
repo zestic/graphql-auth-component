@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
+use SlopeIt\ClockMock\ClockMock;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 
@@ -25,6 +26,13 @@ class RequestAccessTokenTest extends TestCase
         $this->authServer = $this->createMock(AuthorizationServer::class);
         $this->psr17Factory = $this->createMock(Psr17Factory::class);
         $this->requestAccessToken = new RequestAccessToken($this->authServer, $this->psr17Factory);
+        ClockMock::freeze(new \DateTime('2024-06-05'));
+    }
+
+    protected function tearDown(): void
+    {
+        ClockMock::reset();
+        parent::tearDown();
     }
 
     public function testExecuteSuccessfully(): void
@@ -69,16 +77,14 @@ class RequestAccessTokenTest extends TestCase
             ->method('__toString')
             ->willReturn(json_encode([
                 'access_token' => 'new_access_token',
-                'refresh_token' => 'new_refresh_token',
-                'expires_in' => 3600,
+                'expires_at' => 3600,
             ]));
 
         $result = $this->requestAccessToken->execute($refreshToken, $clientId, $clientSecret);
 
         $this->assertInstanceOf(AccessTokenEntity::class, $result);
-        $this->assertEquals('new_access_token', $result->accessToken);
-        $this->assertEquals('new_refresh_token', $result->refreshToken);
-        $this->assertEquals(3600, $result->expiresIn);
+        $this->assertEquals('new_access_token', $result->getIdentifier());
+        $this->assertEquals(3600, $result->getExpiryDateTime());
     }
 
     public function testExecuteThrowsOAuthServerException(): void

@@ -5,6 +5,8 @@ namespace Tests\Integration;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\DB\MigrationRunner;
+use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
+use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 abstract class DatabaseTestCase extends TestCase
@@ -44,6 +46,8 @@ abstract class DatabaseTestCase extends TestCase
 
         // Run migrations to set up the database schema
         self::$migrationRunner->migrate('testing');
+
+        parent::setUpBeforeClass();
     }
 
     public static function tearDownAfterClass(): void
@@ -67,13 +71,13 @@ abstract class DatabaseTestCase extends TestCase
         $this->seedAccessTokenTable();
     }
 
-    protected function seedAccessTokenTable(): void
+    protected static function seedAccessTokenTable(): void
     {
-        $values = $this->formatValues([
+        $values = self::formatValues([
             self::TEST_ACCESS_TOKEN_ID,
             self::TEST_CLIENT_ID,
             self::TEST_USER_ID,
-            self::$tokenConfig->getAccessTokenTTLTimestamp(),
+            self::$tokenConfig->getAccessTokenTTLDateTimeString(),
         ]);
         self::$pdo->exec(
             "INSERT INTO oauth_access_tokens (
@@ -84,9 +88,20 @@ abstract class DatabaseTestCase extends TestCase
         );
     }
 
-    protected function seedClientRepository(): void
+    protected function getSeededAccessToken(): AccessTokenEntity
     {
-        $values = $this->formatValues([
+        $accessToken = new AccessTokenEntity();
+        $accessToken->setIdentifier(self::TEST_ACCESS_TOKEN_ID);
+        $accessToken->setClient(self::getSeededClientEntity());
+        $accessToken->setUserIdentifier(self::TEST_USER_ID);
+        $accessToken->setExpiryDateTime(self::$tokenConfig->getAccessTokenTTLDateTime());
+
+        return $accessToken;
+    }
+
+    protected static function seedClientRepository(): ClientEntity
+    {
+        $values = self::formatValues([
             self::TEST_CLIENT_ID,
             self::TEST_CLIENT_NAME,
         ]);
@@ -98,11 +113,23 @@ abstract class DatabaseTestCase extends TestCase
                 " . $values . "
             )"
         );
+
+        return self::getSeededClientEntity();
     }
 
-    protected function seedUserRepository(): void
+    protected static function getSeededClientEntity(): ClientEntity
     {
-        $values = $this->formatValues([
+        return new ClientEntity(
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
+            '',
+            false,
+        );
+    }
+
+    protected static function seedUserRepository(): void
+    {
+        $values = self::formatValues([
             self::TEST_USER_ID,
             self::TEST_EMAIL,
             self::TEST_USER_DISPLAY_NAME,
@@ -131,7 +158,7 @@ abstract class DatabaseTestCase extends TestCase
         // self::$pdo->exec("TRUNCATE TABLE users");
     }
 
-    protected function formatValues(array $values): string
+    protected static function formatValues(array $values): string
     {
         return implode(', ', array_map(function ($value) {
             return "'" . $value . "'";

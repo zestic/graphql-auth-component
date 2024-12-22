@@ -21,7 +21,7 @@ class User implements UserInterface
 
     public function getIdentifier(): string
     {
-        return $this->id;
+        return (string)$this->id;
     }
 
     public function getEmail(): string

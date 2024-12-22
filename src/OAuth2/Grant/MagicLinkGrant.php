@@ -19,10 +19,11 @@ class MagicLinkGrant extends AbstractGrant
 {
     public function __construct(
         private EmailTokenRepositoryInterface $emailTokenRepository,
-        protected RefreshTokenRepositoryInterface $refreshTokenRepository,
+        private RefreshTokenRepositoryInterface $refreshTokenRepo,
         private UserRepositoryInterface $userRepo,
     ) {
         $this->setUserRepository($userRepo);
+        $this->setRefreshTokenRepository($refreshTokenRepo);
         $this->refreshTokenTTL = new \DateInterval('P1M');
         $this->setDefaultScope('');
     }
@@ -37,20 +38,16 @@ class MagicLinkGrant extends AbstractGrant
         ResponseTypeInterface $responseType,
         \DateInterval $accessTokenTTL
     ): ResponseTypeInterface {
-        // Validate request
         $client = $this->validateClient($request);
         $scopes = $this->validateScopes($this->getRequestParameter('scope', $request, $this->defaultScope));
         $user = $this->validateUser($request, $client);
 
-        // Finalize the requested scopes
         $finalizedScopes = $this->scopeRepository->finalizeScopes($scopes, $this->getIdentifier(), $client, $user->getIdentifier());
 
-        // Issue and persist new access token
         $accessToken = $this->issueAccessToken($accessTokenTTL, $client, $user->getIdentifier(), $finalizedScopes);
         $this->getEmitter()->emit(new RequestEvent(RequestEvent::ACCESS_TOKEN_ISSUED, $request));
         $responseType->setAccessToken($accessToken);
 
-        // Issue and persist new refresh token if given
         $refreshToken = $this->issueRefreshToken($accessToken);
 
         if ($refreshToken !== null) {
@@ -67,15 +64,12 @@ class MagicLinkGrant extends AbstractGrant
         if (is_null($token)) {
             throw OAuthServerException::invalidRequest('token');
         }
-
         $emailToken = $this->emailTokenRepository->findByToken($token);
         if (!$emailToken || $emailToken->isExpired()) {
-            throw OAuthServerException::invalidCredentials();
+            throw new \Exception('Invalid or expired token');
         }
 
-        $user = $this->userRepository->findUserById(
-            $this->getIdentifier(),
-        );
+        $user = $this->userRepository->findUserById($emailToken->getUserId());
 
         if (!$user) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));

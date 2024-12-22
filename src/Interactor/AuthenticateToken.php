@@ -29,17 +29,19 @@ class AuthenticateToken
         if (!$emailToken || $emailToken->isExpired()) {
             throw new \Exception('Invalid or expired token');
         }
-
         try {
+            $body = [
+                'grant_type' => 'magic_link',
+                'client_id' => $this->oauthConfig->getClientId(),
+                'client_secret' => $this->oauthConfig->getClientSecret(),
+                'token' => $token,
+            ];
+
             $request = new ServerRequest('POST', new Uri('http://example.com/token'));
             $request = $request
                 ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
-                ->withBody(Stream::create(http_build_query([
-                    'grant_type' => 'magic_link',
-                    'client_id' => $this->oauthConfig->getClientId(),
-                    'client_secret' => $this->oauthConfig->getClientSecret(),
-                    'token' => $token,
-                ])));
+                ->withParsedBody($body)
+                ->withBody(Stream::create(http_build_query($body)));
 
             $response = $this->authorizationServer->respondToAccessTokenRequest($request, new Response());
 
@@ -63,7 +65,7 @@ class AuthenticateToken
         return [
             'accessToken' => $data['access_token'] ?? null,
             'refreshToken' => $data['refresh_token'] ?? null,
-            'expiresIn' => $data['expires_in'] ?? null,
+            'expiresAt' => $data['expires_at'] ?? null,
         ];
     }
 }

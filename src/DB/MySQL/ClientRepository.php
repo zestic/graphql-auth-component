@@ -60,7 +60,7 @@ class ClientRepository implements ClientRepositoryInterface
         return new ClientEntity(
             $result['client_id'],
             $result['name'],
-            json_decode($result['redirect_uri'], true),
+            $result['redirect_uri'] ? json_decode($result['redirect_uri'], true) : '',
             (bool) $result['is_confidential']
         );
     }

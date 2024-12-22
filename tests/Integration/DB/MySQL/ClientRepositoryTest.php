@@ -20,12 +20,7 @@ class ClientRepositoryTest extends DatabaseTestCase
 
     public function testCreateAndGetClient(): void
     {
-        $clientEntity = new ClientEntity(
-            self::TEST_CLIENT_ID,
-            self::TEST_CLIENT_NAME,
-            'https://example.com/callback',
-            true
-        );
+        $clientEntity = $this->createClientEntity();
 
         // Test create
         $result = $this->repository->create($clientEntity);
@@ -40,16 +35,11 @@ class ClientRepositoryTest extends DatabaseTestCase
         $this->assertTrue($retrievedClient->isConfidential());
     }
 
+    /**
+     * @depends testCreateAndGetClient
+     */
     public function testValidateClient(): void
     {
-        $clientEntity = new ClientEntity(
-            self::TEST_CLIENT_ID,
-            self::TEST_CLIENT_NAME,
-            'https://example.com/callback',
-            true
-        );
-        $this->repository->create($clientEntity);
-
         // Test valid client
         $isValid = $this->repository->validateClient(self::TEST_CLIENT_ID, null, null);
         $this->assertTrue($isValid);
@@ -59,18 +49,14 @@ class ClientRepositoryTest extends DatabaseTestCase
         $this->assertFalse($isValid);
     }
 
+    /**
+     * @depends testCreateAndGetClient
+     */
     public function testDeleteClient(): void
     {
-        $clientEntity = new ClientEntity(
-            self::TEST_CLIENT_ID,
-            self::TEST_CLIENT_NAME,
-            'https://example.com/callback',
-            true
-        );
-        $this->repository->create($clientEntity);
 
         // Test delete
-        $result = $this->repository->delete($clientEntity);
+        $result = $this->repository->delete($this->createClientEntity());
         $this->assertTrue($result);
 
         // Verify the client is soft deleted
@@ -85,10 +71,13 @@ class ClientRepositoryTest extends DatabaseTestCase
         $this->assertNotNull($result['deleted_at']);
     }
 
-    protected function tearDown(): void
+    private function createClientEntity(): ClientEntity
     {
-        // Clean up the database after each test
-        self::$pdo->exec('TRUNCATE TABLE oauth_clients');
-        parent::tearDown();
+        return new ClientEntity(
+            self::TEST_CLIENT_ID,
+            self::TEST_CLIENT_NAME,
+            'https://example.com/callback',
+            true
+        );
     }
 }

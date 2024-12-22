@@ -47,11 +47,12 @@ class AuthenticateTokenTest extends TestCase
         $this->oauthConfig->method('getClientId')->willReturn('client_id');
         $this->oauthConfig->method('getClientSecret')->willReturn('client_secret');
 
+        $expiresAt = (new \DateTime('+ 1 hour'))->getTimestamp();
         $response = new Response();
         $response->getBody()->write(json_encode([
             'access_token' => 'new_access_token',
             'refresh_token' => 'new_refresh_token',
-            'expires_in' => 3600,
+            'expires_at' => $expiresAt,
         ]));
 
         $this->authorizationServer->expects($this->once())
@@ -66,7 +67,7 @@ class AuthenticateTokenTest extends TestCase
 
         $this->assertSame('new_access_token', $result['accessToken']);
         $this->assertSame('new_refresh_token', $result['refreshToken']);
-        $this->assertSame(3600, $result['expiresIn']);
+        $this->assertSame($expiresAt, $result['expiresAt']);
     }
 
     public function testAuthenticateWithExpiredToken(): void

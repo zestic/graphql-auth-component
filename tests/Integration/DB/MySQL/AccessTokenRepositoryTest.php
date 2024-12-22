@@ -24,7 +24,7 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
             self::$tokenConfig,
         ); 
 
-        $this->clientEntity = $this->seedClientEntity();
+        $this->clientEntity = $this->getSeededClientEntity();
     }
 
     public function testGetNewTokenAndPersist(): void

@@ -4,35 +4,30 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
-use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
-use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
-use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use Psr\Http\Message\ServerRequestInterface;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
 
 class InvalidateToken
 {
     public function __construct(
-        private ResourceServer $resourceServer,
-        private AccessTokenRepositoryInterface $accessTokenRepository,
-        private RefreshTokenRepositoryInterface $refreshTokenRepository
+        private AccessTokenRepository $accessTokenRepository,
+        private RefreshTokenRepository $refreshTokenRepository
     ) {
     }
 
-    public function execute(ServerRequestInterface $request): bool
+    public function execute(string $userId): bool
     {
         try {
-            $validatedRequest = $this->resourceServer->validateAuthenticatedRequest($request);
+            $accessTokens = $this->accessTokenRepository->findTokensByUserId($userId);
+            foreach ($accessTokens as $accessToken) {
+                $this->accessTokenRepository->revokeAccessToken($accessToken->getIdentifier());
 
-            $accessTokenId = $validatedRequest->getAttribute('oauth_access_token_id');
-
-            // Revoke the access token
-            $this->accessTokenRepository->revokeAccessToken($accessTokenId);
-
-            // Find and revoke all refresh tokens for this access token
-            $refreshTokens = $this->refreshTokenRepository->findRefreshTokensByAccessTokenId($accessTokenId);
-            foreach ($refreshTokens as $refreshToken) {
-                $this->refreshTokenRepository->revokeRefreshToken($refreshToken->getIdentifier());
+                // Find and revoke all refresh tokens for this access token
+                $refreshTokens = $this->refreshTokenRepository->findRefreshTokensByAccessTokenId($accessToken->getIdentifier());
+                foreach ($refreshTokens as $refreshToken) {
+                    $this->refreshTokenRepository->revokeRefreshToken($refreshToken->getIdentifier());
+                }
             }
 
             return true;

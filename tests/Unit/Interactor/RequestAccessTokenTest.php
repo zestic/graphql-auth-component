@@ -6,26 +6,22 @@ namespace Tests\Unit\Interactor;
 
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use SlopeIt\ClockMock\ClockMock;
-use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 
 class RequestAccessTokenTest extends TestCase
 {
     private AuthorizationServer $authServer;
-    private Psr17Factory $psr17Factory;
     private RequestAccessToken $requestAccessToken;
 
     protected function setUp(): void
     {
         $this->authServer = $this->createMock(AuthorizationServer::class);
-        $this->psr17Factory = $this->createMock(Psr17Factory::class);
-        $this->requestAccessToken = new RequestAccessToken($this->authServer, $this->psr17Factory);
+        $this->requestAccessToken = new RequestAccessToken($this->authServer);
         ClockMock::freeze(new \DateTime('2024-06-05'));
     }
 
@@ -37,36 +33,15 @@ class RequestAccessTokenTest extends TestCase
 
     public function testExecuteSuccessfully(): void
     {
-        $refreshToken = 'refresh_token';
+        $refreshToken = 'refresh_token_identifier';
         $clientId = 'client_id';
         $clientSecret = 'client_secret';
 
-        $serverRequest = $this->createMock(ServerRequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
         $stream = $this->createMock(StreamInterface::class);
 
-        $this->psr17Factory->expects($this->once())
-            ->method('createServerRequest')
-            ->with('POST', 'http://example.com/token')
-            ->willReturn($serverRequest);
-
-        $serverRequest->expects($this->once())
-            ->method('withParsedBody')
-            ->with([
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $refreshToken,
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret,
-            ])
-            ->willReturnSelf();
-
-        $this->psr17Factory->expects($this->once())
-            ->method('createResponse')
-            ->willReturn($response);
-
         $this->authServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
-            ->with($serverRequest, $response)
             ->willReturn($response);
 
         $response->expects($this->once())
@@ -77,14 +52,17 @@ class RequestAccessTokenTest extends TestCase
             ->method('__toString')
             ->willReturn(json_encode([
                 'access_token' => 'new_access_token',
+                'refresh_token' => $refreshToken,
                 'expires_at' => 3600,
             ]));
 
         $result = $this->requestAccessToken->execute($refreshToken, $clientId, $clientSecret);
 
-        $this->assertInstanceOf(AccessTokenEntity::class, $result);
-        $this->assertEquals('new_access_token', $result->getIdentifier());
-        $this->assertEquals(3600, $result->getExpiryDateTime());
+        $this->assertArrayHasKey('accessToken', $result);
+        $this->assertArrayHasKey('refreshToken', $result);
+
+        $this->assertEquals('new_access_token', $result['accessToken']);
+        $this->assertEquals($refreshToken, $result['refreshToken']);
     }
 
     public function testExecuteThrowsOAuthServerException(): void
@@ -95,9 +73,6 @@ class RequestAccessTokenTest extends TestCase
 
         $serverRequest = $this->createMock(ServerRequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
-
-        $this->psr17Factory->method('createServerRequest')->willReturn($serverRequest);
-        $this->psr17Factory->method('createResponse')->willReturn($response);
 
         $serverRequest->method('withParsedBody')->willReturnSelf();
 

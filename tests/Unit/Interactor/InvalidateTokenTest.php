@@ -4,29 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Interactor;
 
+use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
-use League\OAuth2\Server\ResourceServer;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ServerRequestInterface;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
-use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 
 class InvalidateTokenTest extends TestCase
 {
-    private ResourceServer $resourceServer;
-    private AccessTokenRepositoryInterface $accessTokenRepository;
-    private RefreshTokenRepositoryInterface $refreshTokenRepository;
+    private AccessTokenRepository $accessTokenRepository;
+    private RefreshTokenRepository $refreshTokenRepository;
     private InvalidateToken $invalidateToken;
 
     protected function setUp(): void
     {
-        $this->resourceServer = $this->createMock(ResourceServer::class);
-        $this->accessTokenRepository = $this->createMock(AccessTokenRepositoryInterface::class);
-        $this->refreshTokenRepository = $this->createMock(RefreshTokenRepositoryInterface::class);
+        $this->accessTokenRepository = $this->createMock(AccessTokenRepository::class);
+        $this->refreshTokenRepository = $this->createMock(RefreshTokenRepository::class);
         $this->invalidateToken = new InvalidateToken(
-            $this->resourceServer,
             $this->accessTokenRepository,
             $this->refreshTokenRepository
         );
@@ -34,53 +30,72 @@ class InvalidateTokenTest extends TestCase
 
     public function testExecuteSuccessfully(): void
     {
-        $request = $this->createMock(ServerRequestInterface::class);
-        $validatedRequest = $this->createMock(ServerRequestInterface::class);
-        $accessTokenId = 'access_token_123';
-
-        $validatedRequest->expects($this->once())
-            ->method('getAttribute')
-            ->willReturn($accessTokenId);
-
-        $this->resourceServer->expects($this->once())
-            ->method('validateAuthenticatedRequest')
-            ->with($request)
-            ->willReturn($validatedRequest);
-
-        $this->accessTokenRepository->expects($this->once())
-            ->method('revokeAccessToken')
-            ->with($accessTokenId);
-
+        $userId = 'user_123';
+        $accessToken1 = $this->createMock(AccessTokenEntityInterface::class);
+        $accessToken2 = $this->createMock(AccessTokenEntityInterface::class);
         $refreshToken1 = $this->createMock(RefreshTokenEntityInterface::class);
-        $refreshToken1->method('getIdentifier')->willReturn('refresh_token_1');
         $refreshToken2 = $this->createMock(RefreshTokenEntityInterface::class);
+
+        // Setup access tokens
+        $accessToken1->method('getIdentifier')->willReturn('access_token_1');
+        $accessToken2->method('getIdentifier')->willReturn('access_token_2');
+
+        // Setup refresh tokens
+        $refreshToken1->method('getIdentifier')->willReturn('refresh_token_1');
         $refreshToken2->method('getIdentifier')->willReturn('refresh_token_2');
 
-        $this->refreshTokenRepository->expects($this->once())
-            ->method('findRefreshTokensByAccessTokenId')
-            ->with($accessTokenId)
-            ->willReturn([$refreshToken1, $refreshToken2]);
+        // Expect to find access tokens for user
+        $this->accessTokenRepository->expects($this->once())
+            ->method('findTokensByUserId')
+            ->with($userId)
+            ->willReturn([$accessToken1, $accessToken2]);
 
-        $expectedTokens = ['refresh_token_1', 'refresh_token_2'];
+        // Expect to revoke access tokens
+        $this->accessTokenRepository->expects($this->exactly(2))
+            ->method('revokeAccessToken')
+            ->willReturnCallback(function($tokenId) {
+                $this->assertContains($tokenId, ['access_token_1', 'access_token_2']);
+                return null;
+            });
+
+        // Expect to find refresh tokens
+        $this->refreshTokenRepository
+            ->method('findRefreshTokensByAccessTokenId')
+            ->willReturnMap([
+                ['access_token_1', [$refreshToken1]],
+                ['access_token_2', [$refreshToken2]]
+            ]);
+
+        // Expect to revoke refresh tokens
         $this->refreshTokenRepository->expects($this->exactly(2))
             ->method('revokeRefreshToken')
-            ->willReturnCallback(function ($argument) use (&$expectedTokens) {
-                $this->assertEquals(array_shift($expectedTokens), $argument);
-
-                return true;
+            ->willReturnCallback(function($tokenId) {
+                $this->assertContains($tokenId, ['refresh_token_1', 'refresh_token_2']);
+                return null;
             });
-        $result = $this->invalidateToken->execute($request);
+
+        $result = $this->invalidateToken->execute($userId);
         $this->assertTrue($result);
     }
 
-    public function testExecuteWithOAuthServerException(): void
+    public function testExecuteWithNoTokens(): void
     {
-        $request = $this->createMock(ServerRequestInterface::class);
-        $this->resourceServer->expects($this->once())
-            ->method('validateAuthenticatedRequest')
-            ->with($request)
-            ->willThrowException(OAuthServerException::accessDenied('Access token is invalid'));
-        $result = $this->invalidateToken->execute($request);
-        $this->assertFalse($result);
+        $userId = 'user_with_no_tokens';
+
+        $this->accessTokenRepository->expects($this->once())
+            ->method('findTokensByUserId')
+            ->with($userId)
+            ->willReturn([]);
+
+        // Should not try to revoke any tokens
+        $this->accessTokenRepository->expects($this->never())
+            ->method('revokeAccessToken');
+        $this->refreshTokenRepository->expects($this->never())
+            ->method('findRefreshTokensByAccessTokenId');
+        $this->refreshTokenRepository->expects($this->never())
+            ->method('revokeRefreshToken');
+
+        $result = $this->invalidateToken->execute($userId);
+        $this->assertTrue($result);
     }
 }

@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use Defuse\Crypto\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
-use Nyholm\Psr7\ServerRequest;
+use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkCommunicationInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationCommunicationInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\ClientRepository;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\EmailTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\UserRepository;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\AuthenticateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
+use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\ValidateRegistration;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
@@ -28,15 +32,18 @@ class AuthenticationFlowTest extends DatabaseTestCase
     private array $capturedSendArguments = [];
     private string $clientId = 'test_client';
     private string $clientSecret = 'test_secret';
-    private string $testUserEmail = 'test@zestic.com';
     private AccessTokenRepository $accessTokenRepository;
     private AuthenticateToken $authenticateToken;
     private AuthorizationServer $authorizationServer;
     private ClientRepository $clientRepository;
+    private CryptKey $privateKey;
     private EmailTokenRepository $emailTokenRepository;
     private InvalidateToken $invalidateToken;
-    private CryptKey $privateKey;
+    private Key $encryptionKey;
     private RegisterUser $registerUser;
+    private RefreshTokenRepository $refreshTokenRepository;
+    private RequestAccessToken $requestAccessToken;
+    private ScopeRepository $scopeRepository;
     private SendMagicLink $sendMagicLink;
     private SendMagicLinkCommunicationInterface $sendMagicLinkCommunication;
     private SendVerificationCommunicationInterface $sendVerificationCommunication;
@@ -46,12 +53,19 @@ class AuthenticationFlowTest extends DatabaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seedClientRepository();
+
         $this->accessTokenRepository = new AccessTokenRepository(
             self::$pdo,
             self::$tokenConfig,
         );
         $this->clientRepository = new ClientRepository(self::$pdo);
         $this->emailTokenRepository = new EmailTokenRepository(self::$pdo);
+        $this->refreshTokenRepository = new RefreshTokenRepository(
+            self::$pdo,
+            self::$tokenConfig,
+        );
+        $this->scopeRepository = new ScopeRepository(self::$pdo);
         $this->userRepository = new UserRepository(self::$pdo);
         $emailTokenFactory = new EmailTokenFactory(
             self::$tokenConfig,
@@ -79,6 +93,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
             'clientSecret' => $this->clientSecret,
         ]);
         $this->privateKey = new CryptKey(getcwd() . '/tests/resources/jwt/private.key');
+        $this->encryptionKey = Key::loadFromAsciiSafeString($_ENV['OAUTH_ENCRYPTION_KEY']);
 
         $this->authorizationServer = new AuthorizationServer(
             $this->clientRepository,
@@ -93,15 +108,27 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->refreshTokenRepository,
             $this->userRepository,
         );
+        $this->authorizationServer->enableGrantType($magicLinkGrant);
 
-                $this->authenticateToken = new AuthenticateToken(
-                    $this->authorizationServer,
-                    $this->emailTokenRepository,
-                    $oauthConfig,
-                );
-                $this->invalidateToken = new InvalidateToken(
-                    $this->emailTokenRepository,
-                );
+        $refreshTokenGrant = new RefreshTokenGrant(
+            $this->refreshTokenRepository,
+        );
+        $this->authorizationServer->enableGrantType($refreshTokenGrant);
+        
+        $this->authenticateToken = new AuthenticateToken(
+            $this->authorizationServer,
+            $this->emailTokenRepository,
+            $oauthConfig,
+        );
+
+        $this->requestAccessToken = new RequestAccessToken(
+            $this->authorizationServer,
+        );
+
+       $this->invalidateToken = new InvalidateToken(
+           $this->accessTokenRepository,
+           $this->refreshTokenRepository,
+       );
     }
 
     public function testFlow(): void
@@ -126,11 +153,12 @@ class AuthenticationFlowTest extends DatabaseTestCase
             });
 
         $registrationContext = new RegistrationContext(
-            $this->testUserEmail,
+            self::TEST_EMAIL, // Use the same email as theestUserEmail,
             [
                 'displayName' => 'Test User',
             ],
         );
+        
         $registrationResult = $this->registerUser->register($registrationContext);
         $this->assertTrue($registrationResult['success']);
 
@@ -157,7 +185,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
                 return true;
             });
 
-        $magicLinkResult = $this->sendMagicLink->send($this->testUserEmail);
+        $magicLinkResult = $this->sendMagicLink->send(self::TEST_EMAIL);
         $this->assertTrue($magicLinkResult['success']);
 
         $data['emailToken'] = $this->capturedSendArguments['magicLinkEmailToken'];
@@ -167,46 +195,31 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function authenticateToken(array $data): array
     {
-        xdebug_break();
-
         $authResult = $this->authenticateToken->authenticate($data['emailToken']->token);
-        $this->assertArrayHasKey('access_token', $authResult);
-        $this->assertArrayHasKey('refresh_token', $authResult);
+        
+        $this->assertArrayHasKey('accessToken', $authResult);
+        $this->assertArrayHasKey('refreshToken', $authResult);
 
-        $data['refreshToken'] = $authResult['refresh_token'];
+        $data['refreshToken'] = $authResult['refreshToken'];
+
         return $data;
     }
 
     public function refreshToken(array $data): array
     {
-        $request = new ServerRequest('POST', '/token');
-        $request = $request->withParsedBody([
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $data['refreshToken'],
-            'client_id' => 'test_client',
-        ]);
-        $refreshResult = $this->authenticateToken->execute($request);
-        $this->assertArrayHasKey('access_token', $refreshResult);
+        $refreshResult = $this->requestAccessToken->execute($data['refreshToken'], self::TEST_CLIENT_ID);
+        $this->assertArrayHasKey('accessToken', $refreshResult);
+        $this->assertArrayHasKey('refreshToken', $refreshResult);
 
-        $data['request'] = $request;
         return $data;
     }
 
     public function invalidateToken(array $data): void
     {
-        $invalidateResult = $this->invalidateToken->execute($data['userId']);
+        $invalidateResult = $this->invalidateToken->execute(self::TEST_USER_ID);
         $this->assertTrue($invalidateResult);
 
         $this->expectException(\Exception::class);
-        $this->authenticateToken->execute($data['request']);
-    }
-
-    protected function tearDown(): void
-    {
-        // Clean up the database
-//        self::$pdo->exec('TRUNCATE TABLE users');
-//        self::$pdo->exec('TRUNCATE TABLE email_tokens');
-//        self::$pdo->exec('TRUNCATE TABLE oauth_clients');
-        parent::tearDown();
+        $this->requestAccessToken->execute($data['refreshToken'], self::TEST_CLIENT_ID);
     }
 }

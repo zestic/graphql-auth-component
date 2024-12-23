@@ -25,7 +25,10 @@ class RequestAccessToken
         $request = $this->createServerRequest($refreshToken, $clientId, $clientSecret);
 
         try {
-            $response = $this->authServer->respondToAccessTokenRequest($request, $this->psr17Factory->createResponse());
+            $response = $this->authServer->respondToAccessTokenRequest(
+                $request, 
+                $this->psr17Factory->createResponse(),
+            );
 
             return $this->parseResponse($response);
         } catch (OAuthServerException $exception) {

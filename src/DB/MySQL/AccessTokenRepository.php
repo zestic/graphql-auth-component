@@ -70,7 +70,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
         ]);
 
         if ($stmt->rowCount() === 0) {
-            throw new UniqueTokenIdentifierConstraintViolationException('Could not persist access token');
+            throw UniqueTokenIdentifierConstraintViolationException::create();
         }
     }
 

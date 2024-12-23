@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Integration\DB\MySQL;
 
-use League\OAuth2\Server\Entities\ClientEntityInterface;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
@@ -13,8 +12,18 @@ use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;
 
 class AccessTokenRepositoryTest extends DatabaseTestCase
 {
+    const string OTHER_USER_ID = 'other_user_id';
+
     private AccessTokenRepository $repository;
     private ClientEntity $clientEntity;
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        self::seedUserRepository();
+        self::seedUserRepository(self::OTHER_USER_ID, 'other_email', 'other_display_name');
+        self::seedClientRepository();
+    }
 
     protected function setUp(): void
     {
@@ -29,8 +38,6 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
 
     public function testGetNewTokenAndPersist(): void
     {
-        $this->seedUserRepository();
-        $this->seedClientRepository();
 
         $scope = new ScopeEntity('test_scope');
 
@@ -57,6 +64,35 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
         $this->assertStringContainsString('test_scope', $result['scopes']);
         $persistedExpiryTime = new \DateTimeImmutable($result['expires_at']);
         $this->assertEquals($dateTime->format('Y-m-d H:i:s'), $persistedExpiryTime->format('Y-m-d H:i:s'));
+    }
+
+    public function testFindTokensByUserId(): void
+    {
+        // Create and persist multiple tokens for the same user
+        $scope = new ScopeEntity('test_scope');
+        $token1 = $this->repository->getNewToken($this->clientEntity, [$scope], self::TEST_USER_ID);
+        $token1->setExpiryDateTime(new \DateTimeImmutable('+1 hour'));
+        $token1->setIdentifier($this->generateUniqueIdentifier());
+        $this->repository->persistNewAccessToken($token1);
+
+        // Create a token for a different user
+        $otherToken = $this->repository->getNewToken($this->clientEntity, [$scope], self::OTHER_USER_ID);
+        $otherToken->setExpiryDateTime(new \DateTimeImmutable('+1 hour'));
+        $otherToken->setIdentifier($this->generateUniqueIdentifier());
+        $this->repository->persistNewAccessToken($otherToken);
+
+        // Test finding tokens
+        $foundTokens = $this->repository->findTokensByUserId(self::TEST_USER_ID);
+        
+        $this->assertCount(2, $foundTokens);
+        foreach ($foundTokens as $token) {
+            $this->assertInstanceOf(AccessTokenEntity::class, $token);
+            $this->assertEquals(self::TEST_USER_ID, $token->getUserIdentifier());
+        }
+
+        // Test finding tokens for user with no tokens
+        $noTokens = $this->repository->findTokensByUserId('non_existent_user');
+        $this->assertEmpty($noTokens);
     }
 
     public function testRevokeAccessToken(): void

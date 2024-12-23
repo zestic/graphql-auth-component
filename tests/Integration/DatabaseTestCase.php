@@ -119,21 +119,27 @@ abstract class DatabaseTestCase extends TestCase
 
     protected static function getSeededClientEntity(): ClientEntity
     {
-        return new ClientEntity(
-            self::TEST_CLIENT_ID,
-            self::TEST_CLIENT_NAME,
-            '',
-            false,
-        );
+        $clientEntity = new ClientEntity();
+        $clientEntity->setIdentifier(self::TEST_CLIENT_ID);
+        $clientEntity->setName(self::TEST_CLIENT_NAME);
+        $clientEntity->setRedirectUri('');
+        $clientEntity->setIsConfidential(false);
+
+        return $clientEntity;
     }
 
-    protected static function seedUserRepository(): void
+    protected static function seedUserRepository(
+        string $userId = self::TEST_USER_ID, 
+        string $email = self::TEST_EMAIL, 
+        string $displayName = self::TEST_USER_DISPLAY_NAME, 
+        array $additionalData = [],
+    ): void
     {
         $values = self::formatValues([
-            self::TEST_USER_ID,
-            self::TEST_EMAIL,
-            self::TEST_USER_DISPLAY_NAME,
-            json_encode([]),
+            $userId,
+            $email,
+            $displayName,
+            json_encode($additionalData),
         ]);
         self::$pdo->exec(
             "INSERT INTO users (

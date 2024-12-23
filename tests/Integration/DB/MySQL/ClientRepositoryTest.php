@@ -73,11 +73,12 @@ class ClientRepositoryTest extends DatabaseTestCase
 
     private function createClientEntity(): ClientEntity
     {
-        return new ClientEntity(
-            self::TEST_CLIENT_ID,
-            self::TEST_CLIENT_NAME,
-            'https://example.com/callback',
-            true
-        );
+        $clientEntity = new ClientEntity();
+        $clientEntity->setIdentifier(self::TEST_CLIENT_ID);
+        $clientEntity->setName(self::TEST_CLIENT_NAME);
+        $clientEntity->setRedirectUri('https://example.com/callback');
+        $clientEntity->setIsConfidential(true);
+
+        return $clientEntity;
     }
 }

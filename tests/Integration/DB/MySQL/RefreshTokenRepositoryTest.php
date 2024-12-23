@@ -41,7 +41,6 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
 
     public function testPersistNewRefreshToken(): void
     {
-
         $refreshToken = new RefreshTokenEntity();
         $tokenId = $this->generateUniqueIdentifier();
         $refreshToken->setIdentifier($tokenId);

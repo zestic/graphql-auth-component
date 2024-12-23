@@ -34,20 +34,34 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
                 VALUES (:id, :access_token_id, :client_id, :revoked, :user_id, :expires_at)
             ");
             $result = $stmt->execute([
-                'id' => $refreshTokenEntity->getIdentifier(),
                 'access_token_id' => $refreshTokenEntity->getAccessToken()->getIdentifier(),
                 'client_id' => $refreshTokenEntity->getClientIdentifier(),
+                'expires_at' => $refreshTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s'),
+                'id' => $refreshTokenEntity->getIdentifier(),
                 'revoked' => 0,
                 'user_id' => $refreshTokenEntity->getUserIdentifier(),
-                'expires_at' => $refreshTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s'),
             ]);
 
             if ($result === false) {
-                throw new UniqueTokenIdentifierConstraintViolationException('Could not persist new refresh token');
+                throw UniqueTokenIdentifierConstraintViolationException::create();
             }
         } catch (\Exception $exception) {
-            throw new UniqueTokenIdentifierConstraintViolationException('Could not persist new refresh token');
+            throw UniqueTokenIdentifierConstraintViolationException::create();
         }
+    }
+
+    public function findRefreshTokensByAccessTokenId(string $accessTokenId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT *
+            FROM oauth_refresh_tokens
+            WHERE access_token_id = :access_token_id
+        ");
+
+        $stmt->execute(['access_token_id' => $accessTokenId]);
+        $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        return array_map(fn(array $data) => $this->hydrateRefreshToken($data), $data);
     }
 
     public function revokeRefreshToken(string $tokenId): void
@@ -73,5 +87,17 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return $result === false || $result['revoked'];
+    }
+
+    public function hydrateRefreshToken(array $data): RefreshTokenEntity
+    {
+        $token =  new RefreshTokenEntity();
+        $token->setIdentifier($data['id']);
+        $token->setAccessToken($data['access_token_id']);
+        $token->setClientIdentifier($data['client_id']);
+        $token->setUserIdentifier($data['user_id']);
+        $token->setExpiryDateTime(new \DateTimeImmutable($data['expires_at']));
+
+        return $token;
     }
 }

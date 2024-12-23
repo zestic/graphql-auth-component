@@ -48,8 +48,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken->setUserIdentifier(self::TEST_USER_ID);
         $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
 
-        $accessToken = $this->createMock(AccessTokenEntityInterface::class);
-        $accessToken->method('getIdentifier')->willReturn(self::TEST_ACCESS_TOKEN_ID);
+        $accessToken = self::getSeededAccessToken();
         $refreshToken->setAccessToken($accessToken);
 
         $this->repository->persistNewRefreshToken($refreshToken);
@@ -133,11 +132,5 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         // Revoke and test again
         $this->repository->revokeRefreshToken($tokenId);
         $this->assertTrue($this->repository->isRefreshTokenRevoked($tokenId));
-    }
-
-    protected function tearDown(): void
-    {
-        self::$pdo->exec('TRUNCATE TABLE oauth_refresh_tokens');
-        parent::tearDown();
     }
 }

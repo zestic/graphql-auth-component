@@ -1,0 +1,33 @@
+type RegistrationInput {
+    email: String!
+    additionalData: JSON!
+}
+
+type RegistrationResponse {
+    success: Boolean!
+    message: String!
+    code: String!
+}
+
+type MagicLinkResponse {
+    success: Boolean!
+    message: String!
+    code: String!
+}
+
+type AuthToken {
+    accessToken: String!
+    refreshToken: String!
+    expiresIn: Int!
+}
+
+type AuthenticateTokenResponse {
+    success: Boolean!
+    token: AuthToken
+}
+
+type Mutation {
+    authenticateToken(token: String!): AuthenticateTokenResponse!
+    register(input: RegistrationInput!): RegistrationResponse!
+    sendMagicLink(email: String!): MagicLinkResponse!
+}

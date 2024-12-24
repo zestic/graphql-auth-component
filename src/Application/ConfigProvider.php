@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQLAuthComponent;
+namespace Zestic\GraphQL\AuthComponent;
 
 class ConfigProvider
 {

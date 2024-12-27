@@ -6,10 +6,13 @@ namespace Zestic\GraphQL\AuthComponent;
 
 use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthPDOFactory;
+use Zestic\GraphQL\AuthComponent\Application\Factory\EmailTokenRepositoryFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\UserRepositoryFactory;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\EmailTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\UserRepository;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
+use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ConfigProvider
@@ -26,6 +29,8 @@ class ConfigProvider
         return [
             'factories' => [
                 AuthPDO::class => AuthPDOFactory::class,
+                EmailTokenRepository::class => EmailTokenRepositoryFactory::class,
+                EmailTokenRepositoryInterface::class => EmailTokenRepositoryFactory::class,
                 TokenConfig::class => TokenConfigFactory::class,
                 UserRepository::class => UserRepositoryFactory::class,
                 UserRepositoryInterface::class => UserRepositoryFactory::class,

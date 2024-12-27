@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.3', '8.4']
 
     services:
       mysql:
@@ -22,10 +25,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up PHP
+    - name: Set up PHP ${{ matrix.php-version }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.3'
+        php-version: ${{ matrix.php-version }}
         extensions: uopz
 
     - name: Install dependencies

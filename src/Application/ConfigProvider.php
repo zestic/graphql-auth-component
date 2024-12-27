@@ -6,6 +6,9 @@ namespace Zestic\GraphQL\AuthComponent;
 
 use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthPDOFactory;
+use Zestic\GraphQL\AuthComponent\Application\Factory\UserRepositoryFactory;
+use Zestic\GraphQL\AuthComponent\DB\MySQL\UserRepository;
+use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ConfigProvider
 {
@@ -21,6 +24,8 @@ class ConfigProvider
         return [
             'factories' => [
                 AuthPDO::class => AuthPDOFactory::class,
+                UserRepository::class => UserRepositoryFactory::class,
+                UserRepositoryInterface::class => UserRepositoryFactory::class,
             ],
         ];
     }

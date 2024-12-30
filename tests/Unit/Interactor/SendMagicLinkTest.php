@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkCommunicationInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkEmailInterface;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
@@ -16,18 +16,18 @@ class SendMagicLinkTest extends TestCase
 {
     private UserRepositoryInterface $userRepository;
     private EmailTokenFactory $emailTokenFactory;
-    private SendMagicLinkCommunicationInterface $communication;
+    private SendMagicLinkEmailInterface $email;
     private SendMagicLink $sendMagicLink;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
         $this->emailTokenFactory = $this->createMock(EmailTokenFactory::class);
-        $this->communication = $this->createMock(SendMagicLinkCommunicationInterface::class);
+        $this->email = $this->createMock(SendMagicLinkEmailInterface::class);
 
         $this->sendMagicLink = new SendMagicLink(
             $this->emailTokenFactory,
-            $this->communication,
+            $this->email,
             $this->userRepository,
         );
     }
@@ -50,7 +50,7 @@ class SendMagicLinkTest extends TestCase
             ->with('user-id')
             ->willReturn($emailToken);
 
-        $this->communication->expects($this->once())
+        $this->email->expects($this->once())
             ->method('send')
             ->with($emailToken)
             ->willReturn(true);
@@ -74,7 +74,7 @@ class SendMagicLinkTest extends TestCase
             ->willReturn(null);
 
         $this->emailTokenFactory->expects($this->never())->method('createLoginToken');
-        $this->communication->expects($this->never())->method('send');
+        $this->email->expects($this->never())->method('send');
 
         $result = $this->sendMagicLink->send($email);
 
@@ -95,7 +95,7 @@ class SendMagicLinkTest extends TestCase
 
         $this->userRepository->method('findUserByEmail')->willReturn($user);
         $this->emailTokenFactory->method('createLoginToken')->willReturn($emailToken);
-        $this->communication->method('send')->willReturn(false);
+        $this->email->method('send')->willReturn(false);
 
         $result = $this->sendMagicLink->send($email);
 

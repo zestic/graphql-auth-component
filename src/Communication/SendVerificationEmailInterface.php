@@ -7,7 +7,7 @@ namespace Zestic\GraphQL\AuthComponent\Communication;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 
-interface SendVerificationCommunicationInterface
+interface SendVerificationEmailInterface
 {
     public function send(RegistrationContext $context, EmailToken $token): void;
 }

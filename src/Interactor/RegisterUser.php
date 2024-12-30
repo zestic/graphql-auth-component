@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationCommunicationInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
@@ -13,7 +13,7 @@ class RegisterUser
 {
     public function __construct(
         private EmailTokenFactory $emailTokenFactory,
-        private SendVerificationCommunicationInterface $sendRegistrationVerification,
+        private SendVerificationEmailInterface $sendRegistrationVerification,
         private UserRepositoryInterface $userRepository,
     ) {
     }

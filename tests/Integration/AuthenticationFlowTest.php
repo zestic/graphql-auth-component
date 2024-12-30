@@ -8,8 +8,8 @@ use Defuse\Crypto\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
-use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkCommunicationInterface;
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationCommunicationInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkEmailInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\MySQL\ClientRepository;
@@ -45,8 +45,8 @@ class AuthenticationFlowTest extends DatabaseTestCase
     private RequestAccessToken $requestAccessToken;
     private ScopeRepository $scopeRepository;
     private SendMagicLink $sendMagicLink;
-    private SendMagicLinkCommunicationInterface $sendMagicLinkCommunication;
-    private SendVerificationCommunicationInterface $sendVerificationCommunication;
+    private SendMagicLinkEmailInterface $sendMagicLinkEmail;
+    private SendVerificationEmailInterface $sendVerificationEmail;
     private ValidateRegistration $validateRegistration;
     private UserRepository $userRepository;
 
@@ -71,12 +71,12 @@ class AuthenticationFlowTest extends DatabaseTestCase
             self::$tokenConfig,
             $this->emailTokenRepository,
         );
-        $this->sendMagicLinkCommunication = $this->createMock(SendMagicLinkCommunicationInterface::class);
-        $this->sendVerificationCommunication = $this->createMock(SendVerificationCommunicationInterface::class);
+        $this->sendMagicLinkEmail = $this->createMock(SendMagicLinkEmailInterface::class);
+        $this->sendVerificationEmail = $this->createMock(SendVerificationEmailInterface::class);
         $this->capturedSendArguments = [];
         $this->registerUser = new RegisterUser(
             $emailTokenFactory,
-            $this->sendVerificationCommunication,
+            $this->sendVerificationEmail,
             $this->userRepository,
         );
         $this->validateRegistration = new ValidateRegistration(
@@ -85,7 +85,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
         );
         $this->sendMagicLink = new SendMagicLink(
             $emailTokenFactory,
-            $this->sendMagicLinkCommunication,
+            $this->sendMagicLinkEmail,
             $this->userRepository,
         );
         $oauthConfig = new OAuthConfig([
@@ -143,7 +143,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function registerUser(): array
     {
-        $this->sendVerificationCommunication->method('send')
+        $this->sendVerificationEmail->method('send')
             ->willReturnCallback(function ($registrationContext, $emailToken) {
                 $this->capturedSendArguments = [
                     'verificationEmailToken' => $emailToken,
@@ -177,7 +177,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function sendMagicLink(array $data): array
     {
-        $this->sendMagicLinkCommunication->method('send')
+        $this->sendMagicLinkEmail->method('send')
             ->willReturnCallback(function ($emailToken) {
                 $this->capturedSendArguments = [
                     'magicLinkEmailToken' => $emailToken,

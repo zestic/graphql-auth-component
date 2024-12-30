@@ -6,7 +6,7 @@ namespace Zestic\GraphQL\AuthComponent\Communication;
 
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 
-interface SendMagicLinkCommunicationInterface
+interface SendMagicLinkEmailInterface
 {
     public function send(EmailToken $emailToken): bool;
 }

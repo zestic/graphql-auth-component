@@ -26,6 +26,9 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         return $refreshTokenEntity;
     }
 
+    /**
+     * @param RefreshTokenEntity $refreshTokenEntity
+     */
     public function persistNewRefreshToken(RefreshTokenEntity|RefreshTokenEntityInterface $refreshTokenEntity): void
     {
         try {

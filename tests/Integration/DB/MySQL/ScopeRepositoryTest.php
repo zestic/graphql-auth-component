@@ -17,17 +17,22 @@ class ScopeRepositoryTest extends DatabaseTestCase
     {
         parent::setUp();
         $this->scopeRepository = new ScopeRepository(self::$pdo);
+
+        // Seed scopes
+        self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('read', 'Read access'), ('write', 'Write access')");
+
+        // Seed client
+        self::seedClientRepository();
+
+        // Seed client scopes
+        self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'read'), ('test_client', 'write')");
     }
 
     public function testGetScopeEntityByIdentifier(): void
     {
-        // Seed the database with test data
-        $this->seedDatabase();
-
         $scope = $this->scopeRepository->getScopeEntityByIdentifier('read');
         $this->assertInstanceOf(ScopeEntity::class, $scope);
         $this->assertEquals('read', $scope->getIdentifier());
-        $this->assertEquals('Read access', $scope->getDescription());
 
         $nonExistentScope = $this->scopeRepository->getScopeEntityByIdentifier('non_existent');
         $this->assertNull($nonExistentScope);

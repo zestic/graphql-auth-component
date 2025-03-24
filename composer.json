@@ -17,7 +17,8 @@
   "require-dev": {
     "phpunit/phpunit": "^11.4",
     "ext-pdo": "*",
-    "slope-it/clock-mock": "^0.4.0"
+    "slope-it/clock-mock": "^0.4.0",
+    "phpstan/phpstan": "^2.1"
   },
   "autoload": {
     "psr-4": {
@@ -28,5 +29,13 @@
     "psr-4": {
       "Tests\\": "tests/"
     }
+  },
+  "scripts": {
+    "analyse": "phpstan analyse -c phpstan.neon.dist",
+    "test": "phpunit",
+    "check": [
+      "@test",
+      "@analyse"
+    ]
   }
 }

@@ -40,6 +40,9 @@ class ClientRepositoryTest extends DatabaseTestCase
      */
     public function testValidateClient(): void
     {
+        $clientEntity = $this->createClientEntity();
+        $this->repository->create($clientEntity);
+
         // Test valid client
         $isValid = $this->repository->validateClient(self::TEST_CLIENT_ID, null, null);
         $this->assertTrue($isValid);
@@ -54,9 +57,12 @@ class ClientRepositoryTest extends DatabaseTestCase
      */
     public function testDeleteClient(): void
     {
+        // Create a client first
+        $clientEntity = $this->createClientEntity();
+        $this->repository->create($clientEntity);
 
         // Test delete
-        $result = $this->repository->delete($this->createClientEntity());
+        $result = $this->repository->delete($clientEntity);
         $this->assertTrue($result);
 
         // Verify the client is soft deleted

@@ -19,22 +19,22 @@ class MigrationRunner
         $this->output = $output ?? new NullOutput();
     }
 
-    public function migrate(string $environment = 'development'): int
+    public function migrate(string $environment = 'development', string $config = 'phinx.mysql.yml'): int
     {
-        $input = new StringInput("migrate -e $environment");
+        $input = new StringInput("migrate -c $config -e $environment");
         return $this->app->run($input, $this->output);
     }
 
-    public function reset(string $environment = 'testing'): void
+    public function reset(string $environment = 'testing', string $config = 'phinx.mysql.yml'): void
     {
-        $this->rollback($environment, '0');
+        $this->rollback($environment, '0', $config);
 
         $this->migrate($environment);
     }
 
-    public function rollback(string $environment = 'development', ?string $target = null): int
+    public function rollback(string $environment = 'development', ?string $target = null, string $config = 'phinx.mysql.yml'): int
     {
-        $command = "rollback -e $environment";
+        $command = "rollback -c $config -e $environment";
         if ($target !== null) {
             $command .= " -t $target";
         }
@@ -42,9 +42,9 @@ class MigrationRunner
         return $this->app->run($input, $this->output);
     }
 
-    public function status(string $environment = 'development'): int
+    public function status(string $environment = 'development', string $config = 'phinx.mysql.yml'): int
     {
-        $input = new StringInput("status -e $environment");
+        $input = new StringInput("status -c $config -e $environment");
         return $this->app->run($input, $this->output);
     }
 }

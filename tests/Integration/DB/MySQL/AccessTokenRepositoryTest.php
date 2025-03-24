@@ -28,6 +28,10 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        self::seedUserRepository();
+        self::seedUserRepository(self::OTHER_USER_ID, 'other_email', 'other_display_name');
+        self::seedClientRepository();
+        
         $this->repository = new AccessTokenRepository(
             self::$pdo,
             self::$tokenConfig,
@@ -74,6 +78,12 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
         $token1->setExpiryDateTime(new \DateTimeImmutable('+1 hour'));
         $token1->setIdentifier($this->generateUniqueIdentifier());
         $this->repository->persistNewAccessToken($token1);
+
+        // Create a second token for the same user
+        $token2 = $this->repository->getNewToken($this->clientEntity, [$scope], self::TEST_USER_ID);
+        $token2->setExpiryDateTime(new \DateTimeImmutable('+2 hours'));
+        $token2->setIdentifier($this->generateUniqueIdentifier());
+        $this->repository->persistNewAccessToken($token2);
 
         // Create a token for a different user
         $otherToken = $this->repository->getNewToken($this->clientEntity, [$scope], self::OTHER_USER_ID);

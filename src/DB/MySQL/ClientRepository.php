@@ -43,7 +43,7 @@ class ClientRepository implements ClientRepositoryInterface
         ]);
     }
 
-    public function getClientEntity($clientIdentifier): ?ClientEntityInterface
+    public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface
     {
         $stmt = $this->pdo->prepare('
         SELECT * FROM oauth_clients

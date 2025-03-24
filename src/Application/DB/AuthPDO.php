@@ -8,12 +8,8 @@ use PDO;
 
 class AuthPDO extends PDO
 {
-    public function __construct()
+    public function __construct(string $dsn, string $username, string $password)
     {
-        parent::__construct(
-            'mysql:host=' . getenv('AUTH_DB_HOST') . ';dbname=' . getenv('AUTH_DB_NAME') . ';port=' . getenv('AUTH_DB_PORT'),
-            getenv('AUTH_DB_USER'),
-            getenv('AUTH_DB_PASS')
-        );
+        parent::__construct($dsn, $username, $password);
     }
 }

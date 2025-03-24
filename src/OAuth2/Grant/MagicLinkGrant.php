@@ -19,6 +19,7 @@ class MagicLinkGrant extends AbstractGrant
 {
     public function __construct(
         private EmailTokenRepositoryInterface $emailTokenRepository,
+        /** @phpstan-ignore-next-line Property is used through parent class */
         private RefreshTokenRepositoryInterface $refreshTokenRepo,
         private UserRepositoryInterface $userRepo,
     ) {
@@ -66,10 +67,10 @@ class MagicLinkGrant extends AbstractGrant
         }
         $emailToken = $this->emailTokenRepository->findByToken($token);
         if (!$emailToken || $emailToken->isExpired()) {
-            throw new \Exception('Invalid or expired token');
+            throw OAuthServerException::invalidRequest('token', 'Invalid or expired token');
         }
 
-        $user = $this->userRepository->findUserById($emailToken->getUserId());
+        $user = $this->userRepo->findUserById($emailToken->getUserId());
 
         if (!$user) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));

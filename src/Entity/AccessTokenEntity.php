@@ -9,7 +9,7 @@ use League\OAuth2\Server\Entities\Traits\AccessTokenTrait;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
 
-class AccessTokenEntity implements AccessTokenEntityInterface
+class AccessTokenEntity implements AccessTokenEntityInterface, TokenScopesInterface
 {
     use AccessTokenTrait;
     use EntityTrait;
@@ -39,4 +39,6 @@ class AccessTokenEntity implements AccessTokenEntityInterface
             $this->addScope($scope);
         }
     }
+
+
 }

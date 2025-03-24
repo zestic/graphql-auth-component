@@ -136,9 +136,9 @@ class UserRepository implements UserRepositoryInterface
             $result = $stmt->execute([
                 'id'              => $user->getId(),
                 'email'           => $user->getEmail(),
-                'display_name'    => $user->displayName,
-                'additional_data' => json_encode($user->additionalData),
-                'verified_at'     => $user->verifiedAt ? $user->verifiedAt->format('Y-m-d H:i:s') : null,
+                'display_name'    => $user->getDisplayName(),
+                'additional_data' => json_encode($user->getAdditionalData()),
+                'verified_at'     => $user->getVerifiedAt()?->format('Y-m-d H:i:s'),
             ]);
 
             return $result && $stmt->rowCount() > 0;

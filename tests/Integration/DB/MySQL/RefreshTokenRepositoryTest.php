@@ -26,6 +26,10 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        self::seedClientRepository();
+        self::seedUserRepository();
+        self::seedAccessTokenTable();
+        
         $this->repository = new RefreshTokenRepository(
             self::$pdo,
             self::$tokenConfig,

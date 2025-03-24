@@ -32,11 +32,11 @@ class ValidateRegistration
             return false;
         }
 
-        if ($user->verifiedAt !== null) {
+        if ($user->getVerifiedAt() !== null) {
             return false;
         }
 
-        $user->verifiedAt = new \DateTime();
+        $user->setVerifiedAt(new \DateTime());
         $this->userRepository->update($user);
         $this->emailTokenRepository->delete($token);
 

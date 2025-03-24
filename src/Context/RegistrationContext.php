@@ -8,6 +8,7 @@ use DeviceDetector\DeviceDetector;
 
 class RegistrationContext
 {
+    /** @var array<string, string> */
     public array $userAgent;
 
     public function __construct(

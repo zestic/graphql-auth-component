@@ -43,7 +43,11 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     {
         $accessToken = new AccessTokenEntity();
         $accessToken->setClient($clientEntity);
-        $accessToken->setUserIdentifier($userIdentifier);
+        if ($userIdentifier !== null && $userIdentifier !== '') {
+            $accessToken->setUserIdentifier($userIdentifier);
+        } else {
+            throw new \RuntimeException('User identifier cannot be empty');
+        }
         $accessToken->setExpiryDateTime($this->tokenConfig->getAccessTokenTTLDateTime());
 
         foreach ($scopes as $scope) {
@@ -53,6 +57,9 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
         return $accessToken;
     }
 
+    /**
+     * @param AccessTokenEntity $accessTokenEntity
+     */
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $stmt = $this->pdo->prepare("

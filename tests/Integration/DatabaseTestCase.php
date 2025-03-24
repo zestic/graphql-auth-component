@@ -152,16 +152,22 @@ abstract class DatabaseTestCase extends TestCase
 
     protected function setUp(): void
     {
-        // Optionally, you can reset the database before each test
-        // self::$migrationRunner->reset('testing');
+        // Reset the database before each test
+        self::$migrationRunner->reset('testing');
     }
 
     protected function tearDown(): void
     {
-        // Clean up test data after each test if needed
-        // This depends on your specific needs. You might want to truncate tables instead of dropping them.
-        // For example:
-        // self::$pdo->exec("TRUNCATE TABLE users");
+        // Clean up test data after each test
+        self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        self::$pdo->exec('TRUNCATE TABLE oauth_access_tokens');
+        self::$pdo->exec('TRUNCATE TABLE oauth_refresh_tokens');
+        self::$pdo->exec('TRUNCATE TABLE oauth_client_scopes');
+        self::$pdo->exec('TRUNCATE TABLE oauth_scopes');
+        self::$pdo->exec('TRUNCATE TABLE oauth_clients');
+        self::$pdo->exec('TRUNCATE TABLE email_tokens');
+        self::$pdo->exec('TRUNCATE TABLE users');
+        self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
 
     protected static function formatValues(array $values): string

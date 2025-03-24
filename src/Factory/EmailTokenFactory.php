@@ -17,7 +17,7 @@ class EmailTokenFactory
     ) {
     }
 
-    public function createLoginToken(string $userId): EmailToken
+    public function createLoginToken(string|int $userId): EmailToken
     {
         $expiration = new \DateTime();
         $expiration->modify("+{$this->config->getLoginTTLMinutes()} minutes");
@@ -26,7 +26,7 @@ class EmailTokenFactory
             $expiration,
             bin2hex(random_bytes(16)),
             EmailTokenType::LOGIN,
-            $userId,
+            (string)$userId,
         );
 
         if ($this->emailTokenRepository->create($token)) {
@@ -36,7 +36,7 @@ class EmailTokenFactory
         throw new \Exception('Failed to create email token');
     }
 
-    public function createRegistrationToken(string $userId): EmailToken
+    public function createRegistrationToken(string|int $userId): EmailToken
     {
         $expiration = new \DateTime();
         $expiration->modify("+{$this->config->getRegistrationTTLMinutes()} minutes");
@@ -45,7 +45,7 @@ class EmailTokenFactory
             $expiration,
             bin2hex(random_bytes(16)),
             EmailTokenType::REGISTRATION,
-            $userId,
+            (string)$userId,
         );
 
         if ($this->emailTokenRepository->create($token)) {

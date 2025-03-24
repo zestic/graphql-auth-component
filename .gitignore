@@ -3,3 +3,13 @@
 .phpunit.cache
 vendor/
 composer.lock
+
+# Environment files
+.env
+.env.*
+!.env.*.dist
+
+# Configuration files
+phinx.mysql.yml
+phinx.postgres.yml
+!phinx.*.yml.dist

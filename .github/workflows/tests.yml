@@ -1,0 +1,95 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.3', '8.4']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: graphql_auth_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: graphql_auth_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: password1
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo, pdo_mysql, pdo_pgsql, uopz
+        coverage: pcov
+        tools: composer:v2
+
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Set up MySQL
+      run: |
+        mysql -h127.0.0.1 -uroot -proot -e "CREATE USER IF NOT EXISTS 'test'@'%' IDENTIFIED BY 'password1';"
+        mysql -h127.0.0.1 -uroot -proot -e "GRANT ALL PRIVILEGES ON graphql_auth_test.* TO 'test'@'%';"
+        mysql -h127.0.0.1 -uroot -proot -e "FLUSH PRIVILEGES;"
+
+    - name: Set up PostgreSQL schema
+      run: |
+        PGPASSWORD=password1 psql -h localhost -U test -d graphql_auth_test -c "CREATE SCHEMA IF NOT EXISTS auth;"
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Run Static Analysis
+      run: vendor/bin/phpstan analyse
+
+    - name: Run Tests with Coverage
+      run: vendor/bin/phpunit --coverage-clover coverage.xml
+      env:
+        TEST_DB_HOST: 127.0.0.1
+        TEST_DB_NAME: graphql_auth_test
+        TEST_DB_USER: test
+        TEST_DB_PASS: password1
+        TEST_DB_PORT: 3306
+        TEST_PG_HOST: localhost
+        TEST_PG_DB_NAME: graphql_auth_test
+        TEST_PG_SCHEMA: auth
+        TEST_PG_USER: test
+        TEST_PG_PASS: password1
+        TEST_PG_PORT: 5432
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        fail_ci_if_error: true

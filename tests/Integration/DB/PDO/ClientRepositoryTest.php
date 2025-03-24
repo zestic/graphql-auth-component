@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\PDO;
 
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\ClientRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 
 class ClientRepositoryTest extends DatabaseTestCase

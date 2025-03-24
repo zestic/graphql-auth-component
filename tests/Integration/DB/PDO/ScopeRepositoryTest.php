@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\PDO;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\ScopeRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;
 
 class ScopeRepositoryTest extends DatabaseTestCase

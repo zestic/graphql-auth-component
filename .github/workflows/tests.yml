@@ -72,14 +72,20 @@ jobs:
     - name: Run Static Analysis
       run: vendor/bin/phpstan analyse
 
-    - name: Run Tests with Coverage
-      run: vendor/bin/phpunit --coverage-clover coverage.xml
+    - name: Run Tests with MySQL
+      run: vendor/bin/phpunit --coverage-clover coverage-mysql.xml
       env:
+        TEST_DB_DRIVER: mysql
         TEST_DB_HOST: 127.0.0.1
         TEST_DB_NAME: graphql_auth_test
         TEST_DB_USER: test
         TEST_DB_PASS: password1
         TEST_DB_PORT: 3306
+
+    - name: Run Tests with PostgreSQL
+      run: vendor/bin/phpunit --coverage-clover coverage-postgres.xml
+      env:
+        TEST_DB_DRIVER: pgsql
         TEST_PG_HOST: localhost
         TEST_PG_DB_NAME: graphql_auth_test
         TEST_PG_SCHEMA: auth
@@ -87,9 +93,18 @@ jobs:
         TEST_PG_PASS: password1
         TEST_PG_PORT: 5432
 
-    - name: Upload coverage to Codecov
+    - name: Upload MySQL coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
+        files: ./coverage-mysql.xml
+        flags: mysql
+        fail_ci_if_error: true
+
+    - name: Upload PostgreSQL coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage-postgres.xml
+        flags: postgres
         fail_ci_if_error: true

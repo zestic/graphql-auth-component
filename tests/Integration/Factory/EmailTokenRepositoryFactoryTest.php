@@ -7,7 +7,7 @@ namespace Tests\Integration\Factory;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
 use Zestic\GraphQL\AuthComponent\Application\Factory\EmailTokenRepositoryFactory;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\EmailTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\EmailTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
 use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
@@ -23,7 +23,7 @@ class EmailTokenRepositoryFactoryTest extends DatabaseTestCase
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $container->expects($this->once())
             ->method('get')
-            ->with(AuthPDO::class)
+            ->with('auth.mysql.pdo')
             ->willReturn(self::$pdo);
 
         // Create the repository

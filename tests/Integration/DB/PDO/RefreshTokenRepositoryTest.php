@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\PDO;
 
 use DateTimeImmutable;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\RefreshTokenEntity;
 
 class RefreshTokenRepositoryTest extends DatabaseTestCase

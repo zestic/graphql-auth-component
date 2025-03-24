@@ -1,6 +1,6 @@
 <?php
 
-namespace Zestic\GraphQL\AuthComponent\DB;
+namespace Tests\Integration\DB;
 
 use Phinx\Console\PhinxApplication;
 use Symfony\Component\Console\Input\StringInput;

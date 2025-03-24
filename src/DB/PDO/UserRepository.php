@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
+namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
 use League\OAuth2\Server\Exception\OAuthServerException;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 
 class InvalidateToken
 {

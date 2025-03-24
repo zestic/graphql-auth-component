@@ -8,7 +8,7 @@ use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
 use Zestic\GraphQL\AuthComponent\Application\Factory\UserRepositoryFactory;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\UserRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class UserRepositoryFactoryTest extends DatabaseTestCase
@@ -22,7 +22,7 @@ class UserRepositoryFactoryTest extends DatabaseTestCase
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $container->expects($this->once())
             ->method('get')
-            ->with(AuthPDO::class)
+            ->with('auth.mysql.pdo')
             ->willReturn(self::$pdo);
 
         // Create the repository

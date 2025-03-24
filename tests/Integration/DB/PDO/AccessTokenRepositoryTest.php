@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\PDO;
 
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
+namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;

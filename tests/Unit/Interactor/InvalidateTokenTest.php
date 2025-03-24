@@ -8,8 +8,8 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\AccessTokenRepository;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\RefreshTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 
 class InvalidateTokenTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\DB\MySQL;
+namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;

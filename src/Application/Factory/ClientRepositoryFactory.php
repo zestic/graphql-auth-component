@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Application\Factory;
 
 use Psr\Container\ContainerInterface;
-use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
-use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
 
-class UserRepositoryFactory
+class ClientRepositoryFactory
 {
-    public function __invoke(ContainerInterface $container): UserRepository
+    public function __invoke(ContainerInterface $container): ClientRepository
     {
         $driver = getenv('AUTH_DB_DRIVER') ?: 'mysql';
         $pdoService = $driver === 'mysql' ? 'auth.mysql.pdo' : 'auth.postgres.pdo';
 
-        return new UserRepository(
+        return new ClientRepository(
             $container->get($pdoService)
         );
     }

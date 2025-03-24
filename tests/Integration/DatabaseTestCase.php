@@ -4,7 +4,7 @@ namespace Tests\Integration;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\DB\MigrationRunner;
+use Tests\Integration\DB\MigrationRunner;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
@@ -22,32 +22,64 @@ abstract class DatabaseTestCase extends TestCase
     protected static MigrationRunner $migrationRunner;
     protected static ?PDO $pdo;
     protected static TokenConfig $tokenConfig;
+    protected static string $driver = 'mysql'; // Default to MySQL
 
     public static function setUpBeforeClass(): void
     {
-        $host = $_ENV['TEST_DB_HOST'];
-        $dbname = $_ENV['TEST_DB_NAME'];
-        $username = $_ENV['TEST_DB_USER'];
-        $password = $_ENV['TEST_DB_PASS'];
-        $port = $_ENV['TEST_DB_PORT'];
+        self::initializeDriver();
+        self::initializePDO();
+        self::initializeTokenConfig();
+        self::initializeMigrations();
 
-        $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+        parent::setUpBeforeClass();
+    }
+
+    protected static function initializeDriver(): void
+    {
+        // Allow overriding the driver via environment variable
+        self::$driver = $_ENV['TEST_DB_DRIVER'] ?? 'mysql';
+        if (!in_array(self::$driver, ['mysql', 'pgsql'])) {
+            throw new \RuntimeException('Unsupported database driver: ' . self::$driver);
+        }
+    }
+
+    protected static function initializePDO(): void
+    {
+        if (self::$driver === 'mysql') {
+            $host = $_ENV['TEST_DB_HOST'];
+            $dbname = $_ENV['TEST_DB_NAME'];
+            $username = $_ENV['TEST_DB_USER'];
+            $password = $_ENV['TEST_DB_PASS'];
+            $port = $_ENV['TEST_DB_PORT'];
+            $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+        } else {
+            $host = $_ENV['TEST_PG_HOST'];
+            $dbname = $_ENV['TEST_PG_DB_NAME'];
+            $username = $_ENV['TEST_PG_USER'];
+            $password = $_ENV['TEST_PG_PASS'];
+            $port = $_ENV['TEST_PG_PORT'];
+            $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+        }
+
         self::$pdo = new PDO($dsn, $username, $password);
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
 
+    protected static function initializeTokenConfig(): void
+    {
         self::$tokenConfig = new TokenConfig(
             1,
             1,
             1,
             1,
         );
-        // Initialize MigrationRunner
+    }
+
+    protected static function initializeMigrations(): void
+    {
+        $config = self::$driver === 'mysql' ? 'phinx.mysql.yml' : 'phinx.postgres.yml';
         self::$migrationRunner = new MigrationRunner();
-
-        // Run migrations to set up the database schema
-        self::$migrationRunner->migrate('testing');
-
-        parent::setUpBeforeClass();
+        self::$migrationRunner->migrate('testing', $config);
     }
 
     public static function tearDownAfterClass(): void

@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Integration\DB\MySQL;
+namespace Tests\Integration\DB\PDO;
 
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\MySQL\EmailTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\EmailTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
 use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
 

@@ -72,8 +72,11 @@ jobs:
     - name: Run Static Analysis
       run: vendor/bin/phpstan analyse
 
-    - name: Run Tests with MySQL
-      run: vendor/bin/phpunit --coverage-clover coverage-mysql.xml
+    - name: Run Unit Tests
+      run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage-unit.xml
+
+    - name: Run MySQL Integration Tests
+      run: vendor/bin/phpunit --testsuite Integration-MySQL --coverage-clover coverage-mysql.xml
       env:
         TEST_DB_DRIVER: mysql
         TEST_DB_HOST: 127.0.0.1
@@ -82,8 +85,8 @@ jobs:
         TEST_DB_PASS: password1
         TEST_DB_PORT: 3306
 
-    - name: Run Tests with PostgreSQL
-      run: vendor/bin/phpunit --coverage-clover coverage-postgres.xml
+    - name: Run PostgreSQL Integration Tests
+      run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml
       env:
         TEST_DB_DRIVER: pgsql
         TEST_PG_HOST: localhost

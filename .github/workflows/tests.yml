@@ -97,6 +97,7 @@ jobs:
         TEST_PG_PORT: 5432
 
     - name: Upload MySQL coverage to Codecov
+      if: github.repository == 'zestic/graphql-auth-component'
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -105,6 +106,7 @@ jobs:
         fail_ci_if_error: true
 
     - name: Upload PostgreSQL coverage to Codecov
+      if: github.repository == 'zestic/graphql-auth-component'
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

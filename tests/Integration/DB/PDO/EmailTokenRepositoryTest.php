@@ -23,12 +23,12 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
             new \DateTime('+1 hour'),
             'test_token',
             EmailTokenType::REGISTRATION,
-            'user123'
+            '550e8400-e29b-41d4-a716-446655440003'
         );
         $result = $this->repository->create($token);
         $this->assertTrue($result);
         // Verify the token was created
-        $stmt = self::$pdo->prepare("SELECT * FROM email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT * FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
         $stmt->execute([$token->token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);
@@ -41,7 +41,7 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
     {
         // Arrange
         $token = 'test_token_'.uniqid();
-        $userId = 'user_'.uniqid();
+        $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
         $expiration = new \DateTimeImmutable('+1 hour');
         $tokenType = EmailTokenType::REGISTRATION;
         $emailToken = new EmailToken(
@@ -56,7 +56,7 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         // Assert
         $this->assertTrue($result);
         // Verify the token was deleted
-        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $count = $stmt->fetchColumn();
         $this->assertEquals(0, $count);
@@ -80,7 +80,7 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
     {
         // Arrange
         $token = 'test_token_'.uniqid();
-        $userId = 'user_'.uniqid();
+        $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
         $expiration = new \DateTimeImmutable('+1 hour');
         $tokenType = EmailTokenType::REGISTRATION;
         $emailToken = new EmailToken(
@@ -112,10 +112,10 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
     {
         // Arrange
         $token = 'expired_token_'.uniqid();
-        $userId = 'user_'.uniqid();
+        $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
         $tokenType = EmailTokenType::REGISTRATION;
         // Use the database's current timestamp
-        $stmt = self::$pdo->query("SELECT NOW() - INTERVAL 1 HOUR as expiration");
+        $stmt = self::$pdo->query(self::$driver === 'pgsql' ? "SELECT NOW() - INTERVAL '1 hour' as expiration" : "SELECT NOW() - INTERVAL 1 HOUR as expiration");
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         $expirationFromDb = new \DateTimeImmutable($result['expiration']);
         $emailToken = new EmailToken(
@@ -132,7 +132,7 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         // Assert
         $this->assertNull($foundToken);
         // Verify the token exists but is considered expired
-        $stmt = self::$pdo->prepare("SELECT * FROM email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT * FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);

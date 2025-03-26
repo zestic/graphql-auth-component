@@ -48,8 +48,8 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken = new RefreshTokenEntity();
         $tokenId = $this->generateUniqueIdentifier();
         $refreshToken->setIdentifier($tokenId);
-        $refreshToken->setClientIdentifier(self::TEST_CLIENT_ID);
-        $refreshToken->setUserIdentifier(self::TEST_USER_ID);
+        $refreshToken->setClientIdentifier(self::$testClientId);
+        $refreshToken->setUserIdentifier(self::$testUserId);
         $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
 
         $accessToken = self::getSeededAccessToken();
@@ -63,9 +63,9 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
 
         $this->assertNotFalse($result);
         $this->assertEquals($tokenId, $result['id']);
-        $this->assertEquals(self::TEST_CLIENT_ID, $result['client_id']);
-        $this->assertEquals(self::TEST_USER_ID, $result['user_id']);
-        $this->assertEquals(self::TEST_ACCESS_TOKEN_ID, $result['access_token_id']);
+        $this->assertEquals(self::$testClientId, $result['client_id']);
+        $this->assertEquals(self::$testUserId, $result['user_id']);
+        $this->assertEquals(self::$testAccessTokenId, $result['access_token_id']);
         $this->assertEquals(0, $result['revoked']);
         $this->assertEquals('2024-12-19 15:34:10', $result['expires_at']);
     }
@@ -78,8 +78,8 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
         $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
-        $refreshToken->setClientIdentifier(self::TEST_CLIENT_ID);
-        $refreshToken->setUserIdentifier(self::TEST_USER_ID);
+        $refreshToken->setClientIdentifier(self::$testClientId);
+        $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();
         $refreshToken->setAccessToken($accessToken);
 
@@ -98,8 +98,8 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
         $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
-        $refreshToken->setClientIdentifier(self::TEST_CLIENT_ID);
-        $refreshToken->setUserIdentifier(self::TEST_USER_ID);
+        $refreshToken->setClientIdentifier(self::$testClientId);
+        $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();
         $refreshToken->setAccessToken($accessToken);
 
@@ -125,8 +125,8 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
         $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
-        $refreshToken->setClientIdentifier(self::TEST_CLIENT_ID);
-        $refreshToken->setUserIdentifier(self::TEST_USER_ID);
+        $refreshToken->setClientIdentifier(self::$testClientId);
+        $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();
         $refreshToken->setAccessToken($accessToken);
 

@@ -38,7 +38,7 @@ class EmailTokenRepositoryFactoryTest extends DatabaseTestCase
             new \DateTimeImmutable('+1 hour'),
             'test_token',
             EmailTokenType::LOGIN,
-            self::TEST_USER_ID
+            self::$testUserId
         );
 
         // Create the token
@@ -50,7 +50,7 @@ class EmailTokenRepositoryFactoryTest extends DatabaseTestCase
         $this->assertNotNull($retrievedToken);
         $this->assertEquals('test_token', $retrievedToken->token);
         $this->assertEquals(EmailTokenType::LOGIN, $retrievedToken->tokenType);
-        $this->assertEquals(self::TEST_USER_ID, $retrievedToken->userId);
+        $this->assertEquals(self::$testUserId, $retrievedToken->userId);
 
         // Clean up
         $repository->delete($retrievedToken);

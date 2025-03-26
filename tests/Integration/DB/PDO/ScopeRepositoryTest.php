@@ -18,14 +18,14 @@ class ScopeRepositoryTest extends DatabaseTestCase
         parent::setUp();
         $this->scopeRepository = new ScopeRepository(self::$pdo);
 
-        // Seed scopes
-        self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('read', 'Read access'), ('write', 'Write access')");
+        // Seed client first
+        $clientEntity = self::seedClientRepository();
 
-        // Seed client
-        self::seedClientRepository();
+        // Then seed scopes
+        self::$pdo->exec("INSERT INTO " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "oauth_scopes (id, description) VALUES ('read', 'Read access'), ('write', 'Write access')");
 
-        // Seed client scopes
-        self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'read'), ('test_client', 'write')");
+        // Finally seed client scopes
+        self::$pdo->exec("INSERT INTO " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "oauth_client_scopes (client_id, scope) VALUES ('" . $clientEntity->getIdentifier() . "', 'read'), ('" . $clientEntity->getIdentifier() . "', 'write')");
     }
 
     public function testGetScopeEntityByIdentifier(): void
@@ -41,7 +41,7 @@ class ScopeRepositoryTest extends DatabaseTestCase
     public function testFinalizeScopes(): void
     {
         $clientMock = $this->createMock(ClientEntityInterface::class);
-        $clientMock->method('getIdentifier')->willReturn('test_client');
+        $clientMock->method('getIdentifier')->willReturn(self::$testClientId);
 
         $scopes = [
             new ScopeEntity('read'),
@@ -59,7 +59,7 @@ class ScopeRepositoryTest extends DatabaseTestCase
     public function testFinalizeScopesWithEmptyArray(): void
     {
         $clientMock = $this->createMock(ClientEntityInterface::class);
-        $clientMock->method('getIdentifier')->willReturn('test_client');
+        $clientMock->method('getIdentifier')->willReturn(self::$testClientId);
 
         $emptyScopes = [];
         $finalizedScopes = $this->scopeRepository->finalizeScopes(
@@ -77,12 +77,14 @@ class ScopeRepositoryTest extends DatabaseTestCase
         $this->seedClientRepository();
 
         // Insert test scopes
-        self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('read', 'Read access')");
-        self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('write', 'Write access')");
-        self::$pdo->exec("INSERT INTO oauth_scopes (id, description) VALUES ('delete', 'Delete access')");
+        $table = self::$driver === 'pgsql' ? 'graphql_auth_test.oauth_scopes' : 'oauth_scopes';
+        self::$pdo->exec("INSERT INTO {$table} (id, description) VALUES ('read', 'Read access')");
+        self::$pdo->exec("INSERT INTO {$table} (id, description) VALUES ('write', 'Write access')");
+        self::$pdo->exec("INSERT INTO {$table} (id, description) VALUES ('delete', 'Delete access')");
 
         // Insert client scopes
-        self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'read')");
-        self::$pdo->exec("INSERT INTO oauth_client_scopes (client_id, scope) VALUES ('test_client', 'write')");
+        $table = self::$driver === 'pgsql' ? 'graphql_auth_test.oauth_client_scopes' : 'oauth_client_scopes';
+        self::$pdo->exec("INSERT INTO {$table} (client_id, scope) VALUES ('" . self::$testClientId . "', 'read')");
+        self::$pdo->exec("INSERT INTO {$table} (client_id, scope) VALUES ('" . self::$testClientId . "', 'write')");
     }
 }

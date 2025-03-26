@@ -114,7 +114,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertNull($foundUser->verifiedAt);
 
         // Test for non-existent email
-        $nonExistentUser = $this->userRepository->findUserByid(82828282);
+        $nonExistentUser = $this->userRepository->findUserByid('550e8400-e29b-41d4-a716-446655440999');
         $this->assertNull($nonExistentUser);
     }
 
@@ -166,7 +166,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $userId = $this->seedUserRepository();
 
         // Fetch the user
-        $user = $this->userRepository->findUserById(self::TEST_USER_ID);
+        $user = $this->userRepository->findUserById(self::$testUserId);
         $this->assertNotNull($user);
 
         // Modify user data
@@ -181,7 +181,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertTrue($result);
 
         // Fetch the user again to verify changes
-        $updatedUser = $this->userRepository->findUserById(self::TEST_USER_ID);
+        $updatedUser = $this->userRepository->findUserById(self::$testUserId);
         $this->assertNotNull($updatedUser);
 
         // Assert the changes were applied

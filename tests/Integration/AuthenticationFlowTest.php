@@ -7,7 +7,6 @@ namespace Tests\Integration;
 use Defuse\Crypto\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
-use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkEmailInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
@@ -25,12 +24,13 @@ use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\ValidateRegistration;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
+use Zestic\GraphQL\AuthComponent\OAuth2\Grant\RefreshTokenGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\OAuthConfig;
 
 class AuthenticationFlowTest extends DatabaseTestCase
 {
     private array $capturedSendArguments = [];
-    private string $clientId = 'test_client';
+    private string $clientId;
     private string $clientSecret = 'test_secret';
     private AccessTokenRepository $accessTokenRepository;
     private AuthenticateToken $authenticateToken;
@@ -53,6 +53,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->clientId = self::$testClientId;
         $this->seedClientRepository();
 
         $this->accessTokenRepository = new AccessTokenRepository(
@@ -207,7 +208,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function refreshToken(array $data): array
     {
-        $refreshResult = $this->requestAccessToken->execute($data['refreshToken'], self::TEST_CLIENT_ID);
+        $refreshResult = $this->requestAccessToken->execute($data['refreshToken'], self::$testClientId);
         $this->assertArrayHasKey('accessToken', $refreshResult);
         $this->assertArrayHasKey('refreshToken', $refreshResult);
 
@@ -216,10 +217,10 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function invalidateToken(array $data): void
     {
-        $invalidateResult = $this->invalidateToken->execute(self::TEST_USER_ID);
+        $invalidateResult = $this->invalidateToken->execute(self::$testUserId);
         $this->assertTrue($invalidateResult);
 
         $this->expectException(\Exception::class);
-        $this->requestAccessToken->execute($data['refreshToken'], self::TEST_CLIENT_ID);
+        $this->requestAccessToken->execute($data['refreshToken'], self::$testClientId);
     }
 }

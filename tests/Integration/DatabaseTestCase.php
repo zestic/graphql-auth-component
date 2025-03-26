@@ -33,8 +33,10 @@ abstract class DatabaseTestCase extends TestCase
         self::initializeDriver();
         self::initializePDO();
         self::initializeTokenConfig();
-        self::initializeMigrations();
         self::initializeTestIds();
+
+        // Run migrations
+        self::initializeMigrations();
 
         // Clean up database before running test suite
         if (self::$driver === 'mysql') {

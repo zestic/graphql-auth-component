@@ -9,16 +9,17 @@ use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;
 
-class ScopeRepository implements ScopeRepositoryInterface
+class ScopeRepository extends AbstractPDORepository implements ScopeRepositoryInterface
 {
     public function __construct(
-        private \PDO $pdo,
+        \PDO $pdo,
     ) {
+        parent::__construct($pdo);
     }
 
     public function getScopeEntityByIdentifier(string $identifier): ?ScopeEntityInterface
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM oauth_scopes WHERE id = :identifier');
+        $stmt = $this->pdo->prepare('SELECT * FROM ' . $this->schema . 'oauth_scopes WHERE id = :identifier');
         $stmt->execute(['identifier' => $identifier]);
 
         $scope = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -41,7 +42,7 @@ class ScopeRepository implements ScopeRepositoryInterface
             return $scopes;
         }
         // Retrieve allowed scopes for the client
-        $stmt = $this->pdo->prepare('SELECT scope FROM oauth_client_scopes WHERE client_id = :clientId');
+        $stmt = $this->pdo->prepare('SELECT scope FROM ' . $this->schema . 'oauth_client_scopes WHERE client_id = :clientId');
         $stmt->execute(['clientId' => $clientEntity->getIdentifier()]);
         $allowedScopes = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 

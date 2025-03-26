@@ -12,13 +12,12 @@ use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository extends AbstractPDORepository implements UserRepositoryInterface
 {
-    use GenerateUniqueIdentifierTrait;
-    
     public function __construct(
-        private \PDO $pdo,
+        \PDO $pdo,
     ) {
+        parent::__construct($pdo);
     }
 
     public function beginTransaction(): void
@@ -35,7 +34,7 @@ class UserRepository implements UserRepositoryInterface
     {
         $id = $this->generateUniqueIdentifier();
         $stmt = $this->pdo->prepare(
-            "INSERT INTO users (id, email, display_name, additional_data, verified_at)
+            "INSERT INTO {$this->schema}users (id, email, display_name, additional_data, verified_at)
             VALUES (:id, :email, :display_name, :additional_data, :verified_at)"
         );
         $displayName = $context->extractAndRemove('displayName');
@@ -58,7 +57,7 @@ class UserRepository implements UserRepositoryInterface
     {
         $stmt = $this->pdo->prepare(
             "SELECT additional_data, email, display_name, id, verified_at
-            FROM users
+            FROM " . $this->schema . "users
             WHERE email = :email"
         );
         $stmt->execute(['email' => $email]);
@@ -80,7 +79,7 @@ class UserRepository implements UserRepositoryInterface
     {
         $stmt = $this->pdo->prepare(
             "SELECT additional_data, email, display_name, id, verified_at
-            FROM users
+            FROM " . $this->schema . "users
             WHERE id = :id"
         );
         $stmt->execute(['id' => $id]);
@@ -101,7 +100,7 @@ class UserRepository implements UserRepositoryInterface
     public function emailExists(string $email): bool
     {
         $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM users WHERE email = :email"
+            "SELECT COUNT(*) FROM " . $this->schema . "users WHERE email = :email"
         );
         $stmt->execute(['email' => $email]);
 
@@ -125,7 +124,7 @@ class UserRepository implements UserRepositoryInterface
     public function update(UserInterface $user): bool
     {
         $stmt = $this->pdo->prepare(
-            "UPDATE users 
+            "UPDATE " . $this->schema . "users 
         SET email = :email, 
             display_name = :display_name, 
             additional_data = :additional_data, 

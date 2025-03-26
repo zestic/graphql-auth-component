@@ -8,17 +8,18 @@ use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 
-class ClientRepository implements ClientRepositoryInterface
+class ClientRepository extends AbstractPDORepository implements ClientRepositoryInterface
 {
     public function __construct(
-        private \PDO $pdo,
+        \PDO $pdo,
     ) {
+        parent::__construct($pdo);
     }
 
     public function create(ClientEntityInterface $clientEntity): bool
     {
         $stmt = $this->pdo->prepare('
-            INSERT INTO oauth_clients (client_id, name, redirect_uri, is_confidential)
+            INSERT INTO graphql_auth_test.oauth_clients (client_id, name, redirect_uri, is_confidential)
             VALUES (:clientId, :name, :redirectUri, :isConfidential)
         ');
 
@@ -33,7 +34,7 @@ class ClientRepository implements ClientRepositoryInterface
     public function delete(ClientEntityInterface $clientEntity): bool
     {
         $stmt = $this->pdo->prepare('
-            UPDATE oauth_clients
+            UPDATE graphql_auth_test.oauth_clients
             SET deleted_at = CURRENT_TIMESTAMP
             WHERE client_id = :clientId AND deleted_at IS NULL
         ');
@@ -46,7 +47,7 @@ class ClientRepository implements ClientRepositoryInterface
     public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface
     {
         $stmt = $this->pdo->prepare('
-        SELECT * FROM oauth_clients
+        SELECT * FROM graphql_auth_test.oauth_clients
         WHERE client_id = :clientId AND deleted_at IS NULL
     ');
         $stmt->execute(['clientId' => $clientIdentifier]);

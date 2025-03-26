@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
-use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
-use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
+use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use Zestic\GraphQL\AuthComponent\Entity\RefreshTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
+use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 
-class RefreshTokenRepository implements RefreshTokenRepositoryInterface
+class RefreshTokenRepository extends AbstractPDORepository implements RefreshTokenRepositoryInterface
 {
     public function __construct(
-        private \PDO $pdo,
+        \PDO $pdo,
         private TokenConfig $tokenConfig,
     ) {
+        parent::__construct($pdo);
     }
 
     public function getNewRefreshToken(): RefreshTokenEntity
     {
         $refreshTokenEntity = new RefreshTokenEntity();
+        /** @var non-empty-string $identifier */
+        $identifier = $this->generateUniqueIdentifier();
+        $refreshTokenEntity->setIdentifier($identifier);
         $refreshTokenEntity->setExpiryDateTime($this->tokenConfig->getRefreshTokenTTLDateTime());
 
         return $refreshTokenEntity;
@@ -33,7 +37,7 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
     {
         try {
             $stmt = $this->pdo->prepare("
-                INSERT INTO oauth_refresh_tokens (id, access_token_id, client_id, revoked, user_id, expires_at)
+                INSERT INTO {$this->schema}oauth_refresh_tokens (id, access_token_id, client_id, revoked, user_id, expires_at)
                 VALUES (:id, :access_token_id, :client_id, :revoked, :user_id, :expires_at)
             ");
             $result = $stmt->execute([
@@ -41,7 +45,7 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
                 'client_id' => $refreshTokenEntity->getClientIdentifier(),
                 'expires_at' => $refreshTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s'),
                 'id' => $refreshTokenEntity->getIdentifier(),
-                'revoked' => 0,
+                'revoked' => $this->dbBool(false),
                 'user_id' => $refreshTokenEntity->getUserIdentifier(),
             ]);
 
@@ -57,7 +61,7 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
     {
         $stmt = $this->pdo->prepare("
             SELECT *
-            FROM oauth_refresh_tokens
+            FROM {$this->schema}oauth_refresh_tokens
             WHERE access_token_id = :access_token_id
         ");
 
@@ -70,19 +74,22 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
     public function revokeRefreshToken(string $tokenId): void
     {
         $stmt = $this->pdo->prepare("
-            UPDATE oauth_refresh_tokens
-            SET revoked = 1
+            UPDATE {$this->schema}oauth_refresh_tokens
+            SET revoked = :revoked
             WHERE id = :id
         ");
 
-        $stmt->execute(['id' => $tokenId]);
+        $stmt->execute([
+            'id' => $tokenId,
+            'revoked' => $this->isPgsql ? true : 1,
+        ]);
     }
 
     public function isRefreshTokenRevoked(string $tokenId): bool
     {
         $stmt = $this->pdo->prepare("
             SELECT revoked
-            FROM oauth_refresh_tokens
+            FROM {$this->schema}oauth_refresh_tokens
             WHERE id = :id
         ");
 

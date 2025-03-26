@@ -6,8 +6,8 @@ namespace Zestic\GraphQL\AuthComponent\Entity;
 
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\Traits\AccessTokenTrait;
-use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
+use Zestic\GraphQL\AuthComponent\Entity\Traits\EntityTrait;
 
 class AccessTokenEntity implements AccessTokenEntityInterface, TokenScopesInterface
 {
@@ -39,6 +39,4 @@ class AccessTokenEntity implements AccessTokenEntityInterface, TokenScopesInterf
             $this->addScope($scope);
         }
     }
-
-
 }

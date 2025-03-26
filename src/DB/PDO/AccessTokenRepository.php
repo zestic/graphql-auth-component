@@ -12,19 +12,20 @@ use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
-class AccessTokenRepository implements AccessTokenRepositoryInterface
+class AccessTokenRepository extends AbstractPDORepository implements AccessTokenRepositoryInterface
 {
     public function __construct(
-        private \PDO $pdo,
+        \PDO $pdo,
         private TokenConfig $tokenConfig,
     ) {
+        parent::__construct($pdo);
     }
 
     public function findTokensByUserId(string $userId): array
     {
         $stmt = $this->pdo->prepare("
             SELECT *
-            FROM oauth_access_tokens
+            FROM " . $this->schema . "oauth_access_tokens
             WHERE user_id = :userId
         ");
 
@@ -42,6 +43,9 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, ?string $userIdentifier = null): AccessTokenEntityInterface
     {
         $accessToken = new AccessTokenEntity();
+        /** @var non-empty-string $identifier */
+        $identifier = $this->generateUniqueIdentifier();
+        $accessToken->setIdentifier($identifier);
         $accessToken->setClient($clientEntity);
         if ($userIdentifier !== null && $userIdentifier !== '') {
             $accessToken->setUserIdentifier($userIdentifier);
@@ -63,7 +67,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO oauth_access_tokens (id, user_id, client_id, scopes, revoked, expires_at)
+            INSERT INTO " . $this->schema . "oauth_access_tokens (id, user_id, client_id, scopes, revoked, expires_at)
             VALUES (:id, :user_id, :client_id, :scopes, :revoked, :expires_at)
         ");
 
@@ -72,7 +76,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             'user_id' => $accessTokenEntity->getUserIdentifier(),
             'client_id' => $accessTokenEntity->getClient()->getIdentifier(),
             'scopes' => json_encode($accessTokenEntity->getScopesAsArray()),
-            'revoked' => 0,
+            'revoked' => $this->dbBool(false),
             'expires_at' => $accessTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s'),
         ]);
 
@@ -83,20 +87,24 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
 
     public function revokeAccessToken(string $tokenId): void
     {
-        $stmt = $this->pdo->prepare("
-            UPDATE oauth_access_tokens
-            SET revoked = 1
+        $sql = "
+            UPDATE " . $this->schema . "oauth_access_tokens
+            SET revoked = :revoked
             WHERE id = :id
-        ");
+        ";
+        $stmt = $this->pdo->prepare($sql);
 
-        $stmt->execute(['id' => $tokenId]);
+        $stmt->execute([
+            'id' => $tokenId,
+            'revoked' => $this->isPgsql ? true : 1,
+        ]);
     }
 
     public function isAccessTokenRevoked(string $tokenId): bool
     {
         $stmt = $this->pdo->prepare("
             SELECT revoked
-            FROM oauth_access_tokens
+            FROM graphql_auth_test.oauth_access_tokens
             WHERE id = :id
         ");
 

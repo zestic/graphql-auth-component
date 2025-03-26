@@ -11,15 +11,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class MagicLinkGrant extends AbstractGrant
 {
     public function __construct(
         private EmailTokenRepositoryInterface $emailTokenRepository,
-        /** @phpstan-ignore-next-line Property is used through parent class */
         private RefreshTokenRepositoryInterface $refreshTokenRepo,
         private UserRepositoryInterface $userRepo,
     ) {
@@ -32,6 +31,15 @@ class MagicLinkGrant extends AbstractGrant
     public function getIdentifier(): string
     {
         return 'magic_link';
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    protected function generateUniqueIdentifier(int $length = 40): string
+    {
+        /** @var non-empty-string */
+        return $this->refreshTokenRepo->generateUniqueIdentifier($length);
     }
 
     public function respondToAccessTokenRequest(

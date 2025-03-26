@@ -48,7 +48,8 @@ abstract class DatabaseTestCase extends TestCase
             self::$pdo->exec('TRUNCATE TABLE oauth_clients');
             self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
         } else {
-            self::$pdo->exec('TRUNCATE TABLE graphql_auth_test.oauth_access_tokens, graphql_auth_test.oauth_refresh_tokens, graphql_auth_test.oauth_client_scopes, graphql_auth_test.email_tokens, graphql_auth_test.users, graphql_auth_test.oauth_scopes, graphql_auth_test.oauth_clients CASCADE');
+            $schema = self::getSchema();
+            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.email_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
         }
 
         parent::setUpBeforeClass();
@@ -90,6 +91,7 @@ abstract class DatabaseTestCase extends TestCase
         self::$pdo = new PDO($dsn, $username, $password);
 
         if (self::$driver === 'pgsql') {
+            $schema = self::getSchema();
             self::$pdo->exec("SET search_path TO $schema");
         }
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -225,7 +227,8 @@ abstract class DatabaseTestCase extends TestCase
             json_encode($additionalData),
         ]);
 
-        $table = self::$driver === 'pgsql' ? 'graphql_auth_test.users' : 'users';
+        $schema = self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '';
+        $table = $schema . 'users';
         self::$pdo->exec(
             "INSERT INTO {$table} (
                 id, email, display_name, additional_data
@@ -265,7 +268,8 @@ abstract class DatabaseTestCase extends TestCase
             self::$pdo->exec('TRUNCATE TABLE oauth_clients');
             self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
         } else {
-            self::$pdo->exec('TRUNCATE TABLE graphql_auth_test.oauth_access_tokens, graphql_auth_test.oauth_refresh_tokens, graphql_auth_test.oauth_client_scopes, graphql_auth_test.email_tokens, graphql_auth_test.users, graphql_auth_test.oauth_scopes, graphql_auth_test.oauth_clients CASCADE');
+            $schema = self::getSchema();
+            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.email_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
         }
     }
 
@@ -274,5 +278,16 @@ abstract class DatabaseTestCase extends TestCase
         return implode(', ', array_map(function ($value) {
             return "'" . $value . "'";
         }, $values));
+    }
+
+    protected static function getSchema(): string
+    {
+        return self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') : '';
+    }
+
+    protected static function getSchemaPrefix(): string
+    {
+        $schema = self::getSchema();
+        return $schema ? $schema . '.' : '';
     }
 }

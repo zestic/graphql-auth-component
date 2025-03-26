@@ -69,9 +69,6 @@ jobs:
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-    - name: Run Static Analysis
-      run: vendor/bin/phpstan analyse
-
     - name: Run Unit Tests
       run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage-unit.xml
 

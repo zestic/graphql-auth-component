@@ -41,15 +41,12 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: pdo, pdo_mysql, pdo_pgsql
+        extensions: pdo, pdo_mysql, pdo_pgsql, uopz
         coverage: pcov
         tools: composer:v2
 
-    - name: Install UOPZ
-      run: |
-        sudo pecl install uopz
-        sudo mkdir -p $PHP_INI_DIR/conf.d
-        echo "extension=uopz.so" | sudo tee -a $PHP_INI_DIR/conf.d/30-uopz.ini
+    - name: Verify UOPZ
+      run: php -m | grep uopz
 
     - name: Get composer cache directory
       id: composer-cache

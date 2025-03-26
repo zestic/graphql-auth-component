@@ -22,14 +22,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: mbstring, intl, pdo_mysql
+          extensions: mbstring, intl, pdo_mysql, uopz
           coverage: none
 
-      - name: Install UOPZ
-        run: |
-          sudo pecl install uopz
-          sudo mkdir -p $PHP_INI_DIR/conf.d
-          echo "extension=uopz.so" | sudo tee -a $PHP_INI_DIR/conf.d/30-uopz.ini
+      - name: Verify UOPZ
+        run: php -m | grep uopz
 
       - name: Get composer cache directory
         id: composer-cache

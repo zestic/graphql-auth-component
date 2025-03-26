@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class CreateOauthAccessTokensTable extends AbstractMigration
+final class CreateOauthAccessTokensTablePostgres extends AbstractMigration
 {
     public function up(): void
     {
@@ -17,8 +17,7 @@ final class CreateOauthAccessTokensTable extends AbstractMigration
             'collation' => 'default'
         ])
             ->addColumn('id', 'uuid', [
-                'null' => false,
-                'default' => new \Phinx\Util\Literal('uuid_generate_v4()')
+                'null' => false
             ])
             ->addColumn('user_id', 'uuid', ['null' => true])
             ->addColumn('client_id', 'uuid', ['null' => false])

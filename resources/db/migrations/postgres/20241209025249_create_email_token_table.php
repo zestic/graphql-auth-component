@@ -2,7 +2,7 @@
 
 use Phinx\Migration\AbstractMigration;
 
-class CreateEmailTokenTable extends AbstractMigration
+class CreateEmailTokenTablePostgres extends AbstractMigration
 {
     public function up()
     {

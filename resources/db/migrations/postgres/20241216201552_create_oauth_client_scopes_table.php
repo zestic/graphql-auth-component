@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class CreateOauthClientScopesTable extends AbstractMigration
+final class CreateOauthClientScopesTablePostgres extends AbstractMigration
 {
     public function change(): void
     {

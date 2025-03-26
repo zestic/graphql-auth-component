@@ -12,7 +12,8 @@
     "symfony/yaml": " ^6.4|^7.0",
     "symfony/dotenv": " ^6.4|^7.0",
     "league/oauth2-server": "^9.1",
-    "nyholm/psr7": "^1.8"
+    "nyholm/psr7": "^1.8",
+    "ramsey/uuid": "^4.7"
   },
   "require-dev": {
     "phpunit/phpunit": "^11.4",
@@ -32,7 +33,14 @@
   },
   "scripts": {
     "analyse": "phpstan analyse -c phpstan.neon.dist",
-    "test": "phpunit",
+    "test:unit": "phpunit --testsuite Unit",
+    "test:mysql": "TEST_DB_DRIVER=mysql phpunit --testsuite Integration-MySQL",
+    "test:pgsql": "TEST_DB_DRIVER=pgsql phpunit --testsuite Integration-PostgreSQL",
+    "test": [
+      "@test:unit",
+      "@test:mysql",
+      "@test:pgsql"
+    ],
     "check": [
       "@test",
       "@analyse"

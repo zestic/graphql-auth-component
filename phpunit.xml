@@ -8,8 +8,13 @@
     <testsuite name="Unit">
       <directory>tests/Unit</directory>
     </testsuite>
-    <testsuite name="Integration">
+    <testsuite name="Integration-MySQL">
       <directory>tests/Integration</directory>
+      <exclude>tests/Integration/Factory/AuthPDOPostgresFactoryTest.php</exclude>
+    </testsuite>
+    <testsuite name="Integration-PostgreSQL">
+      <directory>tests/Integration</directory>
+      <exclude>tests/Integration/Factory/AuthPDOMySQLFactoryTest.php</exclude>
     </testsuite>
   </testsuites>
   <source>
@@ -20,5 +25,6 @@
   <php>
     <env name="APP_ENV" value="testing"/>
     <env name="DB_CONNECTION" value="testing"/>
+    <env name="TEST_DB_DRIVER" value="pgsql" force="true"/>
   </php>
 </phpunit>

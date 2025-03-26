@@ -9,11 +9,15 @@
       <directory>tests/Unit</directory>
     </testsuite>
     <testsuite name="Integration-MySQL">
-      <directory>tests/Integration</directory>
+      <directory>tests/Integration/DB/PDO</directory>
+      <directory>tests/Integration/Factory</directory>
+      <file>tests/Integration/AuthenticationFlowTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOPostgresFactoryTest.php</exclude>
     </testsuite>
     <testsuite name="Integration-PostgreSQL">
-      <directory>tests/Integration</directory>
+      <directory>tests/Integration/DB/PDO</directory>
+      <directory>tests/Integration/Factory</directory>
+      <file>tests/Integration/AuthenticationFlowTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOMySQLFactoryTest.php</exclude>
     </testsuite>
   </testsuites>
@@ -25,6 +29,12 @@
   <php>
     <env name="APP_ENV" value="testing"/>
     <env name="DB_CONNECTION" value="testing"/>
-    <env name="TEST_DB_DRIVER" value="pgsql" force="true"/>
+    <env name="TEST_DB_DRIVER" value="mysql" force="true"/>
+    <env name="TEST_DB_HOST" value="127.0.0.1"/>
+    <env name="TEST_DB_NAME" value="graphql_auth_test"/>
+    <env name="TEST_DB_USER" value="test"/>
+    <env name="TEST_DB_PASS" value="password1"/>
+    <env name="TEST_DB_PORT" value="3306"/>
+    <env name="TEST_PG_SCHEMA" value="auth"/>
   </php>
 </phpunit>

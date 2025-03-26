@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+namespace Migrations\Postgres;
+
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
 final class CreateOauthRefreshTokensTable extends AbstractMigration
 {

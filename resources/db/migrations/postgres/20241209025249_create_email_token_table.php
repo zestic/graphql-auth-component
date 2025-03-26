@@ -1,6 +1,9 @@
 <?php
 
+namespace Migrations\Postgres;
+
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
 class CreateEmailTokenTable extends AbstractMigration
 {

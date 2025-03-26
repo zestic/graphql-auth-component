@@ -74,28 +74,24 @@ abstract class DatabaseTestCase extends TestCase
 
     protected static function initializePDO(): void
     {
+        $host = $_ENV['TEST_DB_HOST'];
+        $dbname = $_ENV['TEST_DB_NAME'];
+        $username = $_ENV['TEST_DB_USER'];
+        $password = $_ENV['TEST_DB_PASS'];
+        $port = $_ENV['TEST_DB_PORT'];
+
         if (self::$driver === 'mysql') {
-            $host = $_ENV['TEST_DB_HOST'];
-            $dbname = $_ENV['TEST_DB_NAME'];
-            $username = $_ENV['TEST_DB_USER'];
-            $password = $_ENV['TEST_DB_PASS'];
-            $port = $_ENV['TEST_DB_PORT'];
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
         } else {
-            $host = $_ENV['TEST_PG_HOST'];
-            $dbname = $_ENV['TEST_PG_DB_NAME'];
-            $username = $_ENV['TEST_PG_USER'];
-            $password = $_ENV['TEST_PG_PASS'];
-            $port = $_ENV['TEST_PG_PORT'];
             $schema = $_ENV['TEST_PG_SCHEMA'];
             $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
-            // Set the search path to our schema
-            self::$pdo = new PDO($dsn, $username, $password);
-            self::$pdo->exec("SET search_path TO $schema");
-            return;
         }
 
         self::$pdo = new PDO($dsn, $username, $password);
+
+        if (self::$driver === 'pgsql') {
+            self::$pdo->exec("SET search_path TO $schema");
+        }
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 

@@ -74,6 +74,17 @@ jobs:
         cp phinx.mysql.yml.dist phinx.mysql.yml
         cp phinx.postgres.yml.dist phinx.postgres.yml
 
+    - name: Run PostgreSQL Integration Tests
+      run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml
+      env:
+        TEST_DB_DRIVER: pgsql
+        TEST_DB_HOST: localhost
+        TEST_DB_NAME: graphql_auth_test
+        TEST_DB_USER: test
+        TEST_DB_PASS: password1
+        TEST_DB_PORT: 5432
+        TEST_PG_SCHEMA: auth
+
     - name: Run Unit Tests
       run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage-unit.xml
 
@@ -86,17 +97,6 @@ jobs:
         TEST_DB_USER: test
         TEST_DB_PASS: password1
         TEST_DB_PORT: 3306
-
-    - name: Run PostgreSQL Integration Tests
-      run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml
-      env:
-        TEST_DB_DRIVER: pgsql
-        TEST_DB_HOST: localhost
-        TEST_DB_NAME: graphql_auth_test
-        TEST_DB_USER: test
-        TEST_DB_PASS: password1
-        TEST_DB_PORT: 5432
-        TEST_PG_SCHEMA: auth
 
     - name: Upload MySQL coverage to Codecov
       if: github.repository == 'zestic/graphql-auth-component'

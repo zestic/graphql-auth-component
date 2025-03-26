@@ -1,7 +1,6 @@
 <?php
 
 use Phinx\Migration\AbstractMigration;
-use RuntimeException;
 
 class CreateEmailTokenTable extends AbstractMigration
 {

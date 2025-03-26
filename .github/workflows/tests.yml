@@ -47,8 +47,8 @@ jobs:
 
     - name: Install UOPZ
       run: |
-        pecl install uopz
-        echo "extension=uopz.so" >> $PHP_INI_DIR/conf.d/uopz.ini
+        sudo pecl install uopz
+        echo "extension=uopz.so" | sudo tee -a $PHP_INI_DIR/conf.d/uopz.ini
 
     - name: Get composer cache directory
       id: composer-cache

@@ -74,16 +74,16 @@ abstract class DatabaseTestCase extends TestCase
 
     protected static function initializePDO(): void
     {
-        $host = $_ENV['TEST_DB_HOST'];
-        $dbname = $_ENV['TEST_DB_NAME'];
-        $username = $_ENV['TEST_DB_USER'];
-        $password = $_ENV['TEST_DB_PASS'];
-        $port = $_ENV['TEST_DB_PORT'];
+        $host = $_ENV['TEST_DB_HOST'] ?? '127.0.0.1';
+        $dbname = $_ENV['TEST_DB_NAME'] ?? 'graphql_auth_test';
+        $username = $_ENV['TEST_DB_USER'] ?? 'test';
+        $password = $_ENV['TEST_DB_PASS'] ?? 'password1';
+        $port = $_ENV['TEST_DB_PORT'] ?? (self::$driver === 'mysql' ? 3306 : 5432);
 
         if (self::$driver === 'mysql') {
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
         } else {
-            $schema = $_ENV['TEST_PG_SCHEMA'];
+            $schema = $_ENV['TEST_PG_SCHEMA'] ?? 'auth';
             $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
         }
 

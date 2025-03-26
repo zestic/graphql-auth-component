@@ -13,5 +13,14 @@ environments:
         port: ${TEST_PG_PORT}
         schema: ${TEST_PG_SCHEMA}
         charset: utf8
+    testing:
+        adapter: pgsql
+        host: ${TEST_PG_HOST}
+        name: ${TEST_PG_DB_NAME}
+        user: ${TEST_PG_USER}
+        pass: ${TEST_PG_PASS}
+        port: ${TEST_PG_PORT}
+        schema: ${TEST_PG_SCHEMA}
+        charset: utf8
 
 version_order: creation

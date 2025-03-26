@@ -147,7 +147,7 @@ abstract class DatabaseTestCase extends TestCase
             self::$driver === 'pgsql' ? 'false' : '0'
         ]);
         self::$pdo->exec(
-            "INSERT INTO " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "oauth_access_tokens (
+            "INSERT INTO " . (self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '') . "oauth_access_tokens (
                 id, client_id, user_id, expires_at, revoked
             ) VALUES (
                 " . $values . "
@@ -185,7 +185,8 @@ abstract class DatabaseTestCase extends TestCase
             self::TEST_CLIENT_NAME,
         ]);
 
-        $table = self::$driver === 'pgsql' ? 'graphql_auth_test.oauth_clients' : 'oauth_clients';
+        $schema = self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '';
+        $table = $schema . 'oauth_clients';
         self::$pdo->exec(
             "INSERT INTO {$table} (
                 client_id, name

@@ -64,7 +64,7 @@ jobs:
 
     - name: Set up PostgreSQL schema
       run: |
-        PGPASSWORD=password1 psql -h localhost -U test -d graphql_auth_test -c "CREATE SCHEMA IF NOT EXISTS auth;"
+        PGPASSWORD=password1 psql -h 127.0.0.1 -U test -d graphql_auth_test -c "CREATE SCHEMA IF NOT EXISTS auth;"
 
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -78,7 +78,7 @@ jobs:
       run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml
       env:
         TEST_DB_DRIVER: pgsql
-        TEST_DB_HOST: localhost
+        TEST_DB_HOST: 127.0.0.1
         TEST_DB_NAME: graphql_auth_test
         TEST_DB_USER: test
         TEST_DB_PASS: password1

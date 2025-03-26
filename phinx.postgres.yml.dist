@@ -1,5 +1,5 @@
 paths:
-    migrations: %%PHINX_CONFIG_DIR%%/resources/db/migrations/postgres
+    migrations: ./resources/db/migrations/postgres
 
 environments:
     default_migration_table: phinxlog
@@ -15,12 +15,12 @@ environments:
         charset: utf8
     testing:
         adapter: pgsql
-        host: ${TEST_DB_HOST}
-        name: ${TEST_DB_NAME}
-        user: ${TEST_DB_USER}
-        pass: ${TEST_DB_PASS}
-        port: ${TEST_DB_PORT}
-        schema: ${TEST_PG_SCHEMA}
+        host: localhost
+        name: graphql_auth_test
+        user: test
+        pass: password1
+        port: 5432
+        schema: auth
         charset: utf8
 
 version_order: creation

@@ -3,15 +3,20 @@
 declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
-final class CreateOauthAccessTokensTablePostgres extends AbstractMigration
+final class CreateOauthAccessTokensTable extends AbstractMigration
 {
     public function up(): void
     {
-        $this->execute('CREATE SCHEMA IF NOT EXISTS graphql_auth_test;');
+        $schema = $this->getAdapter()->getOption('schema');
+        if (empty($schema)) {
+            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+        }
+        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
         $this->table('oauth_access_tokens', [
-            'schema' => 'graphql_auth_test',
+            'schema' => $schema,
             'id' => false,
             'primary_key' => ['id'],
             'collation' => 'default'
@@ -25,14 +30,14 @@ final class CreateOauthAccessTokensTablePostgres extends AbstractMigration
             ->addColumn('revoked', 'boolean', ['default' => false])
             ->addColumn('expires_at', 'timestamp', ['null' => false, 'timezone' => true])
             ->addTimestamps()
-            ->addForeignKey('client_id', 'graphql_auth_test.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
-            ->addForeignKey('user_id', 'graphql_auth_test.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('client_id', $schema . '.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('user_id', $schema . '.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->create();
 
         $this->execute('CREATE TRIGGER update_oauth_access_tokens_updated_at
-            BEFORE UPDATE ON graphql_auth_test.oauth_access_tokens
+            BEFORE UPDATE ON ' . $schema . '.oauth_access_tokens
             FOR EACH ROW
-            EXECUTE FUNCTION graphql_auth_test.update_updated_at_column();');
+            EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
     public function down(): void

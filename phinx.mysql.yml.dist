@@ -1,5 +1,5 @@
 paths:
-    migrations: %%PHINX_CONFIG_DIR%%/resources/db/migrations/mysql
+    migrations: ./resources/db/migrations/mysql
 
 environments:
     default_migration_table: phinxlog
@@ -15,11 +15,11 @@ environments:
         collation: utf8mb4_unicode_ci
     testing:
         adapter: mysql
-        host: ${TEST_DB_HOST}
-        name: ${TEST_DB_NAME}
-        user: ${TEST_DB_USER}
-        pass: ${TEST_DB_PASS}
-        port: ${TEST_DB_PORT}
+        host: localhost
+        name: graphql_auth_test
+        user: test
+        pass: password1
+        port: 3306
         charset: utf8mb4
         collation: utf8mb4_unicode_ci
 

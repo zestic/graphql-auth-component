@@ -3,15 +3,20 @@
 declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
-final class CreateOauthClientTablePostgres extends AbstractMigration
+final class CreateOauthClientTable extends AbstractMigration
 {
     public function up(): void
     {
-        $this->execute('CREATE SCHEMA IF NOT EXISTS graphql_auth_test;');
+        $schema = $this->getAdapter()->getOption('schema');
+        if (empty($schema)) {
+            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+        }
+        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
         $this->table('oauth_clients', [
-            'schema' => 'graphql_auth_test',
+            'schema' => $schema,
             'id' => false,
             'primary_key' => ['client_id'],
             'collation' => 'default'
@@ -28,9 +33,9 @@ final class CreateOauthClientTablePostgres extends AbstractMigration
             ->create();
 
         $this->execute('CREATE TRIGGER update_oauth_clients_updated_at
-            BEFORE UPDATE ON graphql_auth_test.oauth_clients
+            BEFORE UPDATE ON ' . $schema . '.oauth_clients
             FOR EACH ROW
-            EXECUTE FUNCTION graphql_auth_test.update_updated_at_column();');
+            EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
     public function down(): void

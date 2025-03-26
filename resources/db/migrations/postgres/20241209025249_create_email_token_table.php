@@ -1,15 +1,20 @@
 <?php
 
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
-class CreateEmailTokenTablePostgres extends AbstractMigration
+class CreateEmailTokenTable extends AbstractMigration
 {
     public function up()
     {
-        $this->execute('CREATE SCHEMA IF NOT EXISTS auth;');
+        $schema = $this->getAdapter()->getOption('schema');
+        if (empty($schema)) {
+            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+        }
+        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
         
         $this->table('email_tokens', [
-            'schema' => 'auth',
+            'schema' => $schema,
             'id' => 'id',
             'primary_key' => ['id'],
             'collation' => 'default'

@@ -3,13 +3,19 @@
 declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
-final class CreateOauthRefreshTokensTablePostgres extends AbstractMigration
+final class CreateOauthRefreshTokensTable extends AbstractMigration
 {
     public function up(): void
     {
+        $schema = $this->getAdapter()->getOption('schema');
+        if (empty($schema)) {
+            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+        }
+        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
         $this->table('oauth_refresh_tokens', [
-            'schema' => 'graphql_auth_test',
+            'schema' => $schema,
             'id' => false,
             'primary_key' => ['id']
         ])
@@ -25,19 +31,20 @@ final class CreateOauthRefreshTokensTablePostgres extends AbstractMigration
             ->addColumn('expires_at', 'timestamp', ['null' => false])
             ->addTimestamps()
             ->addIndex(['id'], ['unique' => true])
-            ->addForeignKey('access_token_id', 'graphql_auth_test.oauth_access_tokens', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
-            ->addForeignKey('client_id', 'graphql_auth_test.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
-            ->addForeignKey('user_id', 'graphql_auth_test.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('access_token_id', $schema . '.oauth_access_tokens', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('client_id', $schema . '.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('user_id', $schema . '.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->create();
 
         $this->execute('CREATE TRIGGER update_oauth_refresh_tokens_updated_at
-            BEFORE UPDATE ON graphql_auth_test.oauth_refresh_tokens
+            BEFORE UPDATE ON ' . $schema . '.oauth_refresh_tokens
             FOR EACH ROW
-            EXECUTE FUNCTION graphql_auth_test.update_updated_at_column();');
+            EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
     public function down(): void
     {
-        $this->table('oauth_refresh_tokens', ['schema' => 'graphql_auth_test'])->drop()->save();
+        $schema = $this->getAdapter()->getOption('schema');
+        $this->table('oauth_refresh_tokens', ['schema' => $schema])->drop()->save();
     }
 }

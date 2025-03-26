@@ -3,15 +3,20 @@
 declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
+use RuntimeException;
 
-final class CreateUsersTablePostgres extends AbstractMigration
+final class CreateUsersTable extends AbstractMigration
 {
     public function up()
     {
-        $this->execute('CREATE SCHEMA IF NOT EXISTS graphql_auth_test;');
+        $schema = $this->getAdapter()->getOption('schema');
+        if (empty($schema)) {
+            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+        }
+        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
         $this->execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
-        $this->execute('CREATE OR REPLACE FUNCTION graphql_auth_test.update_updated_at_column()
+        $this->execute('CREATE OR REPLACE FUNCTION ' . $schema . '.update_updated_at_column()
             RETURNS TRIGGER AS $$
             BEGIN
                 NEW.updated_at = CURRENT_TIMESTAMP;
@@ -20,7 +25,7 @@ final class CreateUsersTablePostgres extends AbstractMigration
             $$ language plpgsql;');
 
         $this->table('users', [
-            'schema' => 'graphql_auth_test',
+            'schema' => $schema,
             'id' => false,
             'primary_key' => ['id']
         ])
@@ -37,9 +42,9 @@ final class CreateUsersTablePostgres extends AbstractMigration
             ->create();
 
         $this->execute('CREATE TRIGGER update_users_updated_at
-            BEFORE UPDATE ON graphql_auth_test.users
+            BEFORE UPDATE ON ' . $schema . '.users
             FOR EACH ROW
-            EXECUTE FUNCTION graphql_auth_test.update_updated_at_column();');
+            EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
     public function down()

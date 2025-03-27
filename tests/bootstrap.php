@@ -33,4 +33,7 @@ if ($dbDriver) {
     }
 }
 
+// Set timezone for consistent testing
+date_default_timezone_set('America/Chicago');
+
 define('TESTING', true);

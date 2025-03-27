@@ -37,6 +37,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set timezone
+      run: sudo timedatectl set-timezone America/Chicago
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:

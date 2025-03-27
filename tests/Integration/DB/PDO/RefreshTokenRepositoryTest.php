@@ -67,7 +67,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $this->assertEquals(self::$testUserId, $result['user_id']);
         $this->assertEquals(self::$testAccessTokenId, $result['access_token_id']);
         $this->assertEquals(0, $result['revoked']);
-        $expectedTime = self::$driver === 'mysql' ? '2024-12-19 21:34:10' : '2024-12-19 21:34:10-06';
+        $expectedTime = self::$driver === 'mysql' ? '2024-12-19 21:34:10' : '2024-12-19 21:34:10+00';
         $this->assertEquals($expectedTime, $result['expires_at']);
     }
 

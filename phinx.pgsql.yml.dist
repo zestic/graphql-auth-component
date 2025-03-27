@@ -16,11 +16,11 @@ environments:
     testing:
         adapter: pgsql
         host: localhost
-        name: graphql_auth_test
+        name: test
         user: test
         pass: password1
         port: 5432
-        schema: auth
+        schema: graphql_auth_test
         charset: utf8
 
 version_order: creation

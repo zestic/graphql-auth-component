@@ -27,7 +27,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: graphql_auth_test
+          POSTGRES_DB: test
           POSTGRES_USER: test
           POSTGRES_PASSWORD: password1
         ports:

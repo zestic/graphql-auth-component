@@ -1,19 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Migrations\Postgres;
-
 use Phinx\Migration\AbstractMigration;
-use RuntimeException;
 
-final class CreateUsersTable extends AbstractMigration
+class CreateUsersTablePostgres extends AbstractMigration
 {
     public function up()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {
-            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+            throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
         $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
         $this->execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
@@ -29,16 +24,18 @@ final class CreateUsersTable extends AbstractMigration
         $this->table('users', [
             'schema' => $schema,
             'id' => false,
-            'primary_key' => ['id']
+            'primary_key' => ['id'],
+            'collation' => 'default'
         ])
             ->addColumn('id', 'uuid', [
+                'default' => new \Phinx\Util\Literal('uuid_generate_v4()'),
                 'null' => false,
-                'default' => new \Phinx\Util\Literal('uuid_generate_v4()')
             ])
-            ->addColumn('additional_data', 'jsonb', ['null' => false])
-            ->addColumn('display_name', 'string', ['limit' => 255, 'null' => true])
+            ->addColumn('display_name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('verified_at', 'timestamp', ['null' => true, 'default' => null, 'timezone' => true])
+            ->addColumn('email_verified', 'boolean', ['default' => false])
+            ->addColumn('verified_at', 'timestamp', ['null' => true, 'timezone' => true])
+            ->addColumn('additional_data', 'jsonb', ['null' => true])
             ->addTimestamps()
             ->addIndex(['email'], ['unique' => true])
             ->create();
@@ -47,10 +44,5 @@ final class CreateUsersTable extends AbstractMigration
             BEFORE UPDATE ON ' . $schema . '.users
             FOR EACH ROW
             EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
-    }
-
-    public function down()
-    {
-        $this->table('users', ['schema' => 'graphql_auth_test'])->drop()->save();
     }
 }

@@ -1,19 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Migrations\Postgres;
-
 use Phinx\Migration\AbstractMigration;
-use RuntimeException;
 
-final class CreateOauthAccessTokensTable extends AbstractMigration
+class CreateOauthAccessTokensTablePostgres extends AbstractMigration
 {
-    public function up(): void
+    public function up()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {
-            throw new RuntimeException('Schema must be explicitly set in the Phinx configuration');
+            throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
         $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
@@ -36,14 +31,23 @@ final class CreateOauthAccessTokensTable extends AbstractMigration
             ->addForeignKey('user_id', $schema . '.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->create();
 
+        $this->execute('CREATE OR REPLACE FUNCTION ' . $schema . '.update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ language plpgsql;');
+
         $this->execute('CREATE TRIGGER update_oauth_access_tokens_updated_at
             BEFORE UPDATE ON ' . $schema . '.oauth_access_tokens
             FOR EACH ROW
             EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
-    public function down(): void
+    public function down()
     {
-        $this->table('oauth_access_tokens', ['schema' => 'graphql_auth_test'])->drop()->save();
+        $schema = $this->getAdapter()->getOption('schema');
+        $this->table('oauth_access_tokens', ['schema' => $schema])->drop()->save();
     }
 }

@@ -79,11 +79,11 @@ jobs:
       env:
         TEST_DB_DRIVER: pgsql
         TEST_DB_HOST: 127.0.0.1
-        TEST_DB_NAME: graphql_auth_test
+        TEST_DB_NAME: test
         TEST_DB_USER: test
         TEST_DB_PASS: password1
         TEST_DB_PORT: 5432
-        TEST_PG_SCHEMA: auth
+        TEST_DB_SCHEMA: graphql_auth_test
 
     - name: Run Unit Tests
       run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage-unit.xml

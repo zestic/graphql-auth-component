@@ -47,11 +47,11 @@ class AuthPDOFactoryTest extends TestCase
     public function testInvokeWithPostgreSQLConfig(): void
     {
         putenv('AUTH_DB_DRIVER=pgsql');
-        putenv('AUTH_PG_HOST=localhost');
-        putenv('AUTH_PG_DB_NAME=test');
-        putenv('AUTH_PG_PORT=5432');
-        putenv('AUTH_PG_USER=test');
-        putenv('AUTH_PG_PASS=test');
+        putenv('AUTH_DB_HOST=localhost');
+        putenv('AUTH_DB_NAME=test');
+        putenv('AUTH_DB_PORT=5432');
+        putenv('AUTH_DB_USER=test');
+        putenv('AUTH_DB_PASS=test');
 
         $this->factory->expects($this->once())
             ->method('buildPDO')
@@ -70,10 +70,6 @@ class AuthPDOFactoryTest extends TestCase
         putenv('AUTH_DB_PORT');
         putenv('AUTH_DB_USER');
         putenv('AUTH_DB_PASS');
-        putenv('AUTH_PG_HOST');
-        putenv('AUTH_PG_DB_NAME');
-        putenv('AUTH_PG_PORT');
-        putenv('AUTH_PG_USER');
-        putenv('AUTH_PG_PASS');
+        putenv('AUTH_DB_SCHEMA');
     }
 }

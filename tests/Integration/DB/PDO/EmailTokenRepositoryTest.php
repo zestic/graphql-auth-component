@@ -28,7 +28,8 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         $result = $this->repository->create($token);
         $this->assertTrue($result);
         // Verify the token was created
-        $stmt = self::$pdo->prepare("SELECT * FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
+        $schema = self::getSchemaPrefix();
+        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}email_tokens WHERE token = ?");
         $stmt->execute([$token->token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);
@@ -56,7 +57,8 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         // Assert
         $this->assertTrue($result);
         // Verify the token was deleted
-        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
+        $schema = self::getSchemaPrefix();
+        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM {$schema}email_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $count = $stmt->fetchColumn();
         $this->assertEquals(0, $count);
@@ -132,7 +134,8 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         // Assert
         $this->assertNull($foundToken);
         // Verify the token exists but is considered expired
-        $stmt = self::$pdo->prepare("SELECT * FROM " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "email_tokens WHERE token = ?");
+        $schema = self::getSchemaPrefix();
+        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}email_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);

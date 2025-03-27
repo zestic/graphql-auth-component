@@ -43,7 +43,7 @@ class RefreshTokenRepository extends AbstractPDORepository implements RefreshTok
             $result = $stmt->execute([
                 'access_token_id' => $refreshTokenEntity->getAccessToken()->getIdentifier(),
                 'client_id' => $refreshTokenEntity->getClientIdentifier(),
-                'expires_at' => $refreshTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s'),
+                'expires_at' => $refreshTokenEntity->getExpiryDateTime()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
                 'id' => $refreshTokenEntity->getIdentifier(),
                 'revoked' => $this->dbBool(false),
                 'user_id' => $refreshTokenEntity->getUserIdentifier(),

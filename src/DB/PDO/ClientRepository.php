@@ -18,10 +18,10 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
     public function create(ClientEntityInterface $clientEntity): bool
     {
-        $stmt = $this->pdo->prepare('
-            INSERT INTO graphql_auth_test.oauth_clients (client_id, name, redirect_uri, is_confidential)
+        $stmt = $this->pdo->prepare("
+            INSERT INTO {$this->schema}oauth_clients (client_id, name, redirect_uri, is_confidential)
             VALUES (:clientId, :name, :redirectUri, :isConfidential)
-        ');
+        ");
 
         return $stmt->execute([
             'clientId' => $clientEntity->getIdentifier(),
@@ -33,11 +33,11 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
     public function delete(ClientEntityInterface $clientEntity): bool
     {
-        $stmt = $this->pdo->prepare('
-            UPDATE graphql_auth_test.oauth_clients
+        $stmt = $this->pdo->prepare("
+            UPDATE {$this->schema}oauth_clients
             SET deleted_at = CURRENT_TIMESTAMP
             WHERE client_id = :clientId AND deleted_at IS NULL
-        ');
+        ");
 
         return $stmt->execute([
             'clientId' => $clientEntity->getIdentifier(),
@@ -46,10 +46,10 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
     public function getClientEntity(string $clientIdentifier): ?ClientEntityInterface
     {
-        $stmt = $this->pdo->prepare('
-        SELECT * FROM graphql_auth_test.oauth_clients
+        $stmt = $this->pdo->prepare("
+        SELECT * FROM {$this->schema}oauth_clients
         WHERE client_id = :clientId AND deleted_at IS NULL
-    ');
+    ");
         $stmt->execute(['clientId' => $clientIdentifier]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -69,10 +69,10 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
     public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
     {
-        $stmt = $this->pdo->prepare('
-            SELECT * FROM oauth_clients
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM {$this->schema}oauth_clients
             WHERE client_id = :clientId AND deleted_at IS NULL
-        ');
+        ");
         $stmt->execute(['clientId' => $clientIdentifier]);
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);

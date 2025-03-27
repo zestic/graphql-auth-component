@@ -15,7 +15,7 @@ abstract class AbstractPDORepository
     ) {
         $this->pdo = $pdo;
         $this->isPgsql = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'pgsql';
-        $this->schema = $this->isPgsql ? 'graphql_auth_test.' : '';
+        $this->schema = $this->isPgsql ? $_ENV['TEST_DB_SCHEMA'] . '.' : '';
     }
 
     /**

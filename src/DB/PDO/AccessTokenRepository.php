@@ -25,7 +25,7 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
     {
         $stmt = $this->pdo->prepare("
             SELECT *
-            FROM " . $this->schema . "oauth_access_tokens
+            FROM {$this->schema}oauth_access_tokens
             WHERE user_id = :userId
         ");
 
@@ -67,7 +67,7 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO " . $this->schema . "oauth_access_tokens (id, user_id, client_id, scopes, revoked, expires_at)
+            INSERT INTO {$this->schema}oauth_access_tokens (id, user_id, client_id, scopes, revoked, expires_at)
             VALUES (:id, :user_id, :client_id, :scopes, :revoked, :expires_at)
         ");
 
@@ -88,7 +88,7 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
     public function revokeAccessToken(string $tokenId): void
     {
         $sql = "
-            UPDATE " . $this->schema . "oauth_access_tokens
+            UPDATE {$this->schema}oauth_access_tokens
             SET revoked = :revoked
             WHERE id = :id
         ";
@@ -104,7 +104,7 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
     {
         $stmt = $this->pdo->prepare("
             SELECT revoked
-            FROM graphql_auth_test.oauth_access_tokens
+            FROM " . $this->schema . "oauth_access_tokens
             WHERE id = :id
         ");
 

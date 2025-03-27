@@ -50,7 +50,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $refreshToken->setIdentifier($tokenId);
         $refreshToken->setClientIdentifier(self::$testClientId);
         $refreshToken->setUserIdentifier(self::$testUserId);
-        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
+        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 21:34:10', new \DateTimeZone('UTC')));
 
         $accessToken = self::getSeededAccessToken();
         $refreshToken->setAccessToken($accessToken);
@@ -67,7 +67,8 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $this->assertEquals(self::$testUserId, $result['user_id']);
         $this->assertEquals(self::$testAccessTokenId, $result['access_token_id']);
         $this->assertEquals(0, $result['revoked']);
-        $this->assertEquals('2024-12-19 15:34:10', $result['expires_at']);
+        $expectedTime = self::$driver === 'mysql' ? '2024-12-19 21:34:10' : '2024-12-19 21:34:10-06';
+        $this->assertEquals($expectedTime, $result['expires_at']);
     }
 
     public function testPersistNewRefreshTokenWithDuplicateIdThrowsException(): void
@@ -77,7 +78,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $tokenId = $this->generateUniqueIdentifier();
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
-        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
+        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 21:34:10', new \DateTimeZone('UTC')));
         $refreshToken->setClientIdentifier(self::$testClientId);
         $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();
@@ -86,8 +87,16 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         // First insertion
         $this->repository->persistNewRefreshToken($refreshToken);
         
+        // Create a new token with the same ID
+        $newRefreshToken = new RefreshTokenEntity();
+        $newRefreshToken->setIdentifier($tokenId);
+        $newRefreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
+        $newRefreshToken->setClientIdentifier(self::$testClientId);
+        $newRefreshToken->setUserIdentifier(self::$testUserId);
+        $newRefreshToken->setAccessToken($accessToken);
+        
         // Second insertion with same ID should throw exception
-        $this->repository->persistNewRefreshToken($refreshToken);
+        $this->repository->persistNewRefreshToken($newRefreshToken);
     }
 
     public function testRevokeRefreshToken(): void
@@ -97,7 +106,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         // First create a token
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
-        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
+        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 21:34:10', new \DateTimeZone('UTC')));
         $refreshToken->setClientIdentifier(self::$testClientId);
         $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();
@@ -124,7 +133,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $tokenId = $this->generateUniqueIdentifier();
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);
-        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 15:34:10'));
+        $refreshToken->setExpiryDateTime(new DateTimeImmutable('2024-12-19 21:34:10', new \DateTimeZone('UTC')));
         $refreshToken->setClientIdentifier(self::$testClientId);
         $refreshToken->setUserIdentifier(self::$testUserId);
         $accessToken = self::getSeededAccessToken();

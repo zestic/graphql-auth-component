@@ -19,6 +19,7 @@ class AuthPDOFactoryTest extends DatabaseTestCase
         putenv('AUTH_DB_USER=' . $_ENV['TEST_DB_USER']);
         putenv('AUTH_DB_PASS=' . $_ENV['TEST_DB_PASS']);
         putenv('AUTH_DB_PORT=' . $_ENV['TEST_DB_PORT']);
+        putenv('AUTH_DB_DRIVER=' . $_ENV['TEST_DB_DRIVER']);
 
         $factory = new AuthPDOFactory();
         $pdo = $factory($this->createMock(ContainerInterface::class));

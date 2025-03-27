@@ -13,25 +13,14 @@ class AuthPDOFactory
     {
         $driver = getenv('AUTH_DB_DRIVER') ?: 'mysql';
 
-        if ($driver === 'mysql') {
-            $config = [
-                'driver' => 'mysql',
-                'host' => getenv('AUTH_DB_HOST'),
-                'dbname' => getenv('AUTH_DB_NAME'),
-                'port' => getenv('AUTH_DB_PORT'),
-                'username' => getenv('AUTH_DB_USER'),
-                'password' => getenv('AUTH_DB_PASS'),
-            ];
-        } else {
-            $config = [
-                'driver' => 'pgsql',
-                'host' => getenv('AUTH_PG_HOST'),
-                'dbname' => getenv('AUTH_PG_DB_NAME'),
-                'port' => getenv('AUTH_PG_PORT'),
-                'username' => getenv('AUTH_PG_USER'),
-                'password' => getenv('AUTH_PG_PASS'),
-            ];
-        }
+        $config = [
+            'driver' => $driver,
+            'host' => getenv('AUTH_DB_HOST'),
+            'dbname' => getenv('AUTH_DB_NAME'),
+            'port' => getenv('AUTH_DB_PORT'),
+            'username' => getenv('AUTH_DB_USER'),
+            'password' => getenv('AUTH_DB_PASS'),
+        ];
 
         $this->validateConfig($config);
         return $this->buildPDO($config);
@@ -56,6 +45,13 @@ class AuthPDOFactory
             $config['port'],
             $config['dbname']
         );
-        return new AuthPDO($dsn, $config['username'], $config['password']);
+        $pdo = new AuthPDO($dsn, $config['username'], $config['password']);
+        
+        if ($config['driver'] === 'pgsql') {
+            $schema = getenv('AUTH_DB_SCHEMA') ?: 'graphql_auth_test';
+            $pdo->exec("SET search_path TO {$schema}");
+        }
+        
+        return $pdo;
     }
 }

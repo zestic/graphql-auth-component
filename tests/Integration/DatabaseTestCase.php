@@ -26,10 +26,12 @@ abstract class DatabaseTestCase extends TestCase
     protected static MigrationRunner $migrationRunner;
     protected static ?PDO $pdo;
     protected static TokenConfig $tokenConfig;
-    protected static string $driver = 'mysql'; // Default to MySQL
+    protected static string $driver;
+    protected static string $schema;
 
     public static function setUpBeforeClass(): void
     {
+        date_default_timezone_set('UTC');
         self::initializeDriver();
         self::initializePDO();
         self::initializeTokenConfig();
@@ -60,7 +62,7 @@ abstract class DatabaseTestCase extends TestCase
     protected static function initializeDriver(): void
     {
         // Allow overriding the driver via environment variable
-        self::$driver = $_ENV['TEST_DB_DRIVER'] ?? 'mysql';
+        self::$driver = $_ENV['TEST_DB_DRIVER'];
         if (!in_array(self::$driver, ['mysql', 'pgsql'])) {
             throw new \RuntimeException('Unsupported database driver: ' . self::$driver);
         }
@@ -81,12 +83,12 @@ abstract class DatabaseTestCase extends TestCase
         $dbname = $_ENV['TEST_DB_NAME'] ?? 'graphql_auth_test';
         $username = $_ENV['TEST_DB_USER'] ?? 'test';
         $password = $_ENV['TEST_DB_PASS'] ?? 'password1';
-        $port = $_ENV['TEST_DB_PORT'] ?? (self::$driver === 'mysql' ? 3306 : 5432);
+        $port = $_ENV['TEST_DB_PORT'];
 
         if (self::$driver === 'mysql') {
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-        } else {
-            $schema = $_ENV['TEST_PG_SCHEMA'] ?? 'auth';
+        }
+        if (self::$driver === 'pgsql') {
             $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
         }
 
@@ -111,7 +113,7 @@ abstract class DatabaseTestCase extends TestCase
 
     protected static function initializeMigrations(): void
     {
-        $config = self::$driver === 'mysql' ? 'phinx.mysql.yml' : 'phinx.postgres.yml';
+        $config = 'phinx.' . self::$driver . '.yml';
         self::$migrationRunner = new MigrationRunner();
         self::$migrationRunner->migrate('testing', $config);
     }
@@ -151,7 +153,7 @@ abstract class DatabaseTestCase extends TestCase
             self::$driver === 'pgsql' ? 'false' : '0'
         ]);
         self::$pdo->exec(
-            "INSERT INTO " . (self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '') . "oauth_access_tokens (
+            "INSERT INTO " . self::getSchemaPrefix() . "oauth_access_tokens (
                 id, client_id, user_id, expires_at, revoked
             ) VALUES (
                 " . $values . "
@@ -189,8 +191,7 @@ abstract class DatabaseTestCase extends TestCase
             self::TEST_CLIENT_NAME,
         ]);
 
-        $schema = self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '';
-        $table = $schema . 'oauth_clients';
+        $table = self::getSchemaPrefix() . 'oauth_clients';
         self::$pdo->exec(
             "INSERT INTO {$table} (
                 client_id, name
@@ -229,8 +230,7 @@ abstract class DatabaseTestCase extends TestCase
             json_encode($additionalData),
         ]);
 
-        $schema = self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') . '.' : '';
-        $table = $schema . 'users';
+        $table = self::getSchemaPrefix() . 'users';
         self::$pdo->exec(
             "INSERT INTO {$table} (
                 id, email, display_name, additional_data
@@ -284,12 +284,13 @@ abstract class DatabaseTestCase extends TestCase
 
     protected static function getSchema(): string
     {
-        return self::$driver === 'pgsql' ? ($_ENV['TEST_PG_SCHEMA'] ?? 'auth') : '';
+        return $_ENV['TEST_DB_SCHEMA'] ?? '';
     }
 
     protected static function getSchemaPrefix(): string
     {
         $schema = self::getSchema();
+
         return $schema ? $schema . '.' : '';
     }
 }

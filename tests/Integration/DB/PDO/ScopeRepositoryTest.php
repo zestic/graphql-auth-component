@@ -22,10 +22,11 @@ class ScopeRepositoryTest extends DatabaseTestCase
         $clientEntity = self::seedClientRepository();
 
         // Then seed scopes
-        self::$pdo->exec("INSERT INTO " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "oauth_scopes (id, description) VALUES ('read', 'Read access'), ('write', 'Write access')");
+        $schema = self::getSchemaPrefix();
+        self::$pdo->exec("INSERT INTO {$schema}oauth_scopes (id, description) VALUES ('read', 'Read access'), ('write', 'Write access')");
 
         // Finally seed client scopes
-        self::$pdo->exec("INSERT INTO " . (self::$driver === 'pgsql' ? 'graphql_auth_test.' : '') . "oauth_client_scopes (client_id, scope) VALUES ('" . $clientEntity->getIdentifier() . "', 'read'), ('" . $clientEntity->getIdentifier() . "', 'write')");
+        self::$pdo->exec("INSERT INTO {$schema}oauth_client_scopes (client_id, scope) VALUES ('" . $clientEntity->getIdentifier() . "', 'read'), ('" . $clientEntity->getIdentifier() . "', 'write')");
     }
 
     public function testGetScopeEntityByIdentifier(): void

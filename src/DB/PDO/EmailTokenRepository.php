@@ -19,7 +19,7 @@ class EmailTokenRepository extends AbstractPDORepository implements EmailTokenRe
     public function create(EmailToken $emailToken): bool
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO graphql_auth_test.email_tokens (expiration, token, token_type, user_id)
+            INSERT INTO {$this->schema}email_tokens (expiration, token, token_type, user_id)
             VALUES (:expiration, :token, :token_type, :user_id)
         ");
 
@@ -36,7 +36,7 @@ class EmailTokenRepository extends AbstractPDORepository implements EmailTokenRe
         $token = $emailToken instanceof EmailToken ? $emailToken->token : $emailToken;
 
         $stmt = $this->pdo->prepare("
-            DELETE FROM graphql_auth_test.email_tokens
+            DELETE FROM {$this->schema}email_tokens
             WHERE token = :token
         ");
 
@@ -47,7 +47,7 @@ class EmailTokenRepository extends AbstractPDORepository implements EmailTokenRe
     {
         $stmt = $this->pdo->prepare("
             SELECT id, expiration, token, token_type, user_id
-            FROM graphql_auth_test.email_tokens
+            FROM {$this->schema}email_tokens
             WHERE token = :token
             AND expiration > NOW()
             LIMIT 1

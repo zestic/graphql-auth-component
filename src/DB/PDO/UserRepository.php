@@ -34,8 +34,8 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
     {
         $id = $this->generateUniqueIdentifier();
         $stmt = $this->pdo->prepare(
-            "INSERT INTO {$this->schema}users (id, email, display_name, additional_data, verified_at)
-            VALUES (:id, :email, :display_name, :additional_data, :verified_at)"
+            'INSERT INTO ' . $this->schema . 'users (id, email, display_name, additional_data, verified_at)
+            VALUES (:id, :email, :display_name, :additional_data, :verified_at)'
         );
         $displayName = $context->extractAndRemove('displayName');
         try {
@@ -56,9 +56,9 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
     public function findUserByEmail(string $email): ?UserInterface
     {
         $stmt = $this->pdo->prepare(
-            "SELECT additional_data, email, display_name, id, verified_at
-            FROM " . $this->schema . "users
-            WHERE email = :email"
+            'SELECT additional_data, email, display_name, id, verified_at
+            FROM ' . $this->schema . 'users
+            WHERE email = :email'
         );
         $stmt->execute(['email' => $email]);
         $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -78,9 +78,9 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
     public function findUserById(string $id): ?UserInterface
     {
         $stmt = $this->pdo->prepare(
-            "SELECT additional_data, email, display_name, id, verified_at
-            FROM " . $this->schema . "users
-            WHERE id = :id"
+            'SELECT additional_data, email, display_name, id, verified_at
+            FROM ' . $this->schema . 'users
+            WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
         $userData = $stmt->fetch(\PDO::FETCH_ASSOC);

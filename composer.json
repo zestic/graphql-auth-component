@@ -29,14 +29,15 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
+      "Tests\\": "tests/",
+      "Migrations\\": "resources/db/migrations/"
     }
   },
   "scripts": {
     "analyse": "phpstan analyse -c phpstan.neon.dist",
     "test:unit": "phpunit --testsuite Unit",
-    "test:mysql": "TEST_DB_DRIVER=mysql phpunit --testsuite Integration-MySQL",
-    "test:pgsql": "TEST_DB_DRIVER=pgsql phpunit --testsuite Integration-PostgreSQL",
+    "test:mysql": "phpunit --testsuite Integration-MySQL",
+    "test:pgsql": "phpunit --testsuite Integration-PostgreSQL",
     "test": [
       "@test:unit",
       "@test:mysql",

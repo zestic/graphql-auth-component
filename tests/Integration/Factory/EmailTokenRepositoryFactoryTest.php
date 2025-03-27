@@ -23,7 +23,7 @@ class EmailTokenRepositoryFactoryTest extends DatabaseTestCase
         $container = $this->createMock(\Psr\Container\ContainerInterface::class);
         $container->expects($this->once())
             ->method('get')
-            ->with('auth.mysql.pdo')
+            ->with(self::$driver === 'mysql' ? 'auth.mysql.pdo' : 'auth.postgres.pdo')
             ->willReturn(self::$pdo);
 
         // Create the repository

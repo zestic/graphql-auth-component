@@ -11,5 +11,5 @@ composer.lock
 
 # Configuration files
 phinx.mysql.yml
-phinx.postgres.yml
+phinx.pgsql.yml
 !phinx.*.yml.dist

@@ -5,25 +5,32 @@ use Symfony\Component\Dotenv\Dotenv;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = new Dotenv();
-// Load base environment file
-if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv->load(__DIR__ . '/../.env');
-}
 
 // Load test environment file
 if (file_exists(__DIR__ . '/../.env.testing')) {
     $dotenv->load(__DIR__ . '/../.env.testing');
 }
 
-// Load database-specific environment file if TEST_DB_DRIVER is set
-$dbDriver = getenv('TEST_DB_DRIVER') ?: 'mysql';
-if ($dbDriver === 'pgsql' && file_exists(__DIR__ . '/../.env.testing.postgres')) {
-    $dotenv->load(__DIR__ . '/../.env.testing.postgres');
+// Find the --testsuite argument
+$dbDriver = null;
+for ($i = 1; $i < count($_SERVER['argv']); $i++) {
+    if ($_SERVER['argv'][$i] === '--testsuite' && isset($_SERVER['argv'][$i + 1])) {
+        $suite = strtolower($_SERVER['argv'][$i + 1]);
+        if (str_contains($suite, 'postgres')) {
+            $dbDriver = 'pgsql';
+        } elseif (str_contains($suite, 'mysql')) {
+            $dbDriver = 'mysql';
+        }
+        break;
+    }
 }
 
-// Set default database driver if not set
-if (!getenv('TEST_DB_DRIVER')) {
-    putenv('TEST_DB_DRIVER=mysql');
+// Load database-specific environment file
+if ($dbDriver) {
+    $envFile = "/../.env.testing.{$dbDriver}";
+    if (file_exists(__DIR__ . $envFile)) {
+        $dotenv->load(__DIR__ . $envFile);
+    }
 }
 
 define('TESTING', true);

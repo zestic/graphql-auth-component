@@ -72,7 +72,7 @@ jobs:
     - name: Set up Phinx configuration
       run: |
         cp phinx.mysql.yml.dist phinx.mysql.yml
-        cp phinx.postgres.yml.dist phinx.postgres.yml
+        cp phinx.pgsql.yml.dist phinx.pgsql.yml
 
     - name: Run PostgreSQL Integration Tests
       run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml

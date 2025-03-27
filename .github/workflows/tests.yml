@@ -64,7 +64,7 @@ jobs:
 
     - name: Set up PostgreSQL schema
       run: |
-        PGPASSWORD=password1 psql -h 127.0.0.1 -U test -d graphql_auth_test -c "CREATE SCHEMA IF NOT EXISTS auth;"
+        PGPASSWORD=password1 psql -h 127.0.0.1 -U test -d test -c "CREATE SCHEMA IF NOT EXISTS graphql_auth_test;"
 
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist

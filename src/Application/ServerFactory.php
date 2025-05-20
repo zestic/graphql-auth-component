@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent\OAuth2;
+namespace Zestic\GraphQL\AuthComponent\Application;
 
 use League\OAuth2\Server\AuthorizationServer;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
@@ -25,8 +25,7 @@ class ServerFactory
         private UserRepositoryInterface $userRepository,
         private string $privateKey,
         private string $encryptionKey,
-    ) {
-    }
+    ) {}
 
     public function create(): AuthorizationServer
     {

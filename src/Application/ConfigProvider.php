@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Zestic\GraphQL\AuthComponent;
+namespace Zestic\GraphQL\AuthComponent\Application;
 
-use Zestic\GraphQL\AuthComponent\Application\DB\AuthPDO;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AccessTokenRepositoryFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthPDOMySQLFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthPDOPostgresFactory;

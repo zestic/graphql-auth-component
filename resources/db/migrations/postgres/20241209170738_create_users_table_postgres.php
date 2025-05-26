@@ -10,8 +10,7 @@ class CreateUsersTablePostgres extends AbstractMigration
         if (empty($schema)) {
             throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
-        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
-        $this->execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+        // $this->execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
         $this->execute('CREATE OR REPLACE FUNCTION ' . $schema . '.update_updated_at_column()
             RETURNS TRIGGER AS $$
@@ -28,7 +27,6 @@ class CreateUsersTablePostgres extends AbstractMigration
             'collation' => 'default'
         ])
             ->addColumn('id', 'uuid', [
-                'default' => new \Phinx\Util\Literal('uuid_generate_v4()'),
                 'null' => false,
             ])
             ->addColumn('display_name', 'string', ['limit' => 255, 'null' => false])
@@ -37,6 +35,7 @@ class CreateUsersTablePostgres extends AbstractMigration
             ->addColumn('verified_at', 'timestamp', ['null' => true, 'timezone' => true])
             ->addColumn('additional_data', 'jsonb', ['null' => true])
             ->addTimestamps()
+            ->addIndex(['id'], ['unique' => true])
             ->addIndex(['email'], ['unique' => true])
             ->create();
 

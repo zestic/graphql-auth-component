@@ -10,7 +10,6 @@ class CreateOauthRefreshTokensTablePostgres extends AbstractMigration
         if (empty($schema)) {
             throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
-        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
         $this->table('oauth_refresh_tokens', [
             'schema' => $schema,
@@ -27,6 +26,7 @@ class CreateOauthRefreshTokensTablePostgres extends AbstractMigration
             ->addColumn('revoked', 'boolean', ['default' => false])
             ->addColumn('expires_at', 'timestamp', ['null' => false, 'timezone' => true])
             ->addTimestamps()
+            ->addIndex('id', ['unique' => true])
             ->addForeignKey('access_token_id', $schema . '.oauth_access_tokens', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->addForeignKey('client_id', $schema . '.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
             ->addForeignKey('user_id', $schema . '.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])

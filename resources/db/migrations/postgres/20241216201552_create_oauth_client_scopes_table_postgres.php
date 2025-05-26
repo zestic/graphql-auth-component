@@ -10,7 +10,6 @@ class CreateOauthClientScopesTablePostgres extends AbstractMigration
         if (empty($schema)) {
             throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
-        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
         $this->table('oauth_client_scopes', [
             'schema' => $schema,

@@ -10,7 +10,6 @@ class CreateOauthClientTablePostgres extends AbstractMigration
         if (empty($schema)) {
             throw new \RuntimeException('Schema must be explicitly set in the Phinx configuration');
         }
-        $this->execute(sprintf('CREATE SCHEMA IF NOT EXISTS %s;', $schema));
 
         $this->execute('CREATE OR REPLACE FUNCTION ' . $schema . '.update_updated_at_column()
             RETURNS TRIGGER AS $$
@@ -28,12 +27,12 @@ class CreateOauthClientTablePostgres extends AbstractMigration
         ])
             ->addColumn('client_id', 'uuid', [
                 'null' => false,
-                'default' => new \Phinx\Util\Literal('uuid_generate_v4()')
             ])
             ->addColumn('name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('redirect_uri', 'jsonb', ['null' => true])
             ->addColumn('is_confidential', 'boolean', ['default' => false])
             ->addTimestamps()
+            ->addIndex('client_id', ['unique' => true])
             ->addColumn('deleted_at', 'timestamp', ['null' => true, 'timezone' => true])
             ->create();
 

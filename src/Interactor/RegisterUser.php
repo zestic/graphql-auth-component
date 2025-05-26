@@ -6,6 +6,7 @@ namespace Zestic\GraphQL\AuthComponent\Interactor;
 
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
+use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
@@ -14,9 +15,9 @@ class RegisterUser
     public function __construct(
         private EmailTokenFactory $emailTokenFactory,
         private SendVerificationEmailInterface $sendRegistrationVerification,
+        private UserCreatedHookInterface $userCreatedHook,
         private UserRepositoryInterface $userRepository,
-    ) {
-    }
+    ) {}
 
     public function register(RegistrationContext $context): array
     {
@@ -32,6 +33,7 @@ class RegisterUser
             $this->userRepository->beginTransaction();
 
             $userId = $this->userRepository->create($context);
+            $this->userCreatedHook->execute($context, $userId);
             $token = $this->emailTokenFactory->createRegistrationToken($userId);
             $this->sendRegistrationVerification->send($context, $token);
 
@@ -51,4 +53,5 @@ class RegisterUser
                 'code' => 'SYSTEM_ERROR'
             ];
         }
-    }}
+    }
+}

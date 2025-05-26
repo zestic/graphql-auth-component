@@ -15,7 +15,7 @@ abstract class AbstractPDORepository
     ) {
         $this->pdo = $pdo;
         $this->isPgsql = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'pgsql';
-        $this->schema = $this->isPgsql ? $_ENV['TEST_DB_SCHEMA'] . '.' : '';
+        $this->schema = $this->isPgsql ? $this->getCurrentSchema() . '.' : '';
     }
 
     /**
@@ -55,5 +55,11 @@ abstract class AbstractPDORepository
             return str_replace(' hour', ' HOUR', $interval);
         }
         return $interval;
+    }
+
+    protected function getCurrentSchema(): string
+    {
+        $stmt = $this->pdo->query("SELECT current_schema()");
+        return (string) $stmt->fetchColumn();
     }
 }

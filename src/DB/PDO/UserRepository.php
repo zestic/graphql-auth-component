@@ -7,7 +7,6 @@ namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
-use Zestic\GraphQL\AuthComponent\Entity\GenerateUniqueIdentifierTrait;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
@@ -104,7 +103,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         );
         $stmt->execute(['email' => $email]);
 
-        return (int)$stmt->fetchColumn() > 0;
+        return ((int)$stmt->fetchColumn()) > 0;
     }
 
     public function getUserEntityByUserCredentials(

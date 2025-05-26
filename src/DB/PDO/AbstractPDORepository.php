@@ -60,6 +60,7 @@ abstract class AbstractPDORepository
     protected function getCurrentSchema(): string
     {
         $stmt = $this->pdo->query("SELECT current_schema()");
+
         return (string) $stmt->fetchColumn();
     }
 }

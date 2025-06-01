@@ -27,10 +27,16 @@ type AuthenticateTokenResponse {
     token: AuthToken
 }
 
+type ValidateRegistrationResponse {
+    success: Boolean!
+    token: AuthToken
+}
+
 type Mutation {
     authenticateToken(token: String!): AuthenticateTokenResponse!
     register(input: RegistrationInput!): RegistrationResponse!
     sendMagicLink(email: String!): MagicLinkResponse!
+    validateRegistration(token: String!): ValidateRegistrationResponse!
 }
 
 scalar JSON

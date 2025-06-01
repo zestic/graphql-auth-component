@@ -21,7 +21,7 @@ class RegisterUser
 
     public function register(RegistrationContext $context): array
     {
-        if ($this->userRepository->emailExists($context->email)) {
+        if ($this->userRepository->emailExists($context->get('email'))) {
             return [
                 'success' => false,
                 'message' => 'Email already registered',

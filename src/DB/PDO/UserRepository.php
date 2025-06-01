@@ -36,12 +36,13 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
             'INSERT INTO ' . $this->schema . 'users (id, email, display_name, additional_data, verified_at)
             VALUES (:id, :email, :display_name, :additional_data, :verified_at)'
         );
-        $displayName = $context->extractAndRemove('displayName');
+        $additionalData = $context->data;
+        unset($additionalData['displayName']);
         try {
             $stmt->execute([
                 'id'              => $id,
-                'email'           => $context->email,
-                'display_name'    => $displayName,
+                'email'           => $context->get('email'),
+                'display_name'    => $context->get('displayName'),
                 'additional_data' => json_encode($context->data),
                 'verified_at'     => null,
             ]);

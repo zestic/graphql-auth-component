@@ -10,6 +10,7 @@ interface UserInterface extends OAuth2UserEntityInterface
 {
     public function getId(): string|int;
     public function getEmail(): string;
+    public function isVerified(): bool;
     public function getVerifiedAt(): ?\DateTimeInterface;
     public function setVerifiedAt(\DateTimeInterface $verifiedAt): void;
     public function getDisplayName(): ?string;

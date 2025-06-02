@@ -15,7 +15,7 @@ environments:
         collation: utf8mb4_unicode_ci
     testing:
         adapter: mysql
-        host: localhost
+        host: 127.0.0.1
         name: graphql_auth_test
         user: test
         pass: password1

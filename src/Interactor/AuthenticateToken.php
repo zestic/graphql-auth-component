@@ -26,9 +26,10 @@ class AuthenticateToken
     public function authenticate(string $token): array
     {
         $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
-        if (!$magicLinkToken || $magicLinkToken->isExpired()) {
+        if (! $magicLinkToken || $magicLinkToken->isExpired()) {
             throw new \Exception('Invalid or expired token');
         }
+
         try {
             $body = [
                 'grant_type' => 'magic_link',

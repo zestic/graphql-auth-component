@@ -9,6 +9,8 @@ use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 interface MagicLinkTokenRepositoryInterface
 {
     public function create(MagicLinkToken $magicLinkToken): bool;
+
     public function delete(MagicLinkToken|string $magicLinkToken): bool;
+
     public function findByToken(string $token): ?MagicLinkToken;
 }

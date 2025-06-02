@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Integration\DB\PDO;
 
 use DateTimeImmutable;
-use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
@@ -29,7 +28,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         self::seedClientRepository();
         self::seedUserRepository();
         self::seedAccessTokenTable();
-        
+
         $this->repository = new RefreshTokenRepository(
             self::$pdo,
             self::$tokenConfig,
@@ -39,7 +38,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
     public function testGetNewRefreshToken(): void
     {
         $token = $this->repository->getNewRefreshToken();
-        
+
         $this->assertInstanceOf(RefreshTokenEntity::class, $token);
     }
 
@@ -86,7 +85,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
 
         // First insertion
         $this->repository->persistNewRefreshToken($refreshToken);
-        
+
         // Create a new token with the same ID
         $newRefreshToken = new RefreshTokenEntity();
         $newRefreshToken->setIdentifier($tokenId);
@@ -94,7 +93,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
         $newRefreshToken->setClientIdentifier(self::$testClientId);
         $newRefreshToken->setUserIdentifier(self::$testUserId);
         $newRefreshToken->setAccessToken($accessToken);
-        
+
         // Second insertion with same ID should throw exception
         $this->repository->persistNewRefreshToken($newRefreshToken);
     }
@@ -102,7 +101,7 @@ class RefreshTokenRepositoryTest extends DatabaseTestCase
     public function testRevokeRefreshToken(): void
     {
         $tokenId = $this->generateUniqueIdentifier();
-        
+
         // First create a token
         $refreshToken = new RefreshTokenEntity();
         $refreshToken->setIdentifier($tokenId);

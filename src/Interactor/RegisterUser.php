@@ -17,7 +17,8 @@ class RegisterUser
         private SendVerificationLinkInterface $sendRegistrationVerification,
         private UserCreatedHookInterface $userCreatedHook,
         private UserRepositoryInterface $userRepository,
-    ) {}
+    ) {
+    }
 
     public function register(RegistrationContext $context): array
     {
@@ -25,7 +26,7 @@ class RegisterUser
             return [
                 'success' => false,
                 'message' => 'Email already registered',
-                'code' => 'EMAIL_IN_SYSTEM'
+                'code' => 'EMAIL_IN_SYSTEM',
             ];
         }
 
@@ -42,7 +43,7 @@ class RegisterUser
             return [
                 'success' => true,
                 'message' => 'Email registered successfully',
-                'code' => 'EMAIL_REGISTERED'
+                'code' => 'EMAIL_REGISTERED',
             ];
         } catch (\Exception $e) {
             $this->userRepository->rollback();
@@ -50,7 +51,7 @@ class RegisterUser
             return [
                 'success' => false,
                 'message' => 'Registration failed due to a system error',
-                'code' => 'SYSTEM_ERROR'
+                'code' => 'SYSTEM_ERROR',
             ];
         }
     }

@@ -27,11 +27,17 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 class MagicLinkGrantTest extends TestCase
 {
     private MagicLinkGrant $grant;
+
     private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
+
     private RefreshTokenRepositoryInterface $refreshTokenRepository;
+
     private ClientRepositoryInterface $clientRepository;
+
     private AccessTokenRepositoryInterface $accessTokenRepository;
+
     private ScopeRepositoryInterface $scopeRepository;
+
     private UserRepositoryInterface $userRepository;
 
     protected function setUp(): void

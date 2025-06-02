@@ -8,25 +8,29 @@ use Ramsey\Uuid\Uuid;
 use Tests\Integration\DB\MigrationRunner;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
-use Zestic\GraphQL\AuthComponent\Entity\GenerateUniqueIdentifierTrait;
-use Zestic\GraphQL\AuthComponent\Entity\RefreshTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 abstract class DatabaseTestCase extends TestCase
 {
     protected static string $testAccessTokenId;
+
     protected static string $testClientId;
+
     protected static string $testUserId;
 
-    const string TEST_CLIENT_NAME = 'Test Client';
-    const string TEST_CLIENT_SECRET = 'test_secret';
-    const string TEST_EMAIL = 'test@zestic.com';
-    const string TEST_USER_DISPLAY_NAME = 'Test User';
+    public const string TEST_CLIENT_NAME = 'Test Client';
+    public const string TEST_CLIENT_SECRET = 'test_secret';
+    public const string TEST_EMAIL = 'test@zestic.com';
+    public const string TEST_USER_DISPLAY_NAME = 'Test User';
 
     protected static MigrationRunner $migrationRunner;
+
     protected static ?PDO $pdo;
+
     protected static TokenConfig $tokenConfig;
+
     protected static string $driver;
+
     protected static string $schema;
 
     public static function setUpBeforeClass(): void
@@ -63,7 +67,7 @@ abstract class DatabaseTestCase extends TestCase
     {
         // Allow overriding the driver via environment variable
         self::$driver = $_ENV['TEST_DB_DRIVER'];
-        if (!in_array(self::$driver, ['mysql', 'pgsql'])) {
+        if (! in_array(self::$driver, ['mysql', 'pgsql'])) {
             throw new \RuntimeException('Unsupported database driver: ' . self::$driver);
         }
 
@@ -131,6 +135,7 @@ abstract class DatabaseTestCase extends TestCase
         if (self::$driver === 'pgsql') {
             return Uuid::uuid4()->toString();
         }
+
         return self::$testAccessTokenId;
     }
 
@@ -150,7 +155,7 @@ abstract class DatabaseTestCase extends TestCase
             self::getCurrentClientId(),
             self::$testUserId,
             self::$tokenConfig->getAccessTokenTTLDateTimeString(),
-            self::$driver === 'pgsql' ? 'false' : '0'
+            self::$driver === 'pgsql' ? 'false' : '0',
         ]);
         self::$pdo->exec(
             "INSERT INTO " . self::getSchemaPrefix() . "oauth_access_tokens (
@@ -180,6 +185,7 @@ abstract class DatabaseTestCase extends TestCase
         if (self::$currentClientId === null) {
             self::$currentClientId = self::$driver === 'pgsql' ? Uuid::fromString(self::$testClientId)->toString() : self::$testClientId;
         }
+
         return self::$currentClientId;
     }
 
@@ -215,12 +221,11 @@ abstract class DatabaseTestCase extends TestCase
     }
 
     protected static function seedUserRepository(
-        string $userId = null, 
-        string $email = self::TEST_EMAIL, 
-        string $displayName = self::TEST_USER_DISPLAY_NAME, 
+        string $userId = null,
+        string $email = self::TEST_EMAIL,
+        string $displayName = self::TEST_USER_DISPLAY_NAME,
         array $additionalData = [],
-    ): void
-    {
+    ): void {
         $userId = $userId ?? self::$testUserId;
 
         $values = self::formatValues([
@@ -244,7 +249,7 @@ abstract class DatabaseTestCase extends TestCase
     {
         // Clean up test data before each test
         $this->cleanupDatabase();
-        
+
         // Reset static properties
         self::$currentClientId = null;
         self::initializeTestIds();

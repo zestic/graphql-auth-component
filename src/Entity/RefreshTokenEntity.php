@@ -6,8 +6,8 @@ namespace Zestic\GraphQL\AuthComponent\Entity;
 
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
-use Zestic\GraphQL\AuthComponent\Entity\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\RefreshTokenTrait;
+use Zestic\GraphQL\AuthComponent\Entity\Traits\EntityTrait;
 use Zestic\GraphQL\AuthComponent\Entity\Traits\TokenIdentifiersTrait;
 
 class RefreshTokenEntity implements RefreshTokenEntityInterface, TokenIdentifiersInterface
@@ -15,7 +15,6 @@ class RefreshTokenEntity implements RefreshTokenEntityInterface, TokenIdentifier
     use RefreshTokenTrait;
     use EntityTrait;
     use TokenIdentifiersTrait;
-
 
     private bool $revoked = false;
 

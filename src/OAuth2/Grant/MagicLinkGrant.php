@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\OAuth2\Grant;
 
+use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\UserEntityInterface;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Grant\AbstractGrant;
 use League\OAuth2\Server\RequestEvent;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use League\OAuth2\Server\Entities\ClientEntityInterface;
-use League\OAuth2\Server\Entities\UserEntityInterface;
-use League\OAuth2\Server\Exception\OAuthServerException;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
@@ -74,13 +74,13 @@ class MagicLinkGrant extends AbstractGrant
             throw OAuthServerException::invalidRequest('token');
         }
         $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
-        if (!$magicLinkToken || $magicLinkToken->isExpired()) {
+        if (! $magicLinkToken || $magicLinkToken->isExpired()) {
             throw OAuthServerException::invalidRequest('token', 'Invalid or expired token');
         }
 
         $user = $this->userRepo->findUserById($magicLinkToken->getUserId());
 
-        if (!$user) {
+        if (! $user) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
 
             throw OAuthServerException::invalidCredentials();

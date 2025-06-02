@@ -15,8 +15,11 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 class SendMagicLinkTest extends TestCase
 {
     private UserRepositoryInterface $userRepository;
+
     private MagicLinkTokenFactory $magicLinkTokenFactory;
+
     private SendMagicLinkInterface $email;
+
     private SendMagicLink $sendMagicLink;
 
     protected function setUp(): void

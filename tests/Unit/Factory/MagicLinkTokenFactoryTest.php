@@ -4,15 +4,17 @@ namespace Tests\Unit\Factory;
 
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
-use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
+use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
 class MagicLinkTokenFactoryTest extends TestCase
 {
     private MagicLinkTokenFactory $factory;
+
     private TokenConfig $config;
+
     private MagicLinkTokenRepositoryInterface $repository;
 
     protected function setUp(): void

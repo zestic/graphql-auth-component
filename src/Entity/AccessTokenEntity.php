@@ -31,7 +31,7 @@ class AccessTokenEntity implements AccessTokenEntityInterface, TokenScopesInterf
     public function getScopes(): array
     {
         return $this->scopes;
-    }       
+    }
 
     public function setScopes(array $scopes): void
     {

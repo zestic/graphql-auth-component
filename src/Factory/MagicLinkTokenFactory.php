@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Factory;
 
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
-use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
+use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
 class MagicLinkTokenFactory

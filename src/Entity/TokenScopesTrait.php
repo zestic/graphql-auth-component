@@ -30,6 +30,7 @@ trait TokenScopesTrait
         foreach ($this->getScopes() as $scope) {
             $scopes[] = $scope->getIdentifier();
         }
+
         return $scopes;
     }
 }

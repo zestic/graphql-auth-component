@@ -17,12 +17,12 @@ class ClientEntity implements ClientEntityInterface
     {
         $this->name = $name;
     }
-    
+
     public function setRedirectUri(string|array $redirectUri): void
     {
         $this->redirectUri = $redirectUri;
     }
-    
+
     public function setIsConfidential(bool $isConfidential): void
     {
         $this->isConfidential = $isConfidential;

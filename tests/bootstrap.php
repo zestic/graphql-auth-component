@@ -21,6 +21,7 @@ for ($i = 1; $i < count($_SERVER['argv']); $i++) {
         } elseif (str_contains($suite, 'mysql')) {
             $dbDriver = 'mysql';
         }
+
         break;
     }
 }

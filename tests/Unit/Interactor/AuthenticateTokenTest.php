@@ -16,8 +16,11 @@ use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 class AuthenticateTokenTest extends TestCase
 {
     private AuthorizationServer $authorizationServer;
+
     private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
+
     private OAuthConfig $oauthConfig;
+
     private AuthenticateToken $authenticateToken;
 
     protected function setUp(): void

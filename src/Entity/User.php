@@ -15,6 +15,7 @@ class User implements UserInterface
         public ?\DateTimeInterface $verifiedAt = null,
     ) {
     }
+
     public function getId(): string|int
     {
         return $this->id;
@@ -27,6 +28,7 @@ class User implements UserInterface
         if ($id === '') {
             throw new \RuntimeException('User ID cannot be empty');
         }
+
         return $id;
     }
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
-use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
-use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class SendMagicLink
 {
@@ -20,7 +20,7 @@ class SendMagicLink
     public function send(string $email): array
     {
         try {
-            if (!$user = $this->userRepository->findUserByEmail($email)) {
+            if (! $user = $this->userRepository->findUserByEmail($email)) {
                 return [
                     'success' => true,
                     'message' => 'Success',
@@ -31,7 +31,7 @@ class SendMagicLink
             $loginToken = $this->magicLinkTokenFactory->createLoginToken((string)$user->getId());
             $sent = $this->email->send($loginToken);
 
-            if (!$sent) {
+            if (! $sent) {
                 return [
                     'success' => false,
                     'message' => 'A system error occurred',

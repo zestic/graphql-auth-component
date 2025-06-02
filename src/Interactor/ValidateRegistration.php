@@ -19,7 +19,7 @@ class ValidateRegistration
     public function validate(string $token): bool
     {
         $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
-        if (!$magicLinkToken) {
+        if (! $magicLinkToken) {
             return false;
         }
 
@@ -28,7 +28,7 @@ class ValidateRegistration
         }
 
         $user = $this->userRepository->findUserById($magicLinkToken->userId);
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 

@@ -10,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class MigrationRunner
 {
     private PhinxApplication $app;
+
     private OutputInterface $output;
 
     public function __construct(OutputInterface $output = null)
@@ -22,6 +23,7 @@ class MigrationRunner
     public function migrate(string $environment = 'development', string $config = 'phinx.mysql.yml'): int
     {
         $input = new StringInput("migrate -c $config -e $environment");
+
         return $this->app->run($input, $this->output);
     }
 
@@ -39,12 +41,14 @@ class MigrationRunner
             $command .= " -t $target";
         }
         $input = new StringInput($command);
+
         return $this->app->run($input, $this->output);
     }
 
     public function status(string $environment = 'development', string $config = 'phinx.mysql.yml'): int
     {
         $input = new StringInput("status -c $config -e $environment");
+
         return $this->app->run($input, $this->output);
     }
 }

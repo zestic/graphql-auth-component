@@ -56,7 +56,7 @@ class MagicLinkTokenRepository extends AbstractPDORepository implements MagicLin
         $stmt->execute(['token' => $token]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if (! $result) {
             return null;
         }
 

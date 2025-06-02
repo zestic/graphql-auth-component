@@ -80,7 +80,7 @@ class TokenConfigFactoryTest extends TestCase
 
         // Test DateTime generation
         $now = new \DateTimeImmutable();
-        
+
         $accessTokenExpiry = $tokenConfig->getAccessTokenTTLDateTime();
         $this->assertEqualsWithDelta(
             $now->modify('+60 minutes')->getTimestamp(),

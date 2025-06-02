@@ -21,14 +21,14 @@ class TokenConfig
         return $this->accessTokenTTLMinutes;
     }
 
-    public function getAccessTokenTTLDateTime(): DateTimeImmutable 
+    public function getAccessTokenTTLDateTime(): DateTimeImmutable
     {
         return new DateTimeImmutable("+ $this->accessTokenTTLMinutes minutes");
     }
 
     public function getAccessTokenTTLDateTimeString(): string
     {
-        return $this->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s'); 
+        return $this->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s');
     }
 
     public function getLoginTTLMinutes(): int
@@ -52,7 +52,7 @@ class TokenConfig
     }
 
     public function getRefreshTokenTTLDateTime(): DateTimeImmutable
-    {   
+    {
         return new DateTimeImmutable("+ $this->refreshTokenTTLMinutes minutes");
     }
 

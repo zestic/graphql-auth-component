@@ -38,13 +38,14 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         );
         $additionalData = $context->data;
         unset($additionalData['displayName']);
+
         try {
             $stmt->execute([
-                'id'              => $id,
-                'email'           => $context->get('email'),
-                'display_name'    => $context->get('displayName'),
+                'id' => $id,
+                'email' => $context->get('email'),
+                'display_name' => $context->get('displayName'),
                 'additional_data' => json_encode($context->data),
-                'verified_at'     => null,
+                'verified_at' => null,
             ]);
 
             return $id;
@@ -62,7 +63,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         );
         $stmt->execute(['email' => $email]);
         $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (!$userData) {
+        if (! $userData) {
             return null;
         }
 
@@ -84,7 +85,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         );
         $stmt->execute(['id' => $id]);
         $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (!$userData) {
+        if (! $userData) {
             return null;
         }
 
@@ -131,13 +132,14 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
             verified_at = :verified_at
         WHERE id = :id"
         );
+
         try {
             $result = $stmt->execute([
-                'id'              => $user->getId(),
-                'email'           => $user->getEmail(),
-                'display_name'    => $user->getDisplayName(),
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'display_name' => $user->getDisplayName(),
                 'additional_data' => json_encode($user->getAdditionalData()),
-                'verified_at'     => $user->getVerifiedAt()?->format('Y-m-d H:i:s'),
+                'verified_at' => $user->getVerifiedAt()?->format('Y-m-d H:i:s'),
             ]);
 
             return $result && $stmt->rowCount() > 0;

@@ -54,7 +54,7 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if (! $result) {
             return null;
         }
 
@@ -77,11 +77,11 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if (! $result) {
             return false;
         }
 
-        if ($clientSecret && $result['is_confidential'] && !hash_equals($result['client_secret'], $clientSecret)) {
+        if ($clientSecret && $result['is_confidential'] && ! hash_equals($result['client_secret'], $clientSecret)) {
             return false;
         }
 

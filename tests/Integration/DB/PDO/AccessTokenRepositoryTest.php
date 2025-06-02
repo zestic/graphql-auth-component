@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Integration\DB\PDO;
 
-use Tests\Integration\DatabaseTestCase;
 use Ramsey\Uuid\Uuid;
+use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\AccessTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
@@ -14,8 +14,11 @@ use Zestic\GraphQL\AuthComponent\Entity\ScopeEntity;
 class AccessTokenRepositoryTest extends DatabaseTestCase
 {
     private static string $otherUserId;
+
     private static string $nonExistentUserId;
+
     private AccessTokenRepository $repository;
+
     private ClientEntity $clientEntity;
 
     public static function setUpBeforeClass(): void
@@ -32,11 +35,11 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
     {
         parent::setUp();
         self::seedClientRepository();
-        
+
         $this->repository = new AccessTokenRepository(
             self::$pdo,
             self::$tokenConfig,
-        ); 
+        );
 
         $this->clientEntity = $this->getSeededClientEntity();
     }
@@ -99,7 +102,7 @@ class AccessTokenRepositoryTest extends DatabaseTestCase
 
         // Test finding tokens
         $foundTokens = $this->repository->findTokensByUserId(self::$testUserId);
-        
+
         $this->assertCount(2, $foundTokens);
         foreach ($foundTokens as $token) {
             $this->assertInstanceOf(AccessTokenEntity::class, $token);

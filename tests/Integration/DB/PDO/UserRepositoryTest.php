@@ -2,9 +2,9 @@
 
 namespace Tests\Integration\DB\PDO;
 
+use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
-use Tests\Integration\DatabaseTestCase;
 
 class UserRepositoryTest extends DatabaseTestCase
 {

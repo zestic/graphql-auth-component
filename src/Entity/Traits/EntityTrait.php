@@ -17,6 +17,7 @@ trait EntityTrait
         if (empty($this->identifier)) {
             throw new \RuntimeException('Identifier not set');
         }
+
         return $this->identifier;
     }
 

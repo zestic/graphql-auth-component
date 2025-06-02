@@ -6,7 +6,6 @@ namespace Tests\Unit\Interactor;
 
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
-use League\OAuth2\Server\Exception\OAuthServerException;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
@@ -15,7 +14,9 @@ use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 class InvalidateTokenTest extends TestCase
 {
     private AccessTokenRepository $accessTokenRepository;
+
     private RefreshTokenRepository $refreshTokenRepository;
+
     private InvalidateToken $invalidateToken;
 
     protected function setUp(): void
@@ -53,8 +54,9 @@ class InvalidateTokenTest extends TestCase
         // Expect to revoke access tokens
         $this->accessTokenRepository->expects($this->exactly(2))
             ->method('revokeAccessToken')
-            ->willReturnCallback(function($tokenId) {
+            ->willReturnCallback(function ($tokenId) {
                 $this->assertContains($tokenId, ['access_token_1', 'access_token_2']);
+
                 return null;
             });
 
@@ -63,14 +65,15 @@ class InvalidateTokenTest extends TestCase
             ->method('findRefreshTokensByAccessTokenId')
             ->willReturnMap([
                 ['access_token_1', [$refreshToken1]],
-                ['access_token_2', [$refreshToken2]]
+                ['access_token_2', [$refreshToken2]],
             ]);
 
         // Expect to revoke refresh tokens
         $this->refreshTokenRepository->expects($this->exactly(2))
             ->method('revokeRefreshToken')
-            ->willReturnCallback(function($tokenId) {
+            ->willReturnCallback(function ($tokenId) {
                 $this->assertContains($tokenId, ['refresh_token_1', 'refresh_token_2']);
+
                 return null;
             });
 

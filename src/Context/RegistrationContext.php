@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Context;
 
-use DeviceDetector\DeviceDetector;
-
 class RegistrationContext
 {
     /** @var array<string, string> */
@@ -50,7 +48,7 @@ class RegistrationContext
     public function toArray(): array
     {
         return [
-            'email'          => $this->email,
+            'email' => $this->email,
             'additionalData' => $this->data,
         ];
     }

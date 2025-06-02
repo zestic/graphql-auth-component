@@ -7,8 +7,9 @@ namespace Zestic\GraphQL\AuthComponent\Entity\Traits;
 trait TokenIdentifiersTrait
 {
     private string $clientIdentifier;
+
     private string $userIdentifier;
-    
+
     public function getClientIdentifier(): string
     {
         return $this->clientIdentifier;

@@ -15,7 +15,9 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 class ValidateRegistrationTest extends TestCase
 {
     private ValidateRegistration $validateRegistration;
+
     private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
+
     private UserRepositoryInterface $userRepository;
 
     protected function setUp(): void

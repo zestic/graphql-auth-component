@@ -26,7 +26,7 @@ class RequestAccessToken
 
         try {
             $response = $this->authServer->respondToAccessTokenRequest(
-                $request, 
+                $request,
                 $this->psr17Factory->createResponse(),
             );
 

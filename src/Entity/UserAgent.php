@@ -8,7 +8,6 @@ class UserAgent
 {
     public function __construct(
 
-    )
-    {
+    ) {
     }
 }

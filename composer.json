@@ -16,11 +16,12 @@
     "ramsey/uuid": "^4.7"
   },
   "require-dev": {
-    "phpunit/phpunit": "^11.4",
     "ext-pdo": "*",
+    "ext-uopz": "*",
+    "friendsofphp/php-cs-fixer": "^3.18",  
     "phpstan/phpstan": "^2.1",
-    "slope-it/clock-mock": "^0.4.0",
-    "ext-uopz": "*"
+    "phpunit/phpunit": "^11.4",
+    "slope-it/clock-mock": "^0.4.0"
   },
   "autoload": {
     "psr-4": {
@@ -35,6 +36,8 @@
   },
   "scripts": {
     "analyse": "phpstan analyse -c phpstan.neon.dist",
+    "cs-check": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --dry-run --diff",
+    "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix",
     "test:unit": "phpunit --testsuite Unit",
     "test:mysql": "phpunit --testsuite Integration-MySQL",
     "test:pgsql": "phpunit --testsuite Integration-PostgreSQL",

@@ -16,6 +16,7 @@ use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 class RequestAccessTokenTest extends TestCase
 {
     private AuthorizationServer $authServer;
+
     private RequestAccessToken $requestAccessToken;
 
     protected function setUp(): void

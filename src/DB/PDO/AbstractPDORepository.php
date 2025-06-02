@@ -1,13 +1,15 @@
 <?php
 
-namespace Zestic\GraphQL\AuthComponent\DB\PDO;
+declare(strict_types=1);
 
-use \PDO;
+namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
 abstract class AbstractPDORepository
 {
     protected \PDO $pdo;
+
     protected readonly bool $isPgsql;
+
     protected string $schema;
 
     public function __construct(
@@ -26,6 +28,7 @@ abstract class AbstractPDORepository
         if ($this->isPgsql) {
             return \Ramsey\Uuid\Uuid::uuid4()->toString();
         }
+
         return bin2hex(random_bytes(max(1, $length)));
     }
 
@@ -54,6 +57,7 @@ abstract class AbstractPDORepository
         if (str_contains($interval, 'hour')) {
             return str_replace(' hour', ' HOUR', $interval);
         }
+
         return $interval;
     }
 
@@ -61,6 +65,16 @@ abstract class AbstractPDORepository
     {
         $stmt = $this->pdo->query("SELECT current_schema()");
 
-        return (string) $stmt->fetchColumn();
+        if ($stmt === false) {
+            throw new \RuntimeException('Failed to execute current_schema() query');
+        }
+
+        $result = $stmt->fetchColumn();
+
+        if ($result === false) {
+            throw new \RuntimeException('Failed to fetch current schema');
+        }
+
+        return (string) $result;
     }
 }

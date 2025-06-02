@@ -30,24 +30,43 @@ use Zestic\GraphQL\AuthComponent\OAuth2\OAuthConfig;
 class AuthenticationFlowTest extends DatabaseTestCase
 {
     private array $capturedSendArguments = [];
+
     private string $clientId;
+
     private string $clientSecret = 'test_secret';
+
     private AccessTokenRepository $accessTokenRepository;
+
     private AuthenticateToken $authenticateToken;
+
     private AuthorizationServer $authorizationServer;
+
     private ClientRepository $clientRepository;
+
     private CryptKey $privateKey;
+
     private MagicLinkTokenRepository $magicLinkTokenRepository;
+
     private InvalidateToken $invalidateToken;
+
     private Key $encryptionKey;
+
     private RegisterUser $registerUser;
+
     private RefreshTokenRepository $refreshTokenRepository;
+
     private RequestAccessToken $requestAccessToken;
+
     private ScopeRepository $scopeRepository;
+
     private SendMagicLink $sendMagicLink;
+
     private SendMagicLinkInterface $sendMagicLinkEmail;
+
     private SendVerificationLinkInterface $sendVerificationEmail;
+
     private ValidateRegistration $validateRegistration;
+
     private UserRepository $userRepository;
 
     protected function setUp(): void
@@ -90,7 +109,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->userRepository,
         );
         $oauthConfig = new OAuthConfig([
-            'clientId'     => $this->clientId,
+            'clientId' => $this->clientId,
             'clientSecret' => $this->clientSecret,
         ]);
         $this->privateKey = new CryptKey(getcwd() . '/tests/resources/jwt/private.key');
@@ -115,7 +134,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->refreshTokenRepository,
         );
         $this->authorizationServer->enableGrantType($refreshTokenGrant);
-        
+
         $this->authenticateToken = new AuthenticateToken(
             $this->authorizationServer,
             $this->magicLinkTokenRepository,
@@ -126,10 +145,10 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->authorizationServer,
         );
 
-       $this->invalidateToken = new InvalidateToken(
-           $this->accessTokenRepository,
-           $this->refreshTokenRepository,
-       );
+        $this->invalidateToken = new InvalidateToken(
+            $this->accessTokenRepository,
+            $this->refreshTokenRepository,
+        );
     }
 
     public function testFlow(): void
@@ -150,6 +169,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
                     'verificationMagicLinkToken' => $magicLinkToken,
                     'verificationRegistrationContext' => $registrationContext,
                 ];
+
                 return true;
             });
 
@@ -159,7 +179,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
                 'displayName' => 'Test User',
             ],
         );
-        
+
         $registrationResult = $this->registerUser->register($registrationContext);
         $this->assertTrue($registrationResult['success']);
 
@@ -183,6 +203,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
                 $this->capturedSendArguments = [
                     'magicLinkMagicLinkToken' => $magicLinkToken,
                 ];
+
                 return true;
             });
 
@@ -197,7 +218,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
     public function authenticateToken(array $data): array
     {
         $authResult = $this->authenticateToken->authenticate($data['MagicLinkToken']->token);
-        
+
         $this->assertArrayHasKey('accessToken', $authResult);
         $this->assertArrayHasKey('refreshToken', $authResult);
 

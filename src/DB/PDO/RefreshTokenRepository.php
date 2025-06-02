@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
-use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
+use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use Zestic\GraphQL\AuthComponent\Entity\RefreshTokenEntity;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
@@ -68,7 +68,7 @@ class RefreshTokenRepository extends AbstractPDORepository implements RefreshTok
         $stmt->execute(['access_token_id' => $accessTokenId]);
         $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        return array_map(fn(array $data) => $this->hydrateRefreshToken($data), $data);
+        return array_map(fn (array $data) => $this->hydrateRefreshToken($data), $data);
     }
 
     public function revokeRefreshToken(string $tokenId): void
@@ -101,7 +101,7 @@ class RefreshTokenRepository extends AbstractPDORepository implements RefreshTok
 
     public function hydrateRefreshToken(array $data): RefreshTokenEntity
     {
-        $token =  new RefreshTokenEntity();
+        $token = new RefreshTokenEntity();
         $token->setIdentifier($data['id']);
         $token->setAccessToken($data['access_token_id']);
         $token->setClientIdentifier($data['client_id']);

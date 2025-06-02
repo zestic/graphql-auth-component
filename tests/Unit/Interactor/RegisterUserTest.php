@@ -7,6 +7,7 @@ namespace Tests\Unit\Interactor;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
+use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
@@ -16,6 +17,7 @@ class RegisterUserTest extends TestCase
 {
     private MagicLinkTokenFactory $magicLinkTokenFactory;
     private SendVerificationLinkInterface $sendRegistrationVerification;
+    private UserCreatedHookInterface $userCreatedHook;
     private UserRepositoryInterface $userRepository;
     private RegisterUser $registerUser;
 
@@ -23,11 +25,13 @@ class RegisterUserTest extends TestCase
     {
         $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
         $this->sendRegistrationVerification = $this->createMock(SendVerificationLinkInterface::class);
+        $this->userCreatedHook = $this->createMock(UserCreatedHookInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
 
         $this->registerUser = new RegisterUser(
             $this->magicLinkTokenFactory,
             $this->sendRegistrationVerification,
+            $this->userCreatedHook,
             $this->userRepository
         );
     }
@@ -41,6 +45,9 @@ class RegisterUserTest extends TestCase
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
         $this->userRepository->expects($this->once())->method('create')->willReturn($userId);
+        $this->userCreatedHook->expects($this->once())
+            ->method('execute')
+            ->with($context, $userId);
         $this->magicLinkTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
         $this->sendRegistrationVerification->expects($this->once())->method('send');
         $this->userRepository->expects($this->once())->method('commit');
@@ -59,6 +66,7 @@ class RegisterUserTest extends TestCase
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(true);
         $this->userRepository->expects($this->never())->method('beginTransaction');
         $this->userRepository->expects($this->never())->method('create');
+        $this->userCreatedHook->expects($this->never())->method('execute');
 
         $result = $this->registerUser->register($context);
 
@@ -74,6 +82,7 @@ class RegisterUserTest extends TestCase
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
         $this->userRepository->expects($this->once())->method('create')->willThrowException(new \Exception('Database error'));
+        $this->userCreatedHook->expects($this->never())->method('execute');
         $this->userRepository->expects($this->once())->method('rollback');
 
         $result = $this->registerUser->register($context);
@@ -81,5 +90,32 @@ class RegisterUserTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertEquals('Registration failed due to a system error', $result['message']);
         $this->assertEquals('SYSTEM_ERROR', $result['code']);
+    }
+
+    public function testUserCreatedHookIsCalledWithCorrectParameters()
+    {
+        $context = new RegistrationContext('hook@zestic.com', ['displayName' => 'Hook User', 'customField' => 'value']);
+        $userId = 'hook-user-123';
+        $token = $this->createMock(MagicLinkToken::class);
+
+        $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
+        $this->userRepository->expects($this->once())->method('beginTransaction');
+        $this->userRepository->expects($this->once())->method('create')->willReturn($userId);
+
+        // This is the main assertion - verify the hook is called with exact parameters
+        $this->userCreatedHook->expects($this->once())
+            ->method('execute')
+            ->with(
+                $this->equalTo($context),
+                $this->equalTo($userId)
+            );
+
+        $this->magicLinkTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
+        $this->sendRegistrationVerification->expects($this->once())->method('send');
+        $this->userRepository->expects($this->once())->method('commit');
+
+        $result = $this->registerUser->register($context);
+
+        $this->assertTrue($result['success']);
     }
 }

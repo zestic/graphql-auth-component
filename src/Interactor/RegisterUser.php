@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
-use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class RegisterUser
 {
     public function __construct(
-        private EmailTokenFactory $emailTokenFactory,
-        private SendVerificationEmailInterface $sendRegistrationVerification,
+        private MagicLinkTokenFactory $magicLinkTokenFactory,
+        private SendVerificationLinkInterface $sendRegistrationVerification,
         private UserCreatedHookInterface $userCreatedHook,
         private UserRepositoryInterface $userRepository,
     ) {}
@@ -34,7 +34,7 @@ class RegisterUser
 
             $userId = $this->userRepository->create($context);
             $this->userCreatedHook->execute($context, $userId);
-            $token = $this->emailTokenFactory->createRegistrationToken($userId);
+            $token = $this->magicLinkTokenFactory->createRegistrationToken($userId);
             $this->sendRegistrationVerification->send($context, $token);
 
             $this->userRepository->commit();

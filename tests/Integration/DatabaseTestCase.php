@@ -46,14 +46,14 @@ abstract class DatabaseTestCase extends TestCase
             self::$pdo->exec('TRUNCATE TABLE oauth_access_tokens');
             self::$pdo->exec('TRUNCATE TABLE oauth_refresh_tokens');
             self::$pdo->exec('TRUNCATE TABLE oauth_client_scopes');
-            self::$pdo->exec('TRUNCATE TABLE email_tokens');
+            self::$pdo->exec('TRUNCATE TABLE magic_link_tokens');
             self::$pdo->exec('TRUNCATE TABLE users');
             self::$pdo->exec('TRUNCATE TABLE oauth_scopes');
             self::$pdo->exec('TRUNCATE TABLE oauth_clients');
             self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
         } else {
             $schema = self::getSchema();
-            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.email_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
+            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.magic_link_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
         }
 
         parent::setUpBeforeClass();
@@ -264,14 +264,14 @@ abstract class DatabaseTestCase extends TestCase
             self::$pdo->exec('TRUNCATE TABLE oauth_access_tokens');
             self::$pdo->exec('TRUNCATE TABLE oauth_refresh_tokens');
             self::$pdo->exec('TRUNCATE TABLE oauth_client_scopes');
-            self::$pdo->exec('TRUNCATE TABLE email_tokens');
+            self::$pdo->exec('TRUNCATE TABLE magic_link_tokens');
             self::$pdo->exec('TRUNCATE TABLE users');
             self::$pdo->exec('TRUNCATE TABLE oauth_scopes');
             self::$pdo->exec('TRUNCATE TABLE oauth_clients');
             self::$pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
         } else {
             $schema = self::getSchema();
-            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.email_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
+            self::$pdo->exec("TRUNCATE TABLE $schema.oauth_access_tokens, $schema.oauth_refresh_tokens, $schema.oauth_client_scopes, $schema.magic_link_tokens, $schema.users, $schema.oauth_scopes, $schema.oauth_clients CASCADE");
         }
     }
 

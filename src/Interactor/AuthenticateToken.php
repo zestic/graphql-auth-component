@@ -12,21 +12,21 @@ use Nyholm\Psr7\Stream;
 use Nyholm\Psr7\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Zestic\GraphQL\AuthComponent\OAuth2\OAuthConfig;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
 class AuthenticateToken
 {
     public function __construct(
         private AuthorizationServer $authorizationServer,
-        private EmailTokenRepositoryInterface $emailTokenRepository,
+        private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
         private OAuthConfig $oauthConfig,
     ) {
     }
 
     public function authenticate(string $token): array
     {
-        $emailToken = $this->emailTokenRepository->findByToken($token);
-        if (!$emailToken || $emailToken->isExpired()) {
+        $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
+        if (!$magicLinkToken || $magicLinkToken->isExpired()) {
             throw new \Exception('Invalid or expired token');
         }
         try {
@@ -45,7 +45,7 @@ class AuthenticateToken
 
             $response = $this->authorizationServer->respondToAccessTokenRequest($request, new Response());
 
-            $this->emailTokenRepository->delete($token);
+            $this->magicLinkTokenRepository->delete($token);
 
             return $this->parseResponse($response);
         } catch (OAuthServerException $exception) {

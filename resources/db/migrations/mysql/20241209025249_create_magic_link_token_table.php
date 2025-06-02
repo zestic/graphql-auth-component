@@ -2,11 +2,11 @@
 
 use Phinx\Migration\AbstractMigration;
 
-class CreateEmailTokenTable extends AbstractMigration
+class CreateMagicLinkTokenTable extends AbstractMigration
 {
     public function change()
     {
-        $this->table('email_tokens')
+        $this->table('magic_link_tokens')
             ->addColumn('expiration', 'datetime', ['null' => false])
             ->addColumn('token', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('token_type', 'string', ['limit' => 20, 'null' => false])

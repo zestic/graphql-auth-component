@@ -11,14 +11,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class MagicLinkGrant extends AbstractGrant
 {
     public function __construct(
-        private EmailTokenRepositoryInterface $emailTokenRepository,
+        private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
         private RefreshTokenRepositoryInterface $refreshTokenRepo,
         private UserRepositoryInterface $userRepo,
     ) {
@@ -73,12 +73,12 @@ class MagicLinkGrant extends AbstractGrant
         if (is_null($token)) {
             throw OAuthServerException::invalidRequest('token');
         }
-        $emailToken = $this->emailTokenRepository->findByToken($token);
-        if (!$emailToken || $emailToken->isExpired()) {
+        $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
+        if (!$magicLinkToken || $magicLinkToken->isExpired()) {
             throw OAuthServerException::invalidRequest('token', 'Invalid or expired token');
         }
 
-        $user = $this->userRepo->findUserById($emailToken->getUserId());
+        $user = $this->userRepo->findUserById($magicLinkToken->getUserId());
 
         if (!$user) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));

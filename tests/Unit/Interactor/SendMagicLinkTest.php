@@ -5,28 +5,28 @@ declare(strict_types=1);
 namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkEmailInterface;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
+use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\User;
-use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class SendMagicLinkTest extends TestCase
 {
     private UserRepositoryInterface $userRepository;
-    private EmailTokenFactory $emailTokenFactory;
-    private SendMagicLinkEmailInterface $email;
+    private MagicLinkTokenFactory $magicLinkTokenFactory;
+    private SendMagicLinkInterface $email;
     private SendMagicLink $sendMagicLink;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
-        $this->emailTokenFactory = $this->createMock(EmailTokenFactory::class);
-        $this->email = $this->createMock(SendMagicLinkEmailInterface::class);
+        $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
+        $this->email = $this->createMock(SendMagicLinkInterface::class);
 
         $this->sendMagicLink = new SendMagicLink(
-            $this->emailTokenFactory,
+            $this->magicLinkTokenFactory,
             $this->email,
             $this->userRepository,
         );
@@ -38,21 +38,21 @@ class SendMagicLinkTest extends TestCase
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn('user-id');
 
-        $emailToken = $this->createMock(EmailToken::class);
+        $magicLinkToken = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->expects($this->once())
             ->method('findUserByEmail')
             ->with($email)
             ->willReturn($user);
 
-        $this->emailTokenFactory->expects($this->once())
+        $this->magicLinkTokenFactory->expects($this->once())
             ->method('createLoginToken')
             ->with('user-id')
-            ->willReturn($emailToken);
+            ->willReturn($magicLinkToken);
 
         $this->email->expects($this->once())
             ->method('send')
-            ->with($emailToken)
+            ->with($magicLinkToken)
             ->willReturn(true);
 
         $result = $this->sendMagicLink->send($email);
@@ -73,7 +73,7 @@ class SendMagicLinkTest extends TestCase
             ->with($email)
             ->willReturn(null);
 
-        $this->emailTokenFactory->expects($this->never())->method('createLoginToken');
+        $this->magicLinkTokenFactory->expects($this->never())->method('createLoginToken');
         $this->email->expects($this->never())->method('send');
 
         $result = $this->sendMagicLink->send($email);
@@ -91,10 +91,10 @@ class SendMagicLinkTest extends TestCase
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn('user-id');
 
-        $emailToken = $this->createMock(EmailToken::class);
+        $magicLinkToken = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->method('findUserByEmail')->willReturn($user);
-        $this->emailTokenFactory->method('createLoginToken')->willReturn($emailToken);
+        $this->magicLinkTokenFactory->method('createLoginToken')->willReturn($magicLinkToken);
         $this->email->method('send')->willReturn(false);
 
         $result = $this->sendMagicLink->send($email);

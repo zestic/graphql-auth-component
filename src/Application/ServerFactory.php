@@ -11,7 +11,7 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\RefreshTokenGrant;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ServerFactory
@@ -21,7 +21,7 @@ class ServerFactory
         private AccessTokenRepositoryInterface $accessTokenRepository,
         private ScopeRepositoryInterface $scopeRepository,
         private RefreshTokenRepositoryInterface $refreshTokenRepository,
-        private EmailTokenRepositoryInterface $emailTokenRepository,
+        private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
         private UserRepositoryInterface $userRepository,
         private string $privateKey,
         private string $encryptionKey,
@@ -38,7 +38,7 @@ class ServerFactory
         );
 
         $magicLinkGrant = new MagicLinkGrant(
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $this->refreshTokenRepository,
             $this->userRepository,
         );

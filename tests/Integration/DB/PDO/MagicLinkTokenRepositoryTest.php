@@ -3,33 +3,33 @@
 namespace Tests\Integration\DB\PDO;
 
 use Tests\Integration\DatabaseTestCase;
-use Zestic\GraphQL\AuthComponent\DB\PDO\EmailTokenRepository;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
+use Zestic\GraphQL\AuthComponent\DB\PDO\MagicLinkTokenRepository;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 
-class EmailTokenRepositoryTest extends DatabaseTestCase
+class MagicLinkTokenRepositoryTest extends DatabaseTestCase
 {
-    private EmailTokenRepository $repository;
+    private MagicLinkTokenRepository $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new EmailTokenRepository(self::$pdo);
+        $this->repository = new MagicLinkTokenRepository(self::$pdo);
     }
 
-    public function testCreateEmailToken(): void
+    public function testCreateMagicLinkToken(): void
     {
-        $token = new EmailToken(
+        $token = new MagicLinkToken(
             new \DateTime('+1 hour'),
             'test_token',
-            EmailTokenType::REGISTRATION,
+            MagicLinkTokenType::REGISTRATION,
             '550e8400-e29b-41d4-a716-446655440003'
         );
         $result = $this->repository->create($token);
         $this->assertTrue($result);
         // Verify the token was created
         $schema = self::getSchemaPrefix();
-        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}magic_link_tokens WHERE token = ?");
         $stmt->execute([$token->token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);
@@ -44,33 +44,33 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         $token = 'test_token_'.uniqid();
         $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
         $expiration = new \DateTimeImmutable('+1 hour');
-        $tokenType = EmailTokenType::REGISTRATION;
-        $emailToken = new EmailToken(
+        $tokenType = MagicLinkTokenType::REGISTRATION;
+        $magicLinkToken = new MagicLinkToken(
             $expiration,
             $token,
             $tokenType,
             $userId
         );
-        $this->repository->create($emailToken);
+        $this->repository->create($magicLinkToken);
         // Act
-        $result = $this->repository->delete($emailToken);
+        $result = $this->repository->delete($magicLinkToken);
         // Assert
         $this->assertTrue($result);
         // Verify the token was deleted
         $schema = self::getSchemaPrefix();
-        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM {$schema}email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT COUNT(*) FROM {$schema}magic_link_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $count = $stmt->fetchColumn();
         $this->assertEquals(0, $count);
         // Test deleting by string
         $anotherToken = 'another_test_token_'.uniqid();
-        $anotherEmailToken = new EmailToken(
+        $anotherMagicLinkToken = new MagicLinkToken(
             $expiration,
             $anotherToken,
             $tokenType,
             $userId
         );
-        $this->repository->create($anotherEmailToken);
+        $this->repository->create($anotherMagicLinkToken);
         $result = $this->repository->delete($anotherToken);
         $this->assertTrue($result);
         $stmt->execute([$anotherToken]);
@@ -84,18 +84,18 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         $token = 'test_token_'.uniqid();
         $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
         $expiration = new \DateTimeImmutable('+1 hour');
-        $tokenType = EmailTokenType::REGISTRATION;
-        $emailToken = new EmailToken(
+        $tokenType = MagicLinkTokenType::REGISTRATION;
+        $magicLinkToken = new MagicLinkToken(
             $expiration,
             $token,
             $tokenType,
             $userId
         );
-        $this->repository->create($emailToken);
+        $this->repository->create($magicLinkToken);
         // Act
         $foundToken = $this->repository->findByToken($token);
         // Assert
-        $this->assertInstanceOf(EmailToken::class, $foundToken);
+        $this->assertInstanceOf(MagicLinkToken::class, $foundToken);
         $this->assertEquals($token, $foundToken->token);
         $this->assertEquals($userId, $foundToken->userId);
         $this->assertEquals($tokenType, $foundToken->tokenType);
@@ -115,18 +115,18 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         // Arrange
         $token = 'expired_token_'.uniqid();
         $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440004' : 'user_'.uniqid();
-        $tokenType = EmailTokenType::REGISTRATION;
+        $tokenType = MagicLinkTokenType::REGISTRATION;
         // Use the database's current timestamp
         $stmt = self::$pdo->query(self::$driver === 'pgsql' ? "SELECT NOW() - INTERVAL '1 hour' as expiration" : "SELECT NOW() - INTERVAL 1 HOUR as expiration");
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         $expirationFromDb = new \DateTimeImmutable($result['expiration']);
-        $emailToken = new EmailToken(
+        $magicLinkToken = new MagicLinkToken(
             $expirationFromDb,
             $token,
             $tokenType,
             $userId
         );
-        $this->repository->create($emailToken);
+        $this->repository->create($magicLinkToken);
         // Ensure some time has passed
         sleep(1);
         // Act
@@ -135,7 +135,7 @@ class EmailTokenRepositoryTest extends DatabaseTestCase
         $this->assertNull($foundToken);
         // Verify the token exists but is considered expired
         $schema = self::getSchemaPrefix();
-        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}email_tokens WHERE token = ?");
+        $stmt = self::$pdo->prepare("SELECT * FROM {$schema}magic_link_tokens WHERE token = ?");
         $stmt->execute([$token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $this->assertNotFalse($row);

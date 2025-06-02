@@ -5,25 +5,25 @@ declare(strict_types=1);
 namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Interactor\ValidateRegistration;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ValidateRegistrationTest extends TestCase
 {
     private ValidateRegistration $validateRegistration;
-    private EmailTokenRepositoryInterface $emailTokenRepository;
+    private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
     private UserRepositoryInterface $userRepository;
 
     protected function setUp(): void
     {
-        $this->emailTokenRepository = $this->createMock(EmailTokenRepositoryInterface::class);
+        $this->magicLinkTokenRepository = $this->createMock(MagicLinkTokenRepositoryInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
         $this->validateRegistration = new ValidateRegistration(
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $this->userRepository
         );
     }
@@ -33,19 +33,19 @@ class ValidateRegistrationTest extends TestCase
         $token = 'valid_token';
         $userId = 'user123';
 
-        $emailToken = new EmailToken(
+        $magicLinkToken = new MagicLinkToken(
             new \DateTime('+1 hour'),
             $token,
-            EmailTokenType::REGISTRATION,
+            MagicLinkTokenType::REGISTRATION,
             $userId
         );
 
         $user = new User([], 'Test User', 'test@example.com', $userId);
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
-            ->willReturn($emailToken);
+            ->willReturn($magicLinkToken);
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')
@@ -59,7 +59,7 @@ class ValidateRegistrationTest extends TestCase
             }))
             ->willReturn(true);
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('delete')
             ->with($token);
 
@@ -72,7 +72,7 @@ class ValidateRegistrationTest extends TestCase
     {
         $token = 'invalid_token';
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
             ->willReturn(null);
@@ -87,17 +87,17 @@ class ValidateRegistrationTest extends TestCase
         $token = 'non_registration_token';
         $userId = 'user123';
 
-        $emailToken = new EmailToken(
+        $magicLinkToken = new MagicLinkToken(
             new \DateTime('+1 hour'),
             $token,
-            EmailTokenType::LOGIN,
+            MagicLinkTokenType::LOGIN,
             $userId
         );
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
-            ->willReturn($emailToken);
+            ->willReturn($magicLinkToken);
 
         $result = $this->validateRegistration->validate($token);
 
@@ -109,17 +109,17 @@ class ValidateRegistrationTest extends TestCase
         $token = 'valid_token';
         $userId = 'non_existent_user';
 
-        $emailToken = new EmailToken(
+        $magicLinkToken = new MagicLinkToken(
             new \DateTime('+1 hour'),
             $token,
-            EmailTokenType::REGISTRATION,
+            MagicLinkTokenType::REGISTRATION,
             $userId
         );
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
-            ->willReturn($emailToken);
+            ->willReturn($magicLinkToken);
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')
@@ -136,19 +136,19 @@ class ValidateRegistrationTest extends TestCase
         $token = 'valid_token';
         $userId = 'user123';
 
-        $emailToken = new EmailToken(
+        $magicLinkToken = new MagicLinkToken(
             new \DateTime('+1 hour'),
             $token,
-            EmailTokenType::REGISTRATION,
+            MagicLinkTokenType::REGISTRATION,
             $userId
         );
 
         $user = new User([], 'Test User', 'test@example.com', $userId, new \DateTime());
 
-        $this->emailTokenRepository->expects($this->once())
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
-            ->willReturn($emailToken);
+            ->willReturn($magicLinkToken);
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')

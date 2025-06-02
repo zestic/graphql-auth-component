@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ValidateRegistration
 {
     public function __construct(
-        private EmailTokenRepositoryInterface $emailTokenRepository,
+        private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
         private UserRepositoryInterface $userRepository
     ) {
     }
 
     public function validate(string $token): bool
     {
-        $emailToken = $this->emailTokenRepository->findByToken($token);
-        if (!$emailToken) {
+        $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
+        if (!$magicLinkToken) {
             return false;
         }
 
-        if ($emailToken->tokenType !== EmailTokenType::REGISTRATION) {
+        if ($magicLinkToken->tokenType !== MagicLinkTokenType::REGISTRATION) {
             return false;
         }
 
-        $user = $this->userRepository->findUserById($emailToken->userId);
+        $user = $this->userRepository->findUserById($magicLinkToken->userId);
         if (!$user) {
             return false;
         }
@@ -38,7 +38,7 @@ class ValidateRegistration
 
         $user->setVerifiedAt(new \DateTime());
         $this->userRepository->update($user);
-        $this->emailTokenRepository->delete($token);
+        $this->magicLinkTokenRepository->delete($token);
 
         return true;
     }

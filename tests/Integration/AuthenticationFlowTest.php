@@ -7,16 +7,16 @@ namespace Tests\Integration;
 use Defuse\Crypto\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
-use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkEmailInterface;
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
-use Zestic\GraphQL\AuthComponent\DB\PDO\EmailTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\MagicLinkTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
-use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\AuthenticateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
@@ -37,7 +37,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
     private AuthorizationServer $authorizationServer;
     private ClientRepository $clientRepository;
     private CryptKey $privateKey;
-    private EmailTokenRepository $emailTokenRepository;
+    private MagicLinkTokenRepository $magicLinkTokenRepository;
     private InvalidateToken $invalidateToken;
     private Key $encryptionKey;
     private RegisterUser $registerUser;
@@ -45,8 +45,8 @@ class AuthenticationFlowTest extends DatabaseTestCase
     private RequestAccessToken $requestAccessToken;
     private ScopeRepository $scopeRepository;
     private SendMagicLink $sendMagicLink;
-    private SendMagicLinkEmailInterface $sendMagicLinkEmail;
-    private SendVerificationEmailInterface $sendVerificationEmail;
+    private SendMagicLinkInterface $sendMagicLinkEmail;
+    private SendVerificationLinkInterface $sendVerificationEmail;
     private ValidateRegistration $validateRegistration;
     private UserRepository $userRepository;
 
@@ -61,31 +61,31 @@ class AuthenticationFlowTest extends DatabaseTestCase
             self::$tokenConfig,
         );
         $this->clientRepository = new ClientRepository(self::$pdo);
-        $this->emailTokenRepository = new EmailTokenRepository(self::$pdo);
+        $this->magicLinkTokenRepository = new MagicLinkTokenRepository(self::$pdo);
         $this->refreshTokenRepository = new RefreshTokenRepository(
             self::$pdo,
             self::$tokenConfig,
         );
         $this->scopeRepository = new ScopeRepository(self::$pdo);
         $this->userRepository = new UserRepository(self::$pdo);
-        $emailTokenFactory = new EmailTokenFactory(
+        $magicLinkTokenFactory = new MagicLinkTokenFactory(
             self::$tokenConfig,
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
         );
-        $this->sendMagicLinkEmail = $this->createMock(SendMagicLinkEmailInterface::class);
-        $this->sendVerificationEmail = $this->createMock(SendVerificationEmailInterface::class);
+        $this->sendMagicLinkEmail = $this->createMock(SendMagicLinkInterface::class);
+        $this->sendVerificationEmail = $this->createMock(SendVerificationLinkInterface::class);
         $this->capturedSendArguments = [];
         $this->registerUser = new RegisterUser(
-            $emailTokenFactory,
+            $magicLinkTokenFactory,
             $this->sendVerificationEmail,
             $this->userRepository,
         );
         $this->validateRegistration = new ValidateRegistration(
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $this->userRepository,
         );
         $this->sendMagicLink = new SendMagicLink(
-            $emailTokenFactory,
+            $magicLinkTokenFactory,
             $this->sendMagicLinkEmail,
             $this->userRepository,
         );
@@ -105,7 +105,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
         );
 
         $magicLinkGrant = new MagicLinkGrant(
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $this->refreshTokenRepository,
             $this->userRepository,
         );
@@ -118,7 +118,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
         
         $this->authenticateToken = new AuthenticateToken(
             $this->authorizationServer,
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $oauthConfig,
         );
 
@@ -145,9 +145,9 @@ class AuthenticationFlowTest extends DatabaseTestCase
     public function registerUser(): array
     {
         $this->sendVerificationEmail->method('send')
-            ->willReturnCallback(function ($registrationContext, $emailToken) {
+            ->willReturnCallback(function ($registrationContext, $magicLinkToken) {
                 $this->capturedSendArguments = [
-                    'verificationEmailToken' => $emailToken,
+                    'verificationMagicLinkToken' => $magicLinkToken,
                     'verificationRegistrationContext' => $registrationContext,
                 ];
                 return true;
@@ -164,7 +164,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
         $this->assertTrue($registrationResult['success']);
 
         return [
-            'token' => $this->capturedSendArguments['verificationEmailToken'],
+            'token' => $this->capturedSendArguments['verificationMagicLinkToken'],
         ];
     }
 
@@ -179,9 +179,9 @@ class AuthenticationFlowTest extends DatabaseTestCase
     public function sendMagicLink(array $data): array
     {
         $this->sendMagicLinkEmail->method('send')
-            ->willReturnCallback(function ($emailToken) {
+            ->willReturnCallback(function ($magicLinkToken) {
                 $this->capturedSendArguments = [
-                    'magicLinkEmailToken' => $emailToken,
+                    'magicLinkMagicLinkToken' => $magicLinkToken,
                 ];
                 return true;
             });
@@ -189,14 +189,14 @@ class AuthenticationFlowTest extends DatabaseTestCase
         $magicLinkResult = $this->sendMagicLink->send(self::TEST_EMAIL);
         $this->assertTrue($magicLinkResult['success']);
 
-        $data['emailToken'] = $this->capturedSendArguments['magicLinkEmailToken'];
+        $data['MagicLinkToken'] = $this->capturedSendArguments['magicLinkMagicLinkToken'];
 
         return $data;
     }
 
     public function authenticateToken(array $data): array
     {
-        $authResult = $this->authenticateToken->authenticate($data['emailToken']->token);
+        $authResult = $this->authenticateToken->authenticate($data['MagicLinkToken']->token);
         
         $this->assertArrayHasKey('accessToken', $authResult);
         $this->assertArrayHasKey('refreshToken', $authResult);

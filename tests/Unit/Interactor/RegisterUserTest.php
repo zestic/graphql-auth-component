@@ -5,28 +5,28 @@ declare(strict_types=1);
 namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationEmailInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
-use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class RegisterUserTest extends TestCase
 {
-    private EmailTokenFactory $emailTokenFactory;
-    private SendVerificationEmailInterface $sendRegistrationVerification;
+    private MagicLinkTokenFactory $magicLinkTokenFactory;
+    private SendVerificationLinkInterface $sendRegistrationVerification;
     private UserRepositoryInterface $userRepository;
     private RegisterUser $registerUser;
 
     protected function setUp(): void
     {
-        $this->emailTokenFactory = $this->createMock(EmailTokenFactory::class);
-        $this->sendRegistrationVerification = $this->createMock(SendVerificationEmailInterface::class);
+        $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
+        $this->sendRegistrationVerification = $this->createMock(SendVerificationLinkInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
 
         $this->registerUser = new RegisterUser(
-            $this->emailTokenFactory,
+            $this->magicLinkTokenFactory,
             $this->sendRegistrationVerification,
             $this->userRepository
         );
@@ -36,12 +36,12 @@ class RegisterUserTest extends TestCase
     {
         $context = new RegistrationContext('test@zestic.com', ['displayName' => 'Test User']);
         $userId = '123';
-        $token = $this->createMock(EmailToken::class);
+        $token = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
         $this->userRepository->expects($this->once())->method('create')->willReturn($userId);
-        $this->emailTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
+        $this->magicLinkTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
         $this->sendRegistrationVerification->expects($this->once())->method('send');
         $this->userRepository->expects($this->once())->method('commit');
 

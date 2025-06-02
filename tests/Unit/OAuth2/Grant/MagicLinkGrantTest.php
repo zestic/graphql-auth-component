@@ -17,17 +17,17 @@ use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class MagicLinkGrantTest extends TestCase
 {
     private MagicLinkGrant $grant;
-    private EmailTokenRepositoryInterface $emailTokenRepository;
+    private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
     private RefreshTokenRepositoryInterface $refreshTokenRepository;
     private ClientRepositoryInterface $clientRepository;
     private AccessTokenRepositoryInterface $accessTokenRepository;
@@ -36,7 +36,7 @@ class MagicLinkGrantTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->emailTokenRepository = $this->createMock(EmailTokenRepositoryInterface::class);
+        $this->magicLinkTokenRepository = $this->createMock(MagicLinkTokenRepositoryInterface::class);
         $this->refreshTokenRepository = $this->createMock(RefreshTokenRepositoryInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
         $this->clientRepository = $this->createMock(ClientRepositoryInterface::class);
@@ -44,7 +44,7 @@ class MagicLinkGrantTest extends TestCase
         $this->scopeRepository = $this->createMock(ScopeRepositoryInterface::class);
 
         $this->grant = new MagicLinkGrant(
-            $this->emailTokenRepository,
+            $this->magicLinkTokenRepository,
             $this->refreshTokenRepository,
             $this->userRepository
         );
@@ -67,7 +67,7 @@ class MagicLinkGrantTest extends TestCase
         $scopeEntity = $this->createMock(ScopeEntityInterface::class);
         $accessTokenEntity = $this->createMock(AccessTokenEntityInterface::class);
         $refreshTokenEntity = $this->createMock(RefreshTokenEntityInterface::class);
-        $emailToken = $this->createMock(EmailToken::class);
+        $magicLinkToken = $this->createMock(MagicLinkToken::class);
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn([
@@ -79,9 +79,9 @@ class MagicLinkGrantTest extends TestCase
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
         $this->clientRepository->method('validateClient')->willReturn(true);
-        $this->emailTokenRepository->method('findByToken')->willReturn($emailToken);
-        $emailToken->method('isExpired')->willReturn(false);
-        $emailToken->method('getUserId')->willReturn('user_id');
+        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
+        $magicLinkToken->method('isExpired')->willReturn(false);
+        $magicLinkToken->method('getUserId')->willReturn('user_id');
 
         $this->userRepository->method('findUserById')->willReturn($userEntity);
         $this->scopeRepository->method('finalizeScopes')->willReturn([$scopeEntity]);
@@ -114,7 +114,7 @@ class MagicLinkGrantTest extends TestCase
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->emailTokenRepository->method('findByToken')->willReturn(null);
+        $this->magicLinkTokenRepository->method('findByToken')->willReturn(null);
         $this->userRepository->method('findUserById')->willReturn(null);
 
         $this->grant->respondToAccessTokenRequest(
@@ -129,15 +129,15 @@ class MagicLinkGrantTest extends TestCase
         $this->expectException(OAuthServerException::class);
 
         $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $emailToken = $this->createMock(EmailToken::class);
+        $magicLinkToken = $this->createMock(MagicLinkToken::class);
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn(['token' => 'expired_token']);
 
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->emailTokenRepository->method('findByToken')->willReturn($emailToken);
-        $emailToken->method('isExpired')->willReturn(true);
+        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
+        $magicLinkToken->method('isExpired')->willReturn(true);
 
         $this->grant->respondToAccessTokenRequest(
             $request,
@@ -151,16 +151,16 @@ class MagicLinkGrantTest extends TestCase
         $this->expectException(OAuthServerException::class);
 
         $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $emailToken = $this->createMock(EmailToken::class);
+        $magicLinkToken = $this->createMock(MagicLinkToken::class);
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn(['token' => 'valid_token']);
 
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->emailTokenRepository->method('findByToken')->willReturn($emailToken);
-        $emailToken->method('isExpired')->willReturn(false);
-        $emailToken->method('getUserId')->willReturn('non_existent_user_id');
+        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
+        $magicLinkToken->method('isExpired')->willReturn(false);
+        $magicLinkToken->method('getUserId')->willReturn('non_existent_user_id');
 
         $this->userRepository->method('findUserById')->willReturn(null);
 

@@ -3,25 +3,25 @@
 namespace Tests\Unit\Factory;
 
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Entity\EmailToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
-use Zestic\GraphQL\AuthComponent\Entity\EmailTokenType;
-use Zestic\GraphQL\AuthComponent\Factory\EmailTokenFactory;
-use Zestic\GraphQL\AuthComponent\Repository\EmailTokenRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
-class EmailTokenFactoryTest extends TestCase
+class MagicLinkTokenFactoryTest extends TestCase
 {
-    private EmailTokenFactory $factory;
+    private MagicLinkTokenFactory $factory;
     private TokenConfig $config;
-    private EmailTokenRepositoryInterface $repository;
+    private MagicLinkTokenRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->config = new TokenConfig(30, 60, 90, 120);
-        $this->repository = $this->createMock(EmailTokenRepositoryInterface::class);
-        $this->factory = new EmailTokenFactory($this->config, $this->repository);
+        $this->repository = $this->createMock(MagicLinkTokenRepositoryInterface::class);
+        $this->factory = new MagicLinkTokenFactory($this->config, $this->repository);
     }
 
     public function testCreateRegistrationToken()
@@ -34,8 +34,8 @@ class EmailTokenFactoryTest extends TestCase
 
         $token = $this->factory->createRegistrationToken($userId);
 
-        $this->assertInstanceOf(EmailToken::class, $token);
-        $this->assertEquals(EmailTokenType::REGISTRATION, $token->tokenType);
+        $this->assertInstanceOf(MagicLinkToken::class, $token);
+        $this->assertEquals(MagicLinkTokenType::REGISTRATION, $token->tokenType);
         $this->assertEquals($userId, $token->userId);
         $this->assertGreaterThan(new \DateTime(), $token->expiration);
         $this->assertLessThanOrEqual(
@@ -54,8 +54,8 @@ class EmailTokenFactoryTest extends TestCase
 
         $token = $this->factory->createLoginToken($userId);
 
-        $this->assertInstanceOf(EmailToken::class, $token);
-        $this->assertEquals(EmailTokenType::LOGIN, $token->tokenType);
+        $this->assertInstanceOf(MagicLinkToken::class, $token);
+        $this->assertEquals(MagicLinkTokenType::LOGIN, $token->tokenType);
         $this->assertEquals($userId, $token->userId);
         $this->assertGreaterThan(new \DateTime(), $token->expiration);
         $this->assertLessThanOrEqual(
@@ -64,7 +64,7 @@ class EmailTokenFactoryTest extends TestCase
         );
     }
 
-    public function testCreateRegistrationTokenFailure()
+    public function testCreateRegistrationTokenThrowsExceptionOnFailure()
     {
         $userId = 'user789';
 
@@ -73,8 +73,22 @@ class EmailTokenFactoryTest extends TestCase
             ->willReturn(false);
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Failed to create email token');
+        $this->expectExceptionMessage('Failed to create magic link token');
 
         $this->factory->createRegistrationToken($userId);
+    }
+
+    public function testCreateLoginTokenThrowsExceptionOnFailure()
+    {
+        $userId = 'user101';
+
+        $this->repository->expects($this->once())
+            ->method('create')
+            ->willReturn(false);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Failed to create magic link token');
+
+        $this->factory->createLoginToken($userId);
     }
 }

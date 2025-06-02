@@ -11,6 +11,9 @@ class MagicLinkToken
         public string $token,
         public MagicLinkTokenType $tokenType,
         public string $userId,
+        public ?string $payload = null,
+        public ?string $ipAddress = null,
+        public ?string $userAgent = null,
         public ?string $id = null,
     ) {
     }
@@ -18,6 +21,21 @@ class MagicLinkToken
     public function getUserId(): string
     {
         return $this->userId;
+    }
+
+    public function getPayload(): ?string
+    {
+        return $this->payload;
+    }
+
+    public function getIpAddress(): ?string
+    {
+        return $this->ipAddress;
+    }
+
+    public function getUserAgent(): ?string
+    {
+        return $this->userAgent;
     }
 
     public function isExpired(): bool

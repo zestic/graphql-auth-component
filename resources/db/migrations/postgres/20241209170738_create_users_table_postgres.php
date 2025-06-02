@@ -4,7 +4,7 @@ use Phinx\Migration\AbstractMigration;
 
 class CreateUsersTablePostgres extends AbstractMigration
 {
-    public function up()
+    public function change()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {

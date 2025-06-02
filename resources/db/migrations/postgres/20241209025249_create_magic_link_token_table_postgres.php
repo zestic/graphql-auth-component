@@ -2,9 +2,9 @@
 
 use Phinx\Migration\AbstractMigration;
 
-class CreateEmailTokenTablePostgres extends AbstractMigration
+class CreateMagicLinkTokenTablePostgres extends AbstractMigration
 {
-    public function up()
+    public function change()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {

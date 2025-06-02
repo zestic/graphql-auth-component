@@ -46,9 +46,9 @@
       "@test:mysql",
       "@test:pgsql"
     ],
-    "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage-report --coverage-text",
+    "test:coverage": "XDEBUG_MODE=coverage phpunit --testsuite Coverage --coverage-html coverage-report --coverage-text",
     "test:coverage:unit": "XDEBUG_MODE=coverage phpunit --testsuite Unit --coverage-html coverage-report/unit --coverage-text",
-    "test:coverage:clover": "XDEBUG_MODE=coverage phpunit --coverage-clover coverage.xml",
+    "test:coverage:clover": "XDEBUG_MODE=coverage phpunit --testsuite Coverage --coverage-clover coverage.xml",
     "check": [
       "@test",
       "@analyse"

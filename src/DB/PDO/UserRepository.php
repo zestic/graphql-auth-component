@@ -37,14 +37,19 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
             VALUES (:id, :email, :display_name, :additional_data, :verified_at)'
         );
         $additionalData = $context->data;
-        unset($additionalData['displayName']);
+
+        // If the only field is displayName, store empty array
+        // Otherwise, keep all fields including displayName
+        if (count($additionalData) === 1 && isset($additionalData['displayName'])) {
+            $additionalData = [];
+        }
 
         try {
             $stmt->execute([
                 'id' => $id,
                 'email' => $context->get('email'),
                 'display_name' => $context->get('displayName'),
-                'additional_data' => json_encode($context->data),
+                'additional_data' => json_encode($additionalData),
                 'verified_at' => null,
             ]);
 

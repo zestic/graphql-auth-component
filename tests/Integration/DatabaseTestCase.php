@@ -66,7 +66,7 @@ abstract class DatabaseTestCase extends TestCase
     protected static function initializeDriver(): void
     {
         // Allow overriding the driver via environment variable
-        self::$driver = $_ENV['TEST_DB_DRIVER'];
+        self::$driver = $_ENV['TEST_DB_DRIVER'] ?? 'mysql'; // Default to mysql for coverage tests
         if (! in_array(self::$driver, ['mysql', 'pgsql'])) {
             throw new \RuntimeException('Unsupported database driver: ' . self::$driver);
         }
@@ -87,7 +87,7 @@ abstract class DatabaseTestCase extends TestCase
         $dbname = $_ENV['TEST_DB_NAME'] ?? 'graphql_auth_test';
         $username = $_ENV['TEST_DB_USER'] ?? 'test';
         $password = $_ENV['TEST_DB_PASS'] ?? 'password1';
-        $port = $_ENV['TEST_DB_PORT'];
+        $port = $_ENV['TEST_DB_PORT'] ?? (self::$driver === 'pgsql' ? '5432' : '3306');
 
         if (self::$driver === 'mysql') {
             $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
@@ -101,6 +101,7 @@ abstract class DatabaseTestCase extends TestCase
         if (self::$driver === 'pgsql') {
             $schema = self::getSchema();
             self::$pdo->exec("SET search_path TO $schema");
+            self::$pdo->exec("SET timezone TO 'UTC'");
         }
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
@@ -125,7 +126,10 @@ abstract class DatabaseTestCase extends TestCase
     public static function tearDownAfterClass(): void
     {
         // Rollback all migrations
-        self::$migrationRunner->rollback('testing', '0');
+        if (self::$migrationRunner !== null) {
+            $config = 'phinx.' . self::$driver . '.yml';
+            self::$migrationRunner->rollback('testing', '0', $config);
+        }
 
         self::$pdo = null;
     }

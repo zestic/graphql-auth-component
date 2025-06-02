@@ -18,6 +18,11 @@
       <file>tests/Integration/AuthenticationFlowTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOMySQLFactoryTest.php</exclude>
     </testsuite>
+    <testsuite name="Coverage">
+      <directory>tests/Unit</directory>
+      <directory>tests/Integration/DB/PDO</directory>
+      <file>tests/Integration/AuthenticationFlowTest.php</file>
+    </testsuite>
   </testsuites>
   <source>
     <include>

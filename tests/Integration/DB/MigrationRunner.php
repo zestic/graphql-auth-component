@@ -24,14 +24,20 @@ class MigrationRunner
     {
         $input = new StringInput("migrate -c $config -e $environment");
 
-        return $this->app->run($input, $this->output);
+        $result = $this->app->run($input, $this->output);
+
+        if ($result !== 0) {
+            throw new \RuntimeException("Migration failed with exit code: $result");
+        }
+
+        return $result;
     }
 
     public function reset(string $environment = 'testing', string $config = 'phinx.mysql.yml'): void
     {
         $this->rollback($environment, '0', $config);
 
-        $this->migrate($environment);
+        $this->migrate($environment, $config);
     }
 
     public function rollback(string $environment = 'development', ?string $target = null, string $config = 'phinx.mysql.yml'): int
@@ -42,7 +48,12 @@ class MigrationRunner
         }
         $input = new StringInput($command);
 
-        return $this->app->run($input, $this->output);
+        $result = $this->app->run($input, $this->output);
+
+        // Don't throw exception for rollback failures as they might be expected
+        // (e.g., when there are no migrations to rollback)
+
+        return $result;
     }
 
     public function status(string $environment = 'development', string $config = 'phinx.mysql.yml'): int

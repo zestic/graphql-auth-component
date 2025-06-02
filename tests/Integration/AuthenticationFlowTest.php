@@ -22,6 +22,7 @@ use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
+use Zestic\GraphQL\AuthComponent\Interactor\UserCreatedNullHook;
 use Zestic\GraphQL\AuthComponent\Interactor\ValidateRegistration;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\RefreshTokenGrant;
@@ -97,6 +98,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
         $this->registerUser = new RegisterUser(
             $magicLinkTokenFactory,
             $this->sendVerificationEmail,
+            new UserCreatedNullHook(),
             $this->userRepository,
         );
         $this->validateRegistration = new ValidateRegistration(

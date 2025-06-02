@@ -76,11 +76,33 @@ jobs:
         cp .env.testing.mysql.dist .env.testing.mysql
         cp .env.testing.pgsql.dist .env.testing.pgsql
 
+    - name: Run PostgreSQL migrations
+      run: |
+        echo "Running PostgreSQL migrations..."
+        # Load environment variables
+        set -a
+        source .env.testing.pgsql
+        set +a
+        vendor/bin/phinx migrate -c phinx.pgsql.yml -e testing
+        echo "Verifying tables were created..."
+        PGPASSWORD=password1 psql -h 127.0.0.1 -U test -d test -c "\dt graphql_auth_test.*"
+
     - name: Run PostgreSQL Integration Tests
       run: vendor/bin/phpunit --testsuite Integration-PostgreSQL --coverage-clover coverage-postgres.xml
 
     - name: Run Unit Tests
       run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage-unit.xml
+
+    - name: Run MySQL migrations
+      run: |
+        echo "Running MySQL migrations..."
+        # Load environment variables
+        set -a
+        source .env.testing.mysql
+        set +a
+        vendor/bin/phinx migrate -c phinx.mysql.yml -e testing
+        echo "Verifying tables were created..."
+        mysql -h127.0.0.1 -utest -ppassword1 graphql_auth_test -e "SHOW TABLES;"
 
     - name: Run MySQL Integration Tests
       run: vendor/bin/phpunit --testsuite Integration-MySQL --coverage-clover coverage-mysql.xml

@@ -10,13 +10,11 @@
     </testsuite>
     <testsuite name="Integration-MySQL">
       <directory>tests/Integration/DB/PDO</directory>
-      <directory>tests/Integration/Factory</directory>
       <file>tests/Integration/AuthenticationFlowTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOPostgresFactoryTest.php</exclude>
     </testsuite>
     <testsuite name="Integration-PostgreSQL">
       <directory>tests/Integration/DB/PDO</directory>
-      <directory>tests/Integration/Factory</directory>
       <file>tests/Integration/AuthenticationFlowTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOMySQLFactoryTest.php</exclude>
     </testsuite>

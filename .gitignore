@@ -1,8 +1,10 @@
-.idea/
-.vscode/
 .phpunit.cache
 vendor/
 composer.lock
+
+# Test coverage reports
+coverage-report/
+coverage.xml
 
 # Environment files
 .env
@@ -13,3 +15,8 @@ composer.lock
 phinx.mysql.yml
 phinx.pgsql.yml
 !phinx.*.yml.dist
+
+# IDE
+.idea/
+.vscode/
+.lh/

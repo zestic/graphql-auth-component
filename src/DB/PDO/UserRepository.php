@@ -128,7 +128,6 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         SET email = :email, 
             display_name = :display_name, 
             additional_data = :additional_data, 
-            email_verified = :email_verified,
             verified_at = :verified_at
         WHERE id = :id"
         );
@@ -138,7 +137,6 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
                 'email'           => $user->getEmail(),
                 'display_name'    => $user->getDisplayName(),
                 'additional_data' => json_encode($user->getAdditionalData()),
-                'email_verified'  => $user->isVerified(),
                 'verified_at'     => $user->getVerifiedAt()?->format('Y-m-d H:i:s'),
             ]);
 

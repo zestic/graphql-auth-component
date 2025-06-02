@@ -36,20 +36,13 @@ class ConfigProvider
             'aliases' => [
                 AccessTokenRepositoryInterface::class => AccessTokenRepository::class,
                 ClientRepositoryInterface::class => ClientRepository::class,
-                EmailTokenRepositoryInterface::class => EmailTokenRepository::class,
+                MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepository::class,
                 RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,
                 ScopeRepositoryInterface::class => ScopeRepository::class,
                 UserCreatedHookInterface::class => UserCreatedNullHook::class,
                 UserRepositoryInterface::class => UserRepository::class,
             ],
             'factories' => [
-                'auth.mysql.pdo' => AuthPDOMySQLFactory::class,
-                'auth.postgres.pdo' => AuthPDOPostgresFactory::class,
-                AccessTokenRepository::class => AccessTokenRepositoryFactory::class,
-                ClientRepository::class => ClientRepositoryFactory::class,
-                MagicLinkTokenRepository::class => MagicLinkTokenRepositoryFactory::class,
-                MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepositoryFactory::class,
-                RefreshTokenRepository::class => RefreshTokenRepositoryFactory::class,
                 TokenConfig::class => TokenConfigFactory::class,
             ],
         ];

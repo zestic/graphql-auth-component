@@ -31,7 +31,7 @@ class CreateUsersTablePostgres extends AbstractMigration
             ])
             ->addColumn('display_name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('email_verified', 'boolean', ['default' => false])
+            ->addColumn('is_verified', 'boolean', ['default' => false])
             ->addColumn('verified_at', 'timestamp', ['null' => true, 'timezone' => true])
             ->addColumn('additional_data', 'jsonb', ['null' => true])
             ->addTimestamps()

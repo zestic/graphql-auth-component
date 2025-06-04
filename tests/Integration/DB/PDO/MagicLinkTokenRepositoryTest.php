@@ -93,7 +93,7 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         );
         $this->repository->create($magicLinkToken);
         // Act
-        $foundToken = $this->repository->findByToken($token);
+        $foundToken = $this->repository->findByUnexpiredToken($token);
         // Assert
         $this->assertInstanceOf(MagicLinkToken::class, $foundToken);
         $this->assertEquals($token, $foundToken->token);
@@ -102,15 +102,15 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $this->assertEquals($expiration->format('Y-m-d H:i:s'), $foundToken->expiration->format('Y-m-d H:i:s'));
     }
 
-    public function testFindByTokenReturnsNullForNonExistentToken(): void
+    public function testFindByUnexpiredTokenReturnsNullForNonExistentToken(): void
     {
         // Act
-        $foundToken = $this->repository->findByToken('non_existent_token');
+        $foundToken = $this->repository->findByUnexpiredToken('non_existent_token');
         // Assert
         $this->assertNull($foundToken);
     }
 
-    public function testFindByTokenReturnsNullForExpiredToken(): void
+    public function testFindByUnexpiredTokenReturnsNullForExpiredToken(): void
     {
         // Arrange
         $token = 'expired_token_'.uniqid();
@@ -130,7 +130,7 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         // Ensure some time has passed
         sleep(1);
         // Act
-        $foundToken = $this->repository->findByToken($token);
+        $foundToken = $this->repository->findByUnexpiredToken($token);
         // Assert
         $this->assertNull($foundToken);
         // Verify the token exists but is considered expired
@@ -141,5 +141,34 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $this->assertNotFalse($row);
         $this->assertEquals($token, $row['token']);
         $this->assertTrue(new \DateTimeImmutable($row['expiration']) < new \DateTimeImmutable());
+    }
+
+    public function testFindByTokenIncludesExpiredTokens(): void
+    {
+        // Arrange
+        $token = 'expired_token_'.uniqid();
+        $userId = self::$driver === 'pgsql' ? '550e8400-e29b-41d4-a716-446655440005' : 'user_'.uniqid();
+        $tokenType = MagicLinkTokenType::LOGIN;
+        // Use the database's current timestamp
+        $stmt = self::$pdo->query(self::$driver === 'pgsql' ? "SELECT NOW() - INTERVAL '1 hour' as expiration" : "SELECT NOW() - INTERVAL 1 HOUR as expiration");
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $expirationFromDb = new \DateTimeImmutable($result['expiration']);
+        $magicLinkToken = new MagicLinkToken(
+            $expirationFromDb,
+            $token,
+            $tokenType,
+            $userId
+        );
+        $this->repository->create($magicLinkToken);
+        // Ensure some time has passed
+        sleep(1);
+        // Act
+        $foundToken = $this->repository->findByToken($token);
+        // Assert - should find the token even though it's expired
+        $this->assertInstanceOf(MagicLinkToken::class, $foundToken);
+        $this->assertEquals($token, $foundToken->token);
+        $this->assertEquals($userId, $foundToken->userId);
+        $this->assertEquals($tokenType, $foundToken->tokenType);
+        $this->assertTrue($foundToken->isExpired());
     }
 }

@@ -12,5 +12,7 @@ interface MagicLinkTokenRepositoryInterface
 
     public function delete(MagicLinkToken|string $magicLinkToken): bool;
 
+    public function findByUnexpiredToken(string $token): ?MagicLinkToken;
+
     public function findByToken(string $token): ?MagicLinkToken;
 }

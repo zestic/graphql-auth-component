@@ -10,6 +10,7 @@ use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Interactor\AuthenticateToken;
+use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\OAuth2\OAuthConfig;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
@@ -21,6 +22,8 @@ class AuthenticateTokenTest extends TestCase
 
     private OAuthConfig $oauthConfig;
 
+    private ReissueExpiredMagicLinkToken $reissueExpiredMagicLinkToken;
+
     private AuthenticateToken $authenticateToken;
 
     protected function setUp(): void
@@ -28,11 +31,13 @@ class AuthenticateTokenTest extends TestCase
         $this->authorizationServer = $this->createMock(AuthorizationServer::class);
         $this->magicLinkTokenRepository = $this->createMock(MagicLinkTokenRepositoryInterface::class);
         $this->oauthConfig = $this->createMock(OAuthConfig::class);
+        $this->reissueExpiredMagicLinkToken = $this->createMock(ReissueExpiredMagicLinkToken::class);
 
         $this->authenticateToken = new AuthenticateToken(
             $this->authorizationServer,
             $this->magicLinkTokenRepository,
-            $this->oauthConfig
+            $this->oauthConfig,
+            $this->reissueExpiredMagicLinkToken
         );
     }
 
@@ -43,7 +48,7 @@ class AuthenticateTokenTest extends TestCase
         $magicLinkToken->method('isExpired')->willReturn(false);
 
         $this->magicLinkTokenRepository->expects($this->once())
-            ->method('findByToken')
+            ->method('findByUnexpiredToken')
             ->with($token)
             ->willReturn($magicLinkToken);
 
@@ -76,18 +81,33 @@ class AuthenticateTokenTest extends TestCase
     public function testAuthenticateWithExpiredToken(): void
     {
         $token = 'expired_token';
-        $magicLinkToken = $this->createMock(MagicLinkToken::class);
-        $magicLinkToken->method('isExpired')->willReturn(true);
+        $expiredToken = $this->createMock(MagicLinkToken::class);
+        $expiredToken->method('isExpired')->willReturn(true);
+
+        $this->magicLinkTokenRepository->expects($this->once())
+            ->method('findByUnexpiredToken')
+            ->with($token)
+            ->willReturn(null);
 
         $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
-            ->willReturn($magicLinkToken);
+            ->willReturn($expiredToken);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Invalid or expired token');
+        $reissueResponse = [
+            'success' => true,
+            'message' => 'Token expired. A new magic link has been sent to your email.',
+            'code' => 'TOKEN_EXPIRED_NEW_SENT',
+        ];
 
-        $this->authenticateToken->authenticate($token);
+        $this->reissueExpiredMagicLinkToken->expects($this->once())
+            ->method('reissue')
+            ->with($expiredToken)
+            ->willReturn($reissueResponse);
+
+        $result = $this->authenticateToken->authenticate($token);
+
+        $this->assertEquals($reissueResponse, $result);
     }
 
     public function testAuthenticateWithNonExistentToken(): void
@@ -95,12 +115,17 @@ class AuthenticateTokenTest extends TestCase
         $token = 'non_existent_token';
 
         $this->magicLinkTokenRepository->expects($this->once())
+            ->method('findByUnexpiredToken')
+            ->with($token)
+            ->willReturn(null);
+
+        $this->magicLinkTokenRepository->expects($this->once())
             ->method('findByToken')
             ->with($token)
             ->willReturn(null);
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Invalid or expired token');
+        $this->expectExceptionMessage('Invalid token');
 
         $this->authenticateToken->authenticate($token);
     }
@@ -112,7 +137,7 @@ class AuthenticateTokenTest extends TestCase
         $magicLinkToken->method('isExpired')->willReturn(false);
 
         $this->magicLinkTokenRepository->expects($this->once())
-            ->method('findByToken')
+            ->method('findByUnexpiredToken')
             ->with($token)
             ->willReturn($magicLinkToken);
 

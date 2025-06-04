@@ -73,7 +73,7 @@ class MagicLinkGrant extends AbstractGrant
         if (is_null($token)) {
             throw OAuthServerException::invalidRequest('token');
         }
-        $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
+        $magicLinkToken = $this->magicLinkTokenRepository->findByUnexpiredToken($token);
         if (! $magicLinkToken || $magicLinkToken->isExpired()) {
             throw OAuthServerException::invalidRequest('token', 'Invalid or expired token');
         }

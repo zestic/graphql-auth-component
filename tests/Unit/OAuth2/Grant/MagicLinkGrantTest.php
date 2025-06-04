@@ -85,7 +85,7 @@ class MagicLinkGrantTest extends TestCase
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
         $this->clientRepository->method('validateClient')->willReturn(true);
-        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
+        $this->magicLinkTokenRepository->method('findByUnexpiredToken')->willReturn($magicLinkToken);
         $magicLinkToken->method('isExpired')->willReturn(false);
         $magicLinkToken->method('getUserId')->willReturn('user_id');
 
@@ -120,7 +120,7 @@ class MagicLinkGrantTest extends TestCase
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->magicLinkTokenRepository->method('findByToken')->willReturn(null);
+        $this->magicLinkTokenRepository->method('findByUnexpiredToken')->willReturn(null);
         $this->userRepository->method('findUserById')->willReturn(null);
 
         $this->grant->respondToAccessTokenRequest(
@@ -135,15 +135,13 @@ class MagicLinkGrantTest extends TestCase
         $this->expectException(OAuthServerException::class);
 
         $clientEntity = $this->createMock(ClientEntityInterface::class);
-        $magicLinkToken = $this->createMock(MagicLinkToken::class);
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn(['token' => 'expired_token']);
 
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
-        $magicLinkToken->method('isExpired')->willReturn(true);
+        $this->magicLinkTokenRepository->method('findByUnexpiredToken')->willReturn(null);
 
         $this->grant->respondToAccessTokenRequest(
             $request,
@@ -164,7 +162,7 @@ class MagicLinkGrantTest extends TestCase
         $responseType = $this->createMock(ResponseTypeInterface::class);
 
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
-        $this->magicLinkTokenRepository->method('findByToken')->willReturn($magicLinkToken);
+        $this->magicLinkTokenRepository->method('findByUnexpiredToken')->willReturn($magicLinkToken);
         $magicLinkToken->method('isExpired')->willReturn(false);
         $magicLinkToken->method('getUserId')->willReturn('non_existent_user_id');
 

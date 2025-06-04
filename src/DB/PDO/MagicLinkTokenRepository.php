@@ -49,6 +49,31 @@ class MagicLinkTokenRepository extends AbstractPDORepository implements MagicLin
             SELECT id, expiration, token, token_type, user_id
             FROM {$this->schema}magic_link_tokens
             WHERE token = :token
+            LIMIT 1
+        ");
+
+        $stmt->execute(['token' => $token]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (! $result) {
+            return null;
+        }
+
+        return new MagicLinkToken(
+            new \DateTimeImmutable($result['expiration']),
+            $result['token'],
+            MagicLinkTokenType::from($result['token_type']),
+            $result['user_id'],
+            (string) $result['id'],
+        );
+    }
+
+    public function findByUnexpiredToken(string $token): ?MagicLinkToken
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id, expiration, token, token_type, user_id
+            FROM {$this->schema}magic_link_tokens
+            WHERE token = :token
             AND expiration > NOW()
             LIMIT 1
         ");

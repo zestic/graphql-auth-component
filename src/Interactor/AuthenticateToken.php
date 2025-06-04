@@ -20,14 +20,27 @@ class AuthenticateToken
         private AuthorizationServer $authorizationServer,
         private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
         private OAuthConfig $oauthConfig,
+        private ReissueExpiredMagicLinkToken $reissueExpiredMagicLinkToken,
     ) {
     }
 
     public function authenticate(string $token): array
     {
-        $magicLinkToken = $this->magicLinkTokenRepository->findByToken($token);
-        if (! $magicLinkToken || $magicLinkToken->isExpired()) {
-            throw new \Exception('Invalid or expired token');
+        $magicLinkToken = $this->magicLinkTokenRepository->findByUnexpiredToken($token);
+        if (! $magicLinkToken) {
+            // Check if token exists but is expired
+            $expiredToken = $this->magicLinkTokenRepository->findByToken($token);
+            if ($expiredToken && $expiredToken->isExpired()) {
+                // Reissue the expired token
+                return $this->reissueExpiredMagicLinkToken->reissue($expiredToken);
+            }
+
+            throw new \Exception('Invalid token');
+        }
+
+        if ($magicLinkToken->isExpired()) {
+            // This shouldn't happen since findByUnexpiredToken filters by expiration, but just in case
+            return $this->reissueExpiredMagicLinkToken->reissue($magicLinkToken);
         }
 
         try {

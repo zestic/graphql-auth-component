@@ -20,6 +20,7 @@ use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\AuthenticateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\InvalidateToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
+use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\UserCreatedNullHook;
@@ -101,9 +102,19 @@ class AuthenticationFlowTest extends DatabaseTestCase
             new UserCreatedNullHook(),
             $this->userRepository,
         );
+
+        $reissueExpiredMagicLinkToken = new ReissueExpiredMagicLinkToken(
+            $magicLinkTokenFactory,
+            $this->sendMagicLinkEmail,
+            $this->sendVerificationEmail,
+            $this->userRepository,
+            $this->magicLinkTokenRepository,
+        );
+
         $this->validateRegistration = new ValidateRegistration(
             $this->magicLinkTokenRepository,
             $this->userRepository,
+            $reissueExpiredMagicLinkToken,
         );
         $this->sendMagicLink = new SendMagicLink(
             $magicLinkTokenFactory,
@@ -141,6 +152,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->authorizationServer,
             $this->magicLinkTokenRepository,
             $oauthConfig,
+            $reissueExpiredMagicLinkToken,
         );
 
         $this->requestAccessToken = new RequestAccessToken(
@@ -193,7 +205,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
     public function validateRegistration(array $data): array
     {
         $validationResult = $this->validateRegistration->validate($data['token']->token);
-        $this->assertTrue($validationResult);
+        $this->assertTrue($validationResult['success']);
 
         return $data;
     }

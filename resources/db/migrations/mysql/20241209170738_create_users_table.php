@@ -13,10 +13,12 @@ final class CreateUsersTable extends AbstractMigration
             ->addColumn('additional_data', 'json', ['null' => false])
             ->addColumn('display_name', 'string', ['limit' => 255, 'null' => true])
             ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
+            ->addColumn('system_id', 'string', ['limit' => 100, 'null' => true])
             ->addColumn('verified_at', 'timestamp', ['null' => true, 'default' => null])
             ->addTimestamps()
             ->addIndex(['id'], ['unique' => true])
             ->addIndex(['email'], ['unique' => true])
+            ->addIndex(['system_id'], ['unique' => true])
             ->create();
     }
 }

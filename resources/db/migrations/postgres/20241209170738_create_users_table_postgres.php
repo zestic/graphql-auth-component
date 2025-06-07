@@ -29,14 +29,15 @@ class CreateUsersTablePostgres extends AbstractMigration
             ->addColumn('id', 'uuid', [
                 'null' => false,
             ])
+            ->addColumn('additional_data', 'jsonb', ['null' => true])
             ->addColumn('display_name', 'string', ['limit' => 255, 'null' => false])
             ->addColumn('email', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('is_verified', 'boolean', ['default' => false])
+            ->addColumn('system_id', 'string', ['limit' => 255, 'null' => true])
             ->addColumn('verified_at', 'timestamp', ['null' => true, 'timezone' => true])
-            ->addColumn('additional_data', 'jsonb', ['null' => true])
             ->addTimestamps()
             ->addIndex(['id'], ['unique' => true])
             ->addIndex(['email'], ['unique' => true])
+            ->addIndex(['system_id'], ['unique' => true])
             ->create();
 
         $this->execute('CREATE TRIGGER update_users_updated_at

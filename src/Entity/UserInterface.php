@@ -22,6 +22,10 @@ interface UserInterface extends OAuth2UserEntityInterface
 
     public function setDisplayName(?string $displayName): void;
 
+    public function getSystemId(): string|int|null;
+
+    public function setSystemId(string|int|null $systemId): void;
+
     /**
      * @return array<string, mixed>|null
      */

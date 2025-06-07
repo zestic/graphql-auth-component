@@ -22,8 +22,7 @@ class ReissueExpiredMagicLinkToken
         private SendVerificationLinkInterface $sendVerificationLink,
         private UserRepositoryInterface $userRepository,
         private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
-    ) {
-    }
+    ) {}
 
     public function reissue(MagicLinkToken $expiredToken): array
     {
@@ -38,27 +37,8 @@ class ReissueExpiredMagicLinkToken
                 ];
             }
 
-            // Create a new token of the same type
-            $newToken = match ($expiredToken->tokenType) {
-                MagicLinkTokenType::LOGIN => $this->magicLinkTokenFactory->createLoginToken($expiredToken->getUserId()),
-                MagicLinkTokenType::REGISTRATION => $this->magicLinkTokenFactory->createRegistrationToken($expiredToken->getUserId()),
-            };
-
-            // Send the new token via appropriate email service
-            $sent = match ($expiredToken->tokenType) {
-                MagicLinkTokenType::LOGIN => $this->sendMagicLink->send($newToken),
-                MagicLinkTokenType::REGISTRATION => $this->sendRegistrationVerificationLink($user, $newToken),
-            };
-
-            if (! $sent) {
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send new magic link',
-                    'code' => 'EMAIL_SEND_FAILED',
-                ];
-            }
-
-            // Optionally delete the old expired token
+            $newToken = $this->createNewToken($expiredToken);
+            $this->sendToken($expiredToken->tokenType, $user, $newToken);
             $this->magicLinkTokenRepository->delete($expiredToken);
 
             return [
@@ -75,13 +55,29 @@ class ReissueExpiredMagicLinkToken
         }
     }
 
+    private function createNewToken(MagicLinkToken $expiredToken): MagicLinkToken
+    {
+        return match ($expiredToken->tokenType) {
+            MagicLinkTokenType::LOGIN => $this->magicLinkTokenFactory->createLoginToken($expiredToken->getUserId()),
+            MagicLinkTokenType::REGISTRATION => $this->magicLinkTokenFactory->createRegistrationToken($expiredToken->getUserId()),
+        };
+    }
+
+    private function sendToken(MagicLinkTokenType $tokenType, UserInterface $user, MagicLinkToken $token): bool
+    {
+        return match ($tokenType) {
+            MagicLinkTokenType::LOGIN => $this->sendMagicLink->send($token),
+            MagicLinkTokenType::REGISTRATION => $this->sendRegistrationVerificationLink($user, $token),
+        };
+    }
+
     private function sendRegistrationVerificationLink(UserInterface $user, MagicLinkToken $token): bool
     {
         try {
             // Create a registration context from the user data
             $context = new RegistrationContext(
                 $user->getEmail(),
-                $user->additionalData ?? []
+                $user->additionalData + ['displayName' => $user->getDisplayName()]
             );
 
             $this->sendVerificationLink->send($context, $token);

@@ -8,5 +8,5 @@ use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 
 interface SendMagicLinkInterface
 {
-    public function send(MagicLinkToken $magicLinkToken): bool;
+    public function send(MagicLinkToken $magicLinkToken): void;
 }

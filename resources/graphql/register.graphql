@@ -24,11 +24,13 @@ type AuthToken {
 
 type AuthenticateTokenResponse {
     success: Boolean!
+    message: String!
     token: AuthToken
 }
 
 type ValidateRegistrationResponse {
     success: Boolean!
+    message: String!
     token: AuthToken
 }
 

@@ -4,7 +4,7 @@ use Phinx\Migration\AbstractMigration;
 
 class CreateUsersTablePostgres extends AbstractMigration
 {
-    public function change()
+    public function up()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {
@@ -12,6 +12,7 @@ class CreateUsersTablePostgres extends AbstractMigration
         }
         // $this->execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
+        // Function should already exist from earlier migrations, but create if not exists
         $this->execute('CREATE OR REPLACE FUNCTION ' . $schema . '.update_updated_at_column()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -44,5 +45,11 @@ class CreateUsersTablePostgres extends AbstractMigration
             BEFORE UPDATE ON ' . $schema . '.users
             FOR EACH ROW
             EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
+    }
+
+    public function down()
+    {
+        $schema = $this->getAdapter()->getOption('schema');
+        $this->table('users', ['schema' => $schema])->drop()->save();
     }
 }

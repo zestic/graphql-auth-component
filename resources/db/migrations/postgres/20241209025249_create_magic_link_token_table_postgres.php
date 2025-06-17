@@ -4,7 +4,7 @@ use Phinx\Migration\AbstractMigration;
 
 class CreateMagicLinkTokenTablePostgres extends AbstractMigration
 {
-    public function change()
+    public function up()
     {
         $schema = $this->getAdapter()->getOption('schema');
         if (empty($schema)) {
@@ -27,5 +27,11 @@ class CreateMagicLinkTokenTablePostgres extends AbstractMigration
             ->addTimestamps()
             ->addIndex(['token'], ['unique' => true])
             ->create();
+    }
+
+    public function down()
+    {
+        $schema = $this->getAdapter()->getOption('schema');
+        $this->table('magic_link_tokens', ['schema' => $schema])->drop()->save();
     }
 }

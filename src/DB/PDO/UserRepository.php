@@ -61,46 +61,25 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
 
     public function findUserByEmail(string $email): ?UserInterface
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT additional_data, email, display_name, id, verified_at
-            FROM ' . $this->schema . 'users
-            WHERE email = :email'
-        );
-        $stmt->execute(['email' => $email]);
-        $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (! $userData) {
-            return null;
-        }
-
-        return new User(
-            json_decode($userData['additional_data'], true),
-            $userData['display_name'],
-            $userData['email'],
-            $userData['id'],
-            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
-        );
+        return $this->findUserBy('email', $email);
     }
 
     public function findUserById(string $id): ?UserInterface
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT additional_data, email, display_name, id, verified_at
-            FROM ' . $this->schema . 'users
-            WHERE id = :id'
-        );
-        $stmt->execute(['id' => $id]);
-        $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (! $userData) {
-            return null;
-        }
+        return $this->findUserBy('id', $id);
+    }
 
-        return new User(
-            json_decode($userData['additional_data'], true),
-            $userData['display_name'],
-            $userData['email'],
-            $userData['id'],
-            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
+    private function findUserBy(string $field, string $value): ?UserInterface
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT additional_data, email, display_name, id, system_id, verified_at
+            FROM ' . $this->schema . 'users
+            WHERE ' . $field . ' = :' . $field
         );
+        $stmt->execute([$field => $value]);
+        $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return $this->hydrateUser($userData);
     }
 
     public function emailExists(string $email): bool
@@ -134,6 +113,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         SET email = :email, 
             display_name = :display_name, 
             additional_data = :additional_data, 
+            system_id = :system_id,
             verified_at = :verified_at
         WHERE id = :id"
         );
@@ -144,6 +124,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
                 'email' => $user->getEmail(),
                 'display_name' => $user->getDisplayName(),
                 'additional_data' => json_encode($user->getAdditionalData()),
+                'system_id' => $user->getSystemId(),
                 'verified_at' => $user->getVerifiedAt()?->format('Y-m-d H:i:s'),
             ]);
 
@@ -151,5 +132,23 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         } catch (\PDOException $e) {
             throw new \RuntimeException('Failed to update user', 0, $e);
         }
+    }
+
+    protected function hydrateUser(array $userData): ?UserInterface
+    {
+        if (! $userData) {
+            return null;
+        }
+
+        $user = new User(
+            json_decode($userData['additional_data'], true),
+            $userData['display_name'],
+            $userData['email'],
+            $userData['id'],
+            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
+        );
+        $user->setSystemId($userData['system_id'] ?? null);
+
+        return $user;
     }
 }

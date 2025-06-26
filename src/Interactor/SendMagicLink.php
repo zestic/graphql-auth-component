@@ -12,7 +12,7 @@ class SendMagicLink
 {
     public function __construct(
         private MagicLinkTokenFactory $magicLinkTokenFactory,
-        private SendMagicLinkInterface $email,
+        private SendMagicLinkInterface $sendMagicLink,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -29,15 +29,7 @@ class SendMagicLink
             }
 
             $loginToken = $this->magicLinkTokenFactory->createLoginToken((string)$user->getId());
-            $sent = $this->email->send($loginToken);
-
-            if (! $sent) {
-                return [
-                    'success' => false,
-                    'message' => 'A system error occurred',
-                    'code' => 'SYSTEM_ERROR',
-                ];
-            }
+            $this->sendMagicLink->send($loginToken);
 
             return [
                 'success' => true,

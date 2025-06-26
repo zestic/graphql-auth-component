@@ -6,6 +6,8 @@ namespace Zestic\GraphQL\AuthComponent\Entity;
 
 class User implements UserInterface
 {
+    public ?string $systemId = null;
+
     public function __construct(
         /** @var array<string, mixed>|null */
         public ?array $additionalData,
@@ -24,17 +26,26 @@ class User implements UserInterface
     /** @return non-empty-string */
     public function getIdentifier(): string
     {
-        $id = (string)$this->id;
-        if ($id === '') {
-            throw new \RuntimeException('User ID cannot be empty');
+        if (empty($this->id)) {
+            throw new \RuntimeException('ID cannot be empty');
         }
 
-        return $id;
+        return (string) $this->id;
     }
 
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    public function getSystemId(): string|int|null 
+    {
+        return $this->systemId;
+    }
+
+    public function setSystemId(string|int|null $systemId): void 
+    {
+        $this->systemId = $systemId;
     }
 
     public function isVerified(): bool

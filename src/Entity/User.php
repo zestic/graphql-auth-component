@@ -6,7 +6,7 @@ namespace Zestic\GraphQL\AuthComponent\Entity;
 
 class User implements UserInterface
 {
-    public ?string $systemId = null;
+    public string|int|null $systemId = null;
 
     public function __construct(
         /** @var array<string, mixed>|null */
@@ -38,12 +38,12 @@ class User implements UserInterface
         return $this->email;
     }
 
-    public function getSystemId(): string|int|null 
+    public function getSystemId(): string|int|null
     {
         return $this->systemId;
     }
 
-    public function setSystemId(string|int|null $systemId): void 
+    public function setSystemId(string|int|null $systemId): void
     {
         $this->systemId = $systemId;
     }

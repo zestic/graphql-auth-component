@@ -22,7 +22,8 @@ class ReissueExpiredMagicLinkToken
         private SendVerificationLinkInterface $sendVerificationLink,
         private UserRepositoryInterface $userRepository,
         private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository,
-    ) {}
+    ) {
+    }
 
     public function reissue(MagicLinkToken $expiredToken): array
     {
@@ -63,28 +64,22 @@ class ReissueExpiredMagicLinkToken
         };
     }
 
-    private function sendToken(MagicLinkTokenType $tokenType, UserInterface $user, MagicLinkToken $token): bool
+    private function sendToken(MagicLinkTokenType $tokenType, UserInterface $user, MagicLinkToken $token): void
     {
-        return match ($tokenType) {
+        match ($tokenType) {
             MagicLinkTokenType::LOGIN => $this->sendMagicLink->send($token),
             MagicLinkTokenType::REGISTRATION => $this->sendRegistrationVerificationLink($user, $token),
         };
     }
 
-    private function sendRegistrationVerificationLink(UserInterface $user, MagicLinkToken $token): bool
+    private function sendRegistrationVerificationLink(UserInterface $user, MagicLinkToken $token): void
     {
-        try {
-            // Create a registration context from the user data
-            $context = new RegistrationContext(
-                $user->getEmail(),
-                $user->additionalData + ['displayName' => $user->getDisplayName()]
-            );
+        // Create a registration context from the user data
+        $context = new RegistrationContext(
+            $user->getEmail(),
+            $user->getAdditionalData() + ['displayName' => $user->getDisplayName()]
+        );
 
-            $this->sendVerificationLink->send($context, $token);
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
+        $this->sendVerificationLink->send($context, $token);
     }
 }

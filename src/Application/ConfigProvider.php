@@ -29,25 +29,25 @@ class ConfigProvider
     {
         return [
             'dependencies' => $this->getDependencies(),
-            'auth'         => $this->getAuthConfig(),
+            'auth' => $this->getAuthConfig(),
         ];
     }
 
     private function getDependencies(): array
     {
         return [
-            'aliases'   => [
-                AccessTokenRepositoryInterface::class    => AccessTokenRepository::class,
-                ClientRepositoryInterface::class         => ClientRepository::class,
+            'aliases' => [
+                AccessTokenRepositoryInterface::class => AccessTokenRepository::class,
+                ClientRepositoryInterface::class => ClientRepository::class,
                 MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepository::class,
-                RefreshTokenRepositoryInterface::class   => RefreshTokenRepository::class,
-                ScopeRepositoryInterface::class          => ScopeRepository::class,
-                UserCreatedHookInterface::class          => UserCreatedNullHook::class,
-                UserRepositoryInterface::class           => UserRepository::class,
+                RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,
+                ScopeRepositoryInterface::class => ScopeRepository::class,
+                UserCreatedHookInterface::class => UserCreatedNullHook::class,
+                UserRepositoryInterface::class => UserRepository::class,
             ],
             'factories' => [
                 AuthorizationServer::class => AuthorizationServerFactory::class,
-                TokenConfig::class         => TokenConfigFactory::class,
+                TokenConfig::class => TokenConfigFactory::class,
             ],
         ];
     }
@@ -57,17 +57,17 @@ class ConfigProvider
         return [
             'jwt' => [
                 'privateKeyPath' => 'config/jwt/private.key',
-                'publicKeyPath'  => 'config/jwt/public.key',
-                'passphrase'     => null, // Set via environment variable if needed
+                'publicKeyPath' => 'config/jwt/public.key',
+                'passphrase' => null, // Set via environment variable if needed
                 'keyGeneration' => [
-                    'digestAlg'       => 'sha256',     // Digest algorithm: sha256, sha384, sha512
-                    'privateKeyBits'  => 2048,        // Key size: 2048, 3072, 4096
-                    'privateKeyType'  => 'RSA',       // Key type: RSA, DSA, DH, EC
+                    'digestAlg' => 'sha256',     // Digest algorithm: sha256, sha384, sha512
+                    'privateKeyBits' => 2048,        // Key size: 2048, 3072, 4096
+                    'privateKeyType' => 'RSA',       // Key type: RSA, DSA, DH, EC
                 ],
             ],
             'token' => [
-                'accessTokenTtl'  => 60, // Default 1 hour (in minutes)
-                'loginTtl'        => 10, // Default 10 minutes
+                'accessTokenTtl' => 60, // Default 1 hour (in minutes)
+                'loginTtl' => 10, // Default 10 minutes
                 'refreshTokenTtl' => 10080, // Default 1 week (in minutes)
                 'registrationTtl' => 1440, // Default 24 hours (in minutes)
             ],

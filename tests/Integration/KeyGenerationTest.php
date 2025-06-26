@@ -9,29 +9,30 @@ use PHPUnit\Framework\TestCase;
 class KeyGenerationTest extends TestCase
 {
     private string $testProjectRoot;
+
     private string $originalCwd;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Store original working directory
         $this->originalCwd = getcwd();
-        
+
         // Create a temporary directory for testing
         $this->testProjectRoot = sys_get_temp_dir() . '/oauth-key-test-' . uniqid();
         mkdir($this->testProjectRoot, 0755, true);
-        
+
         // Copy the key generation script to test directory
         $scriptSource = __DIR__ . '/../../bin/generate-oauth-keys.php';
         $scriptDest = $this->testProjectRoot . '/bin/generate-oauth-keys.php';
         mkdir(dirname($scriptDest), 0755, true);
         copy($scriptSource, $scriptDest);
         chmod($scriptDest, 0755);
-        
+
         // Copy the source files needed by the script
         $this->copySourceFiles();
-        
+
         // Change to test directory
         chdir($this->testProjectRoot);
     }
@@ -40,10 +41,10 @@ class KeyGenerationTest extends TestCase
     {
         // Restore original working directory
         chdir($this->originalCwd);
-        
+
         // Clean up test directory
         $this->removeDirectory($this->testProjectRoot);
-        
+
         parent::tearDown();
     }
 
@@ -51,18 +52,18 @@ class KeyGenerationTest extends TestCase
     {
         // Run the key generation script
         $output = $this->runKeyGenerationScript();
-        
+
         // Assert script ran successfully
         $this->assertStringContainsString('✅ All keys generated successfully!', $output);
-        
+
         // Assert JWT private key was created
         $privateKeyPath = $this->testProjectRoot . '/config/jwt/private.key';
         $this->assertFileExists($privateKeyPath);
-        
+
         // Assert JWT public key was created
         $publicKeyPath = $this->testProjectRoot . '/config/jwt/public.key';
         $this->assertFileExists($publicKeyPath);
-        
+
         // Assert auth config was created
         $authConfigPath = $this->testProjectRoot . '/config/autoload/auth.local.php';
         $this->assertFileExists($authConfigPath);
@@ -71,10 +72,10 @@ class KeyGenerationTest extends TestCase
     public function testPrivateKeyHasCorrectPermissions(): void
     {
         $this->runKeyGenerationScript();
-        
+
         $privateKeyPath = $this->testProjectRoot . '/config/jwt/private.key';
         $permissions = fileperms($privateKeyPath) & 0777;
-        
+
         // Assert private key has 600 permissions (owner read/write only)
         $this->assertEquals(0600, $permissions);
     }
@@ -82,19 +83,19 @@ class KeyGenerationTest extends TestCase
     public function testGeneratedKeysHaveValidContent(): void
     {
         $this->runKeyGenerationScript();
-        
+
         // Test private key content
         $privateKeyPath = $this->testProjectRoot . '/config/jwt/private.key';
         $privateKeyContent = file_get_contents($privateKeyPath);
         $this->assertStringStartsWith('-----BEGIN PRIVATE KEY-----', $privateKeyContent);
         $this->assertStringEndsWith("-----END PRIVATE KEY-----\n", $privateKeyContent);
-        
+
         // Test public key content
         $publicKeyPath = $this->testProjectRoot . '/config/jwt/public.key';
         $publicKeyContent = file_get_contents($publicKeyPath);
         $this->assertStringStartsWith('-----BEGIN PUBLIC KEY-----', $publicKeyContent);
         $this->assertStringEndsWith("-----END PUBLIC KEY-----\n", $publicKeyContent);
-        
+
         // Test that keys are valid OpenSSL keys
         $privateKeyResource = openssl_pkey_get_private($privateKeyContent);
         $this->assertNotFalse($privateKeyResource);
@@ -106,20 +107,20 @@ class KeyGenerationTest extends TestCase
     public function testAuthConfigHasCorrectStructure(): void
     {
         $this->runKeyGenerationScript();
-        
+
         $authConfigPath = $this->testProjectRoot . '/config/autoload/auth.local.php';
         $config = include $authConfigPath;
-        
+
         // Assert config structure
         $this->assertIsArray($config);
         $this->assertArrayHasKey('auth', $config);
         $this->assertArrayHasKey('encryptionKey', $config['auth']);
-        
+
         // Assert encryption key is a valid base64 string
         $encryptionKey = $config['auth']['encryptionKey'];
         $this->assertIsString($encryptionKey);
         $this->assertNotEmpty($encryptionKey);
-        
+
         // Test that it's valid base64
         $decoded = base64_decode($encryptionKey, true);
         $this->assertNotFalse($decoded);
@@ -130,10 +131,10 @@ class KeyGenerationTest extends TestCase
     {
         // Run script first time
         $this->runKeyGenerationScript();
-        
+
         // Run script second time - should fail
         $output = $this->runKeyGenerationScript(expectFailure: true);
-        
+
         $this->assertStringContainsString('❌ Error: Keys already exist!', $output);
         $this->assertStringContainsString('JWT Private Key:', $output);
         $this->assertStringContainsString('JWT Public Key:', $output);
@@ -161,10 +162,10 @@ class KeyGenerationTest extends TestCase
             'auth' => array_merge([
                 'jwt' => [
                     'privateKeyPath' => $this->testProjectRoot . '/config/jwt/private.key',
-                    'publicKeyPath'  => $this->testProjectRoot . '/config/jwt/public.key',
-                    'passphrase'     => null,
+                    'publicKeyPath' => $this->testProjectRoot . '/config/jwt/public.key',
+                    'passphrase' => null,
                 ],
-            ], $authLocalConfig['auth'])
+            ], $authLocalConfig['auth']),
         ];
 
         // Test that we can create a CryptKey from the generated private key
@@ -189,11 +190,11 @@ class KeyGenerationTest extends TestCase
     {
         $command = 'php bin/generate-oauth-keys.php 2>&1';
         $output = shell_exec($command);
-        
-        if (!$expectFailure && $output === null) {
+
+        if (! $expectFailure && $output === null) {
             $this->fail('Failed to execute key generation script');
         }
-        
+
         return $output ?? '';
     }
 
@@ -203,7 +204,7 @@ class KeyGenerationTest extends TestCase
         $sourceDir = __DIR__ . '/../../src';
         $destDir = $this->testProjectRoot . '/src';
         $this->copyDirectory($sourceDir, $destDir);
-        
+
         // Create a minimal composer autoload file
         $autoloadContent = "<?php\n";
         $autoloadContent .= "spl_autoload_register(function (\$class) {\n";
@@ -215,7 +216,7 @@ class KeyGenerationTest extends TestCase
         $autoloadContent .= "    \$file = \$base_dir . str_replace('\\\\', '/', \$relative_class) . '.php';\n";
         $autoloadContent .= "    if (file_exists(\$file)) require \$file;\n";
         $autoloadContent .= "});\n";
-        
+
         $vendorDir = $this->testProjectRoot . '/vendor';
         mkdir($vendorDir, 0755, true);
         file_put_contents($vendorDir . '/autoload.php', $autoloadContent);
@@ -223,24 +224,24 @@ class KeyGenerationTest extends TestCase
 
     private function copyDirectory(string $source, string $destination): void
     {
-        if (!is_dir($source)) {
+        if (! is_dir($source)) {
             return;
         }
-        
-        if (!is_dir($destination)) {
+
+        if (! is_dir($destination)) {
             mkdir($destination, 0755, true);
         }
-        
+
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::SELF_FIRST
         );
-        
+
         foreach ($iterator as $item) {
             $destPath = $destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
-            
+
             if ($item->isDir()) {
-                if (!is_dir($destPath)) {
+                if (! is_dir($destPath)) {
                     mkdir($destPath, 0755, true);
                 }
             } else {
@@ -251,15 +252,15 @@ class KeyGenerationTest extends TestCase
 
     private function removeDirectory(string $directory): void
     {
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return;
         }
-        
+
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($directory, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::CHILD_FIRST
         );
-        
+
         foreach ($iterator as $item) {
             if ($item->isDir()) {
                 rmdir($item->getRealPath());
@@ -267,7 +268,7 @@ class KeyGenerationTest extends TestCase
                 unlink($item->getRealPath());
             }
         }
-        
+
         rmdir($directory);
     }
 }

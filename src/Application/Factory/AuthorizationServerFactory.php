@@ -11,6 +11,9 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
+
+use function sprintf;
+
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\RefreshTokenGrant;
@@ -18,28 +21,26 @@ use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
-use function sprintf;
-
 class AuthorizationServerFactory
 {
     public function __invoke(ContainerInterface $container): AuthorizationServer
     {
-        $config     = $container->get('config');
+        $config = $container->get('config');
         $authConfig = $config['auth'] ?? throw new RuntimeException('Auth configuration not found');
 
         $privateKeyPath = $authConfig['jwt']['privateKeyPath'] ?? throw new RuntimeException('Private key path not configured');
-        $passphrase     = $authConfig['jwt']['passphrase'] ?? null;
-        $encryptionKey  = $authConfig['encryptionKey'] ?? throw new RuntimeException('Encryption key not configured');
+        $passphrase = $authConfig['jwt']['passphrase'] ?? null;
+        $encryptionKey = $authConfig['encryptionKey'] ?? throw new RuntimeException('Encryption key not configured');
 
         $privateKey = new \League\OAuth2\Server\CryptKey($privateKeyPath, $passphrase);
 
         // Get repositories from container
-        $clientRepository         = $container->get(ClientRepositoryInterface::class);
-        $accessTokenRepository    = $container->get(AccessTokenRepositoryInterface::class);
-        $scopeRepository          = $container->get(ScopeRepositoryInterface::class);
-        $refreshTokenRepository   = $container->get(RefreshTokenRepositoryInterface::class);
+        $clientRepository = $container->get(ClientRepositoryInterface::class);
+        $accessTokenRepository = $container->get(AccessTokenRepositoryInterface::class);
+        $scopeRepository = $container->get(ScopeRepositoryInterface::class);
+        $refreshTokenRepository = $container->get(RefreshTokenRepositoryInterface::class);
         $magicLinkTokenRepository = $container->get(MagicLinkTokenRepositoryInterface::class);
-        $userRepository           = $container->get(UserRepositoryInterface::class);
+        $userRepository = $container->get(UserRepositoryInterface::class);
 
         // Get token configuration
         $tokenConfig = $container->get(TokenConfig::class);

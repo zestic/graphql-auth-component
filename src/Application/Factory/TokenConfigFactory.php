@@ -15,10 +15,10 @@ class TokenConfigFactory
         $tokenConfig = $config['auth']['token'] ?? [];
 
         return new TokenConfig(
-            $tokenConfig['access_token_ttl'] ?? 60,      // Default 1 hour
-            $tokenConfig['login_ttl'] ?? 10,             // Default 10 minutes
-            $tokenConfig['refresh_token_ttl'] ?? 10080,  // Default 1 week
-            $tokenConfig['registration_ttl'] ?? 1440,    // Default 24 hours
+            $tokenConfig['accessTokenTtl'],
+            $tokenConfig['loginTtl'],
+            $tokenConfig['refreshTokenTtl'],
+            $tokenConfig['registrationTtl'],
         );
     }
 }

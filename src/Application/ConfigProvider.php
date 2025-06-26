@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Application;
 
+use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
+use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
@@ -27,23 +29,37 @@ class ConfigProvider
     {
         return [
             'dependencies' => $this->getDependencies(),
+            'auth'         => $this->getAuthConfig(),
         ];
     }
 
     private function getDependencies(): array
     {
         return [
-            'aliases' => [
-                AccessTokenRepositoryInterface::class => AccessTokenRepository::class,
-                ClientRepositoryInterface::class => ClientRepository::class,
+            'aliases'   => [
+                AccessTokenRepositoryInterface::class    => AccessTokenRepository::class,
+                ClientRepositoryInterface::class         => ClientRepository::class,
                 MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepository::class,
-                RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,
-                ScopeRepositoryInterface::class => ScopeRepository::class,
-                UserCreatedHookInterface::class => UserCreatedNullHook::class,
-                UserRepositoryInterface::class => UserRepository::class,
+                RefreshTokenRepositoryInterface::class   => RefreshTokenRepository::class,
+                ScopeRepositoryInterface::class          => ScopeRepository::class,
+                UserCreatedHookInterface::class          => UserCreatedNullHook::class,
+                UserRepositoryInterface::class           => UserRepository::class,
             ],
             'factories' => [
-                TokenConfig::class => TokenConfigFactory::class,
+                AuthorizationServer::class => AuthorizationServerFactory::class,
+                TokenConfig::class         => TokenConfigFactory::class,
+            ],
+        ];
+    }
+
+    private function getAuthConfig(): array
+    {
+        return [
+            'token' => [
+                'accessTokenTtl'  => 60, // Default 1 hour (in minutes)
+                'loginTtl'        => 10, // Default 10 minutes
+                'refreshTokenTtl' => 10080, // Default 1 week (in minutes)
+                'registrationTtl' => 1440, // Default 24 hours (in minutes)
             ],
         ];
     }

@@ -11,17 +11,20 @@
     <testsuite name="Integration-MySQL">
       <directory>tests/Integration/DB/PDO</directory>
       <file>tests/Integration/AuthenticationFlowTest.php</file>
+      <file>tests/Integration/KeyGenerationTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOPostgresFactoryTest.php</exclude>
     </testsuite>
     <testsuite name="Integration-PostgreSQL">
       <directory>tests/Integration/DB/PDO</directory>
       <file>tests/Integration/AuthenticationFlowTest.php</file>
+      <file>tests/Integration/KeyGenerationTest.php</file>
       <exclude>tests/Integration/Factory/AuthPDOMySQLFactoryTest.php</exclude>
     </testsuite>
     <testsuite name="Coverage">
       <directory>tests/Unit</directory>
       <directory>tests/Integration/DB/PDO</directory>
       <file>tests/Integration/AuthenticationFlowTest.php</file>
+      <file>tests/Integration/KeyGenerationTest.php</file>
     </testsuite>
   </testsuites>
   <source>

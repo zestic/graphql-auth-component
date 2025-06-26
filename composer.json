@@ -38,6 +38,7 @@
     "analyse": "phpstan analyse -c phpstan.neon.dist",
     "cs-check": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --dry-run --diff",
     "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix",
+    "generate-keys": "php bin/generate-oauth-keys.php",
     "test:unit": "phpunit --testsuite Unit",
     "test:mysql": "phpunit --testsuite Integration-MySQL",
     "test:pgsql": "phpunit --testsuite Integration-PostgreSQL",

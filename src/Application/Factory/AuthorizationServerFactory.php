@@ -27,8 +27,11 @@ class AuthorizationServerFactory
         $config     = $container->get('config');
         $authConfig = $config['auth'] ?? throw new RuntimeException('Auth configuration not found');
 
-        $privateKey    = $authConfig['privateKey'] ?? throw new RuntimeException('Private key not configured');
-        $encryptionKey = $authConfig['encryptionKey'] ?? throw new RuntimeException('Encryption key not configured');
+        $privateKeyPath = $authConfig['jwt']['privateKeyPath'] ?? throw new RuntimeException('Private key path not configured');
+        $passphrase     = $authConfig['jwt']['passphrase'] ?? null;
+        $encryptionKey  = $authConfig['encryptionKey'] ?? throw new RuntimeException('Encryption key not configured');
+
+        $privateKey = new \League\OAuth2\Server\CryptKey($privateKeyPath, $passphrase);
 
         // Get repositories from container
         $clientRepository         = $container->get(ClientRepositoryInterface::class);

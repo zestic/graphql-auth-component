@@ -55,6 +55,16 @@ class ConfigProvider
     private function getAuthConfig(): array
     {
         return [
+            'jwt' => [
+                'privateKeyPath' => 'config/jwt/private.key',
+                'publicKeyPath'  => 'config/jwt/public.key',
+                'passphrase'     => null, // Set via environment variable if needed
+                'keyGeneration' => [
+                    'digestAlg'       => 'sha256',     // Digest algorithm: sha256, sha384, sha512
+                    'privateKeyBits'  => 2048,        // Key size: 2048, 3072, 4096
+                    'privateKeyType'  => 'RSA',       // Key type: RSA, DSA, DH, EC
+                ],
+            ],
             'token' => [
                 'accessTokenTtl'  => 60, // Default 1 hour (in minutes)
                 'loginTtl'        => 10, // Default 10 minutes

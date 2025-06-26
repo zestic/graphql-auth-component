@@ -18,6 +18,9 @@ phinx.mysql.yml
 phinx.pgsql.yml
 !phinx.*.yml.dist
 
+# OAuth2 Keys and sensitive config
+config/
+
 # IDE
 .idea/
 .vscode/

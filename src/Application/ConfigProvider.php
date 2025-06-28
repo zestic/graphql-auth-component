@@ -59,8 +59,8 @@ class ConfigProvider
     {
         return [
             'jwt' => [
-                'privateKeyPath' => 'config/jwt/private.key',
-                'publicKeyPath' => 'config/jwt/public.key',
+                'privateKeyPath' => getcwd() . '/config/jwt/private.key',
+                'publicKeyPath' => getcwd() . '/config/jwt/public.key',
                 'passphrase' => null, // Set via environment variable if needed
                 'keyGeneration' => [
                     'digestAlg' => 'sha256',     // Digest algorithm: sha256, sha384, sha512

@@ -64,18 +64,18 @@ class AuthorizationServerFactory
         );
         $server->enableGrantType(
             $magicLinkGrant,
-            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTtl()))
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
         );
 
         // Configure Refresh Token Grant
         $refreshTokenGrant = new RefreshTokenGrant($refreshTokenRepository);
         $refreshTokenGrant->setRefreshTokenTTL(
-            new DateInterval(sprintf('PT%dM', $tokenConfig->getRefreshTokenTtl()))
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getRefreshTokenTTLMinutes()))
         );
 
         $server->enableGrantType(
             $refreshTokenGrant,
-            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTtl()))
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
         );
 
         // Configure Authorization Code Grant with PKCE support

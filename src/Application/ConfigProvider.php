@@ -57,13 +57,18 @@ class ConfigProvider
             'factories' => [
                 AuthorizationServer::class => AuthorizationServerFactory::class,
                 TokenConfig::class => TokenConfigFactory::class,
-            ],
-            'invokables' => [
-                AuthorizationRequestHandler::class => AuthorizationRequestHandler::class,
-                TokenRequestHandler::class => TokenRequestHandler::class,
-            ],
-            'factories' => [
                 MagicLinkConfig::class => MagicLinkConfigFactory::class,
+                AuthorizationRequestHandler::class => function ($container) {
+                    return new AuthorizationRequestHandler(
+                        $container->get(AuthorizationServer::class),
+                        $container->get(UserRepositoryInterface::class),
+                    );
+                },
+                TokenRequestHandler::class => function ($container) {
+                    return new TokenRequestHandler(
+                        $container->get(AuthorizationServer::class),
+                    );
+                },
                 MagicLinkVerificationHandler::class => function ($container) {
                     return new MagicLinkVerificationHandler(
                         $container->get(MagicLinkTokenRepositoryInterface::class),

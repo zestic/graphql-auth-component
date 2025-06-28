@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      # Mount a volume for persistent key storage
+      - oauth_keys:/app/config
+    environment:
+      # Optional: Override key paths for Docker
+      - JWT_PRIVATE_KEY_PATH=/app/config/jwt/private.key
+      - JWT_PUBLIC_KEY_PATH=/app/config/jwt/public.key
+      - AUTH_LOCAL_CONFIG_PATH=/app/config/autoload/auth.local.php
+    command: |
+      sh -c "
+        # Generate keys if they don't exist
+        if [ ! -f /app/config/jwt/private.key ]; then
+          composer run generate-keys
+        fi
+        # Start your application
+        php-fpm
+      "
+
+volumes:
+  oauth_keys:
+    driver: local

@@ -11,6 +11,8 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
+use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
+use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AuthCodeRepository;
@@ -51,6 +53,10 @@ class ConfigProvider
             'factories' => [
                 AuthorizationServer::class => AuthorizationServerFactory::class,
                 TokenConfig::class => TokenConfigFactory::class,
+            ],
+            'invokables' => [
+                AuthorizationRequestHandler::class => AuthorizationRequestHandler::class,
+                TokenRequestHandler::class => TokenRequestHandler::class,
             ],
         ];
     }

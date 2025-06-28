@@ -11,6 +11,8 @@ The magic link flow in v2.0 supports both traditional and PKCE-secured authentic
 
 ## React Native Setup
 
+> **📱 For detailed Expo setup instructions, see [Expo Deep Link Setup Guide](./expo-deep-link-setup.md)**
+
 ### 1. Install Dependencies
 
 ```bash

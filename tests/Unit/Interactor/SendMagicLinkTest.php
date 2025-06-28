@@ -6,6 +6,7 @@ namespace Tests\Unit\Interactor;
 
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\User;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
@@ -38,6 +39,7 @@ class SendMagicLinkTest extends TestCase
     public function testSendSuccessWhenUserExists(): void
     {
         $email = 'test@example.com';
+        $context = MagicLinkContext::simple($email);
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn('user-id');
 
@@ -49,16 +51,15 @@ class SendMagicLinkTest extends TestCase
             ->willReturn($user);
 
         $this->magicLinkTokenFactory->expects($this->once())
-            ->method('createLoginToken')
-            ->with('user-id')
+            ->method('createLoginTokenWithContext')
+            ->with('user-id', $context)
             ->willReturn($magicLinkToken);
 
         $this->email->expects($this->once())
             ->method('send')
-            ->with($magicLinkToken)
-            ->willReturn(true);
+            ->with($magicLinkToken);
 
-        $result = $this->sendMagicLink->send($email);
+        $result = $this->sendMagicLink->send($context);
 
         $this->assertEquals([
             'success' => true,
@@ -70,16 +71,17 @@ class SendMagicLinkTest extends TestCase
     public function testSendSuccessWhenUserDoesNotExist(): void
     {
         $email = 'nonexistent@example.com';
+        $context = MagicLinkContext::simple($email);
 
         $this->userRepository->expects($this->once())
             ->method('findUserByEmail')
             ->with($email)
             ->willReturn(null);
 
-        $this->magicLinkTokenFactory->expects($this->never())->method('createLoginToken');
+        $this->magicLinkTokenFactory->expects($this->never())->method('createLoginTokenWithContext');
         $this->email->expects($this->never())->method('send');
 
-        $result = $this->sendMagicLink->send($email);
+        $result = $this->sendMagicLink->send($context);
 
         $this->assertEquals([
             'success' => true,
@@ -91,16 +93,17 @@ class SendMagicLinkTest extends TestCase
     public function testSendFailureWhenCommunicationFails(): void
     {
         $email = 'test@example.com';
+        $context = MagicLinkContext::simple($email);
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn('user-id');
 
         $magicLinkToken = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->method('findUserByEmail')->willReturn($user);
-        $this->magicLinkTokenFactory->method('createLoginToken')->willReturn($magicLinkToken);
-        $this->email->method('send')->willReturn(false);
+        $this->magicLinkTokenFactory->method('createLoginTokenWithContext')->willReturn($magicLinkToken);
+        $this->email->method('send')->willThrowException(new \Exception('Email failed'));
 
-        $result = $this->sendMagicLink->send($email);
+        $result = $this->sendMagicLink->send($context);
 
         $this->assertEquals([
             'success' => false,
@@ -112,11 +115,12 @@ class SendMagicLinkTest extends TestCase
     public function testSendFailureWhenExceptionOccurs(): void
     {
         $email = 'test@example.com';
+        $context = MagicLinkContext::simple($email);
 
         $this->userRepository->method('findUserByEmail')
             ->willThrowException(new \RuntimeException('Database error'));
 
-        $result = $this->sendMagicLink->send($email);
+        $result = $this->sendMagicLink->send($context);
 
         $this->assertEquals([
             'success' => false,

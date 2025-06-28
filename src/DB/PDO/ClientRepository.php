@@ -92,7 +92,7 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
         }
 
         if ($clientSecret && $result['is_confidential'] && $result['client_secret']) {
-            if (!password_verify($clientSecret, $result['client_secret'])) {
+            if (! password_verify($clientSecret, $result['client_secret'])) {
                 return false;
             }
         }

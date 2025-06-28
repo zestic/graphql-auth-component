@@ -15,12 +15,13 @@ use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
 class TokenRequestHandlerTest extends TestCase
 {
     private TokenRequestHandler $handler;
+
     private AuthorizationServer $authorizationServer;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->authorizationServer = $this->createMock(AuthorizationServer::class);
         $this->handler = new TokenRequestHandler($this->authorizationServer);
     }
@@ -34,25 +35,25 @@ class TokenRequestHandlerTest extends TestCase
                 'code' => 'auth-code-123',
                 'client_id' => 'test-client',
                 'client_secret' => 'test-secret',
-                'redirect_uri' => 'https://example.com/callback'
+                'redirect_uri' => 'https://example.com/callback',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $body = Stream::create(json_encode([
             'access_token' => 'access-token-123',
             'token_type' => 'Bearer',
             'expires_in' => 3600,
-            'refresh_token' => 'refresh-token-123'
+            'refresh_token' => 'refresh-token-123',
         ]));
         $expectedResponse = $expectedResponse->withBody($body);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->with($request, $this->isInstanceOf(Response::class))
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('access-token-123', $responseBody['access_token']);
@@ -67,24 +68,24 @@ class TokenRequestHandlerTest extends TestCase
                 'grant_type' => 'refresh_token',
                 'refresh_token' => 'refresh-token-123',
                 'client_id' => 'test-client',
-                'client_secret' => 'test-secret'
+                'client_secret' => 'test-secret',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $body = Stream::create(json_encode([
             'access_token' => 'new-access-token-456',
             'token_type' => 'Bearer',
             'expires_in' => 3600,
-            'refresh_token' => 'new-refresh-token-456'
+            'refresh_token' => 'new-refresh-token-456',
         ]));
         $expectedResponse = $expectedResponse->withBody($body);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
     }
 
@@ -97,25 +98,25 @@ class TokenRequestHandlerTest extends TestCase
             ->withParsedBody([
                 'grant_type' => 'authorization_code',
                 'code' => 'auth-code-123',
-                'redirect_uri' => 'https://example.com/callback'
+                'redirect_uri' => 'https://example.com/callback',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testHandleWithInvalidMethod(): void
     {
         $request = new ServerRequest('GET', '/token');
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(400, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('invalid_request', $responseBody['error']);
@@ -127,11 +128,11 @@ class TokenRequestHandlerTest extends TestCase
         $request = $request->withHeader('Content-Type', 'application/json')
             ->withParsedBody([
                 'grant_type' => 'authorization_code',
-                'code' => 'auth-code-123'
+                'code' => 'auth-code-123',
             ]);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(400, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('invalid_request', $responseBody['error']);
@@ -143,15 +144,15 @@ class TokenRequestHandlerTest extends TestCase
         $request = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded')
             ->withParsedBody([
                 'grant_type' => 'authorization_code',
-                'code' => 'invalid-code'
+                'code' => 'invalid-code',
             ]);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willThrowException(OAuthServerException::invalidGrant('Invalid authorization code'));
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(400, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('invalid_grant', $responseBody['error']);
@@ -163,15 +164,15 @@ class TokenRequestHandlerTest extends TestCase
         $request = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded')
             ->withParsedBody([
                 'grant_type' => 'authorization_code',
-                'code' => 'auth-code-123'
+                'code' => 'auth-code-123',
             ]);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willThrowException(new \Exception('Database connection failed'));
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(500, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('server_error', $responseBody['error']);
@@ -186,23 +187,23 @@ class TokenRequestHandlerTest extends TestCase
                 'code' => 'auth-code-123',
                 'client_id' => 'mobile-app',
                 'redirect_uri' => 'myapp://callback',
-                'code_verifier' => 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'
+                'code_verifier' => 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $body = Stream::create(json_encode([
             'access_token' => 'pkce-access-token-123',
             'token_type' => 'Bearer',
-            'expires_in' => 3600
+            'expires_in' => 3600,
         ]));
         $expectedResponse = $expectedResponse->withBody($body);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('pkce-access-token-123', $responseBody['access_token']);
@@ -215,24 +216,24 @@ class TokenRequestHandlerTest extends TestCase
             ->withParsedBody([
                 'grant_type' => 'magic_link',
                 'magic_link_token' => 'magic-token-123',
-                'client_id' => 'web-app'
+                'client_id' => 'web-app',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $body = Stream::create(json_encode([
             'access_token' => 'magic-access-token-123',
             'token_type' => 'Bearer',
             'expires_in' => 3600,
-            'refresh_token' => 'magic-refresh-token-123'
+            'refresh_token' => 'magic-refresh-token-123',
         ]));
         $expectedResponse = $expectedResponse->withBody($body);
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
         $responseBody = json_decode((string) $response->getBody(), true);
         $this->assertEquals('magic-access-token-123', $responseBody['access_token']);
@@ -242,13 +243,13 @@ class TokenRequestHandlerTest extends TestCase
     {
         $request = new ServerRequest('POST', '/token');
         $request = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
+
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willThrowException(OAuthServerException::invalidRequest('grant_type'));
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(400, $response->getStatusCode());
     }
 
@@ -259,16 +260,16 @@ class TokenRequestHandlerTest extends TestCase
             ->withHeader('Authorization', 'Basic invalid-base64')
             ->withParsedBody([
                 'grant_type' => 'authorization_code',
-                'code' => 'auth-code-123'
+                'code' => 'auth-code-123',
             ]);
-        
+
         $expectedResponse = new Response(200);
         $this->authorizationServer->expects($this->once())
             ->method('respondToAccessTokenRequest')
             ->willReturn($expectedResponse);
-        
+
         $response = $this->handler->handle($request);
-        
+
         $this->assertEquals(200, $response->getStatusCode());
     }
 }

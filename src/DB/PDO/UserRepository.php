@@ -79,6 +79,10 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         $stmt->execute([$field => $value]);
         $userData = $stmt->fetch(\PDO::FETCH_ASSOC);
 
+        if ($userData === false) {
+            return null;
+        }
+
         return $this->hydrateUser($userData);
     }
 

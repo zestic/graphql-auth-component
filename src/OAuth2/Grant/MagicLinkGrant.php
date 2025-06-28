@@ -103,19 +103,19 @@ class MagicLinkGrant extends AbstractGrant
         }
 
         $magicLinkToken = $this->magicLinkTokenRepository->findByUnexpiredToken($token);
-        if (!$magicLinkToken || !$magicLinkToken->getPayload()) {
+        if (! $magicLinkToken || ! $magicLinkToken->getPayload()) {
             return; // No PKCE data stored, this is a regular magic link
         }
 
         $pkceData = json_decode($magicLinkToken->getPayload(), true);
-        if (!is_array($pkceData) || !isset($pkceData['code_challenge'])) {
+        if (! is_array($pkceData) || ! isset($pkceData['code_challenge'])) {
             return; // No PKCE challenge stored
         }
 
         // PKCE validation logic:
         // 1. For public clients (mobile/SPA): PKCE is REQUIRED
         // 2. For confidential clients: PKCE is OPTIONAL but recommended
-        if (!$client->isConfidential()) {
+        if (! $client->isConfidential()) {
             // Public client - PKCE is mandatory
             $this->validatePkceChallenge($request, $pkceData);
         } else {
@@ -142,7 +142,7 @@ class MagicLinkGrant extends AbstractGrant
 
         $computedChallenge = $this->generateCodeChallenge($codeVerifier, $challengeMethod);
 
-        if (!hash_equals($storedChallenge, $computedChallenge)) {
+        if (! hash_equals($storedChallenge, $computedChallenge)) {
             throw OAuthServerException::invalidRequest('code_verifier', 'Invalid PKCE code verifier');
         }
     }

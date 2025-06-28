@@ -48,7 +48,11 @@ class MagicLinkTokenFactory
         // Store PKCE parameters in the payload if present
         $payload = null;
         if ($context->isPkceEnabled()) {
-            $payload = json_encode($context->getPkceParameters());
+            $encodedPayload = json_encode($context->getPkceParameters());
+            if ($encodedPayload === false) {
+                throw new \Exception('Failed to encode PKCE parameters');
+            }
+            $payload = $encodedPayload;
         }
 
         $token = new MagicLinkToken(

@@ -69,7 +69,7 @@ class AuthCodeRepository extends AbstractPDORepository implements AuthCodeReposi
         $stmt->execute(['id' => $codeId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if (! $result) {
             return true; // If not found, consider it revoked
         }
 

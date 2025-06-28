@@ -17,29 +17,38 @@ use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
-use Tests\Integration\DatabaseTestCase;
 
 class PKCEAuthorizationFlowTest extends DatabaseTestCase
 {
     private AuthorizationServer $authorizationServer;
+
     private ClientRepository $clientRepository;
+
     private AuthCodeRepository $authCodeRepository;
+
     private AccessTokenRepository $accessTokenRepository;
+
     private RefreshTokenRepository $refreshTokenRepository;
+
     private ScopeRepository $scopeRepository;
+
     private UserRepository $userRepository;
+
     private CryptKey $privateKey;
+
     private Key $encryptionKey;
+
     private string $publicClientId;
+
     private string $confidentialClientId;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->publicClientId = 'public-mobile-app';
         $this->confidentialClientId = 'confidential-web-app';
-        
+
         $this->setupRepositories();
         $this->setupAuthorizationServer();
         $this->seedTestData();
@@ -50,7 +59,7 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
         // Step 1: Generate PKCE challenge
         $codeVerifier = $this->generateCodeVerifier();
         $codeChallenge = $this->generateCodeChallenge($codeVerifier);
-        
+
         // Step 2: Create authorization request with PKCE
         $authRequest = new ServerRequest('GET', '/authorize?' . http_build_query([
             'response_type' => 'code',
@@ -59,50 +68,50 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
             'scope' => 'read',
             'code_challenge' => $codeChallenge,
             'code_challenge_method' => 'S256',
-            'state' => 'random-state-value'
+            'state' => 'random-state-value',
         ]));
-        
+
         // Step 3: Validate authorization request
         $authorizationRequest = $this->authorizationServer->validateAuthorizationRequest($authRequest);
-        
+
         $this->assertNotNull($authorizationRequest);
         $this->assertEquals($this->publicClientId, $authorizationRequest->getClient()->getIdentifier());
         $this->assertEquals($codeChallenge, $authorizationRequest->getCodeChallenge());
         $this->assertEquals('S256', $authorizationRequest->getCodeChallengeMethod());
-        
+
         // Step 4: User approves the request
         self::seedUserRepository(); // Make sure user exists
         $user = $this->userRepository->findUserById(self::$testUserId);
         $authorizationRequest->setUser($user);
         $authorizationRequest->setAuthorizationApproved(true);
-        
+
         // Step 5: Complete authorization and get auth code
         $response = $this->authorizationServer->completeAuthorizationRequest($authorizationRequest, new \Nyholm\Psr7\Response());
-        
+
         $this->assertEquals(302, $response->getStatusCode());
         $location = $response->getHeaderLine('Location');
         $this->assertStringContainsString('myapp://callback', $location);
-        
+
         // Extract authorization code from redirect
         $query = parse_url($location, PHP_URL_QUERY);
         parse_str($query, $params);
         $this->assertArrayHasKey('code', $params);
         $authCode = $params['code'];
-        
+
         // Step 6: Exchange auth code + code verifier for access token
         $tokenRequest = new ServerRequest('POST', '/token', [], http_build_query([
             'grant_type' => 'authorization_code',
             'client_id' => $this->publicClientId,
             'code' => $authCode,
             'redirect_uri' => 'myapp://callback',
-            'code_verifier' => $codeVerifier
+            'code_verifier' => $codeVerifier,
         ]));
         $tokenRequest = $tokenRequest->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
+
         $tokenResponse = $this->authorizationServer->respondToAccessTokenRequest($tokenRequest, new \Nyholm\Psr7\Response());
-        
+
         $this->assertEquals(200, $tokenResponse->getStatusCode());
-        
+
         $tokenData = json_decode((string) $tokenResponse->getBody(), true);
         $this->assertArrayHasKey('access_token', $tokenData);
         $this->assertArrayHasKey('token_type', $tokenData);
@@ -117,13 +126,13 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
             'client_id' => $this->publicClientId,
             'redirect_uri' => 'myapp://callback',
             'scope' => 'read',
-            'state' => 'random-state-value'
+            'state' => 'random-state-value',
             // Missing code_challenge
         ]));
-        
+
         $this->expectException(\League\OAuth2\Server\Exception\OAuthServerException::class);
         $this->expectExceptionMessage('code_challenge');
-        
+
         $this->authorizationServer->validateAuthorizationRequest($authRequest);
     }
 
@@ -135,12 +144,12 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
             'client_id' => $this->confidentialClientId,
             'redirect_uri' => 'https://webapp.example.com/callback',
             'scope' => 'read write',
-            'state' => 'random-state-value'
+            'state' => 'random-state-value',
             // No PKCE parameters
         ]));
-        
+
         $authorizationRequest = $this->authorizationServer->validateAuthorizationRequest($authRequest);
-        
+
         $this->assertNotNull($authorizationRequest);
         $this->assertEquals($this->confidentialClientId, $authorizationRequest->getClient()->getIdentifier());
         $this->assertNull($authorizationRequest->getCodeChallenge());
@@ -160,7 +169,7 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
     {
         $this->privateKey = new CryptKey(getcwd() . '/tests/resources/jwt/private.key');
         $this->encryptionKey = Key::loadFromAsciiSafeString($_ENV['OAUTH_ENCRYPTION_KEY']);
-        
+
         $this->authorizationServer = new AuthorizationServer(
             $this->clientRepository,
             $this->accessTokenRepository,
@@ -168,14 +177,14 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
             $this->privateKey,
             $this->encryptionKey
         );
-        
+
         // Enable AuthCodeGrant with PKCE support
         $authCodeGrant = new AuthCodeGrant(
             $this->authCodeRepository,
             $this->refreshTokenRepository,
             new DateInterval('PT10M')
         );
-        
+
         $this->authorizationServer->enableGrantType(
             $authCodeGrant,
             new DateInterval('PT1H')
@@ -191,7 +200,7 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
         $publicClient->setRedirectUri('myapp://callback');
         $publicClient->setIsConfidential(false);
         $this->clientRepository->create($publicClient);
-        
+
         // Create confidential client (web app)
         $confidentialClient = new ClientEntity();
         $confidentialClient->setIdentifier($this->confidentialClientId);
@@ -200,7 +209,7 @@ class PKCEAuthorizationFlowTest extends DatabaseTestCase
         $confidentialClient->setRedirectUri('https://webapp.example.com/callback');
         $confidentialClient->setIsConfidential(true);
         $this->clientRepository->create($confidentialClient);
-        
+
         // Seed scopes
         $this->seedScopeRepository();
     }

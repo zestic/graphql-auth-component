@@ -11,16 +11,17 @@ use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 class ClientRepositoryWithSecretsTest extends TestCase
 {
     private ClientRepository $repository;
+
     private \PDO $pdo;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create in-memory SQLite database for testing
         $this->pdo = new \PDO('sqlite::memory:');
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        
+
         // Create the oauth_clients table with client_secret column
         $this->pdo->exec('
             CREATE TABLE oauth_clients (
@@ -34,7 +35,7 @@ class ClientRepositoryWithSecretsTest extends TestCase
                 deleted_at DATETIME
             )
         ');
-        
+
         $this->repository = new ClientRepository($this->pdo);
     }
 
@@ -42,16 +43,16 @@ class ClientRepositoryWithSecretsTest extends TestCase
     {
         $client = $this->createConfidentialClientEntity();
         $client->setClientSecret('my-secret-key');
-        
+
         $result = $this->repository->create($client);
-        
+
         $this->assertTrue($result);
-        
+
         // Verify the client was created with hashed secret
         $stmt = $this->pdo->prepare('SELECT * FROM oauth_clients WHERE client_id = ?');
         $stmt->execute([$client->getIdentifier()]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+
         $this->assertNotFalse($row);
         $this->assertEquals($client->getIdentifier(), $row['client_id']);
         $this->assertEquals($client->getName(), $row['name']);
@@ -64,16 +65,16 @@ class ClientRepositoryWithSecretsTest extends TestCase
     public function testCreatePublicClientWithoutSecret(): void
     {
         $client = $this->createPublicClientEntity();
-        
+
         $result = $this->repository->create($client);
-        
+
         $this->assertTrue($result);
-        
+
         // Verify the client was created without secret
         $stmt = $this->pdo->prepare('SELECT * FROM oauth_clients WHERE client_id = ?');
         $stmt->execute([$client->getIdentifier()]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+
         $this->assertNotFalse($row);
         $this->assertEquals($client->getIdentifier(), $row['client_id']);
         $this->assertNull($row['client_secret']);
@@ -85,13 +86,13 @@ class ClientRepositoryWithSecretsTest extends TestCase
         $client = $this->createConfidentialClientEntity();
         $client->setClientSecret('correct-secret');
         $this->repository->create($client);
-        
+
         $isValid = $this->repository->validateClient(
             $client->getIdentifier(),
             'correct-secret',
             'authorization_code'
         );
-        
+
         $this->assertTrue($isValid);
     }
 
@@ -100,13 +101,13 @@ class ClientRepositoryWithSecretsTest extends TestCase
         $client = $this->createConfidentialClientEntity();
         $client->setClientSecret('correct-secret');
         $this->repository->create($client);
-        
+
         $isValid = $this->repository->validateClient(
             $client->getIdentifier(),
             'wrong-secret',
             'authorization_code'
         );
-        
+
         $this->assertFalse($isValid);
     }
 
@@ -114,13 +115,13 @@ class ClientRepositoryWithSecretsTest extends TestCase
     {
         $client = $this->createPublicClientEntity();
         $this->repository->create($client);
-        
+
         $isValid = $this->repository->validateClient(
             $client->getIdentifier(),
             null,
             'authorization_code'
         );
-        
+
         $this->assertTrue($isValid);
     }
 
@@ -131,7 +132,7 @@ class ClientRepositoryWithSecretsTest extends TestCase
             'any-secret',
             'authorization_code'
         );
-        
+
         $this->assertFalse($isValid);
     }
 
@@ -140,9 +141,9 @@ class ClientRepositoryWithSecretsTest extends TestCase
         $client = $this->createConfidentialClientEntity();
         $client->setClientSecret('test-secret');
         $this->repository->create($client);
-        
+
         $retrievedClient = $this->repository->getClientEntity($client->getIdentifier());
-        
+
         $this->assertNotNull($retrievedClient);
         $this->assertEquals($client->getIdentifier(), $retrievedClient->getIdentifier());
         $this->assertEquals($client->getName(), $retrievedClient->getName());
@@ -152,12 +153,12 @@ class ClientRepositoryWithSecretsTest extends TestCase
     public function testClientSecretGetterAndSetter(): void
     {
         $client = new ClientEntity();
-        
+
         $this->assertNull($client->getClientSecret());
-        
+
         $client->setClientSecret('test-secret');
         $this->assertEquals('test-secret', $client->getClientSecret());
-        
+
         $client->setClientSecret(null);
         $this->assertNull($client->getClientSecret());
     }
@@ -169,7 +170,7 @@ class ClientRepositoryWithSecretsTest extends TestCase
         $client->setName('Test Confidential Client');
         $client->setRedirectUri('https://example.com/callback');
         $client->setIsConfidential(true);
-        
+
         return $client;
     }
 
@@ -180,7 +181,7 @@ class ClientRepositoryWithSecretsTest extends TestCase
         $client->setName('Test Public Client');
         $client->setRedirectUri('myapp://callback');
         $client->setIsConfidential(false);
-        
+
         return $client;
     }
 }

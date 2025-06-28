@@ -33,7 +33,7 @@ class MagicLinkContext
      */
     public function getPkceParameters(): array
     {
-        if (!$this->isPkceEnabled()) {
+        if (! $this->isPkceEnabled()) {
             return [];
         }
 

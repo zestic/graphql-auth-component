@@ -9,6 +9,7 @@ use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
+use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
@@ -221,7 +222,8 @@ class AuthenticationFlowTest extends DatabaseTestCase
                 return true;
             });
 
-        $magicLinkResult = $this->sendMagicLink->send(self::TEST_EMAIL);
+        $context = MagicLinkContext::simple(self::TEST_EMAIL);
+        $magicLinkResult = $this->sendMagicLink->send($context);
         $this->assertTrue($magicLinkResult['success']);
 
         $data['MagicLinkToken'] = $this->capturedSendArguments['magicLinkMagicLinkToken'];

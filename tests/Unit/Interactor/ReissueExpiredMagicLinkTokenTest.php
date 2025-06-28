@@ -75,8 +75,7 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
 
         $this->sendMagicLink->expects($this->once())
             ->method('send')
-            ->with($newToken)
-            ->willReturn(true);
+            ->with($newToken);
 
         $this->magicLinkTokenRepository->expects($this->once())
             ->method('delete')
@@ -177,14 +176,14 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
 
         $this->userRepository->method('findUserById')->willReturn($user);
         $this->magicLinkTokenFactory->method('createLoginToken')->willReturn($newToken);
-        $this->sendMagicLink->method('send')->willReturn(false);
+        $this->sendMagicLink->method('send')->willThrowException(new \Exception('Email failed'));
 
         $result = $this->reissueExpiredMagicLinkToken->reissue($expiredToken);
 
         $this->assertEquals([
             'success' => false,
-            'message' => 'Failed to send new magic link',
-            'code' => 'EMAIL_SEND_FAILED',
+            'message' => 'A system error occurred while reissuing the token',
+            'code' => 'SYSTEM_ERROR',
         ], $result);
     }
 

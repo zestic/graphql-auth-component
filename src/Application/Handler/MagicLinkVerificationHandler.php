@@ -11,7 +11,7 @@ use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 
 /**
  * Handles magic link verification and redirects
- * 
+ *
  * This handler validates magic link tokens and redirects users appropriately:
  * - For PKCE-enabled requests: redirects to mobile app with verified token
  * - For regular requests: redirects to web application or shows success page
@@ -28,14 +28,14 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         $queryParams = $request->getQueryParams();
         $token = $queryParams['token'] ?? null;
 
-        if (!$token) {
+        if (! $token) {
             return $this->createErrorResponse('Missing token parameter');
         }
 
         try {
             $magicLinkToken = $this->magicLinkTokenRepository->findByUnexpiredToken($token);
-            
-            if (!$magicLinkToken || $magicLinkToken->isExpired()) {
+
+            if (! $magicLinkToken || $magicLinkToken->isExpired()) {
                 return $this->createErrorResponse('Invalid or expired magic link');
             }
 
@@ -75,6 +75,7 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         $finalRedirectUri = $redirectUri . '?' . http_build_query($params);
 
         $response = new \Nyholm\Psr7\Response(302);
+
         return $response->withHeader('Location', $finalRedirectUri);
     }
 
@@ -87,12 +88,13 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         // 1. Redirect to a web application with the token
         // 2. Show a success page
         // 3. Auto-login the user
-        
+
         // Example: redirect to web app
         $webAppUrl = $_ENV['WEB_APP_URL'] ?? 'https://yourapp.com';
         $redirectUri = $webAppUrl . '/auth/magic-link?token=' . urlencode($token);
 
         $response = new \Nyholm\Psr7\Response(302);
+
         return $response->withHeader('Location', $redirectUri);
     }
 
@@ -102,10 +104,10 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
     private function createErrorResponse(string $message): ResponseInterface
     {
         $html = $this->generateErrorPage($message);
-        
+
         $response = new \Nyholm\Psr7\Response(400);
         $response->getBody()->write($html);
-        
+
         return $response->withHeader('Content-Type', 'text/html');
     }
 

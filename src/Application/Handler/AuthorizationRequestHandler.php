@@ -24,33 +24,35 @@ class AuthorizationRequestHandler implements RequestHandlerInterface
         try {
             // Validate the authorization request
             $authRequest = $this->authorizationServer->validateAuthorizationRequest($request);
-            
+
             // Get user from request (assuming user is already authenticated)
             $userId = $this->getUserIdFromRequest($request);
-            if (!$userId) {
+            if (! $userId) {
                 throw OAuthServerException::accessDenied('User not authenticated');
             }
-            
+
             $user = $this->userRepository->findUserById($userId);
-            if (!$user) {
+            if (! $user) {
                 throw OAuthServerException::accessDenied('User not found');
             }
-            
+
             // Set the user on the authorization request
             $authRequest->setUser($user);
-            
+
             // Check if user has approved this client before or auto-approve
             $isApproved = $this->isClientApproved($request, $authRequest->getClient()->getIdentifier(), $userId);
             $authRequest->setAuthorizationApproved($isApproved);
-            
+
             // Complete the authorization request
             $response = new \Nyholm\Psr7\Response();
+
             return $this->authorizationServer->completeAuthorizationRequest($authRequest, $response);
-            
+
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse(new \Nyholm\Psr7\Response());
         } catch (\Exception $exception) {
             $oauthException = OAuthServerException::serverError($exception->getMessage());
+
             return $oauthException->generateHttpResponse(new \Nyholm\Psr7\Response());
         }
     }
@@ -62,25 +64,25 @@ class AuthorizationRequestHandler implements RequestHandlerInterface
     private function getUserIdFromRequest(ServerRequestInterface $request): ?string
     {
         // Check for user ID in various places
-        
+
         // 1. From parsed body (form submission)
         $parsedBody = $request->getParsedBody();
         if (is_array($parsedBody) && isset($parsedBody['user_id'])) {
             return (string) $parsedBody['user_id'];
         }
-        
+
         // 2. From query parameters
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['user_id'])) {
             return (string) $queryParams['user_id'];
         }
-        
+
         // 3. From request attributes (set by middleware)
         $userId = $request->getAttribute('user_id');
         if ($userId) {
             return (string) $userId;
         }
-        
+
         // 4. From Authorization header (Bearer token)
         $authHeader = $request->getHeaderLine('Authorization');
         if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
@@ -88,7 +90,7 @@ class AuthorizationRequestHandler implements RequestHandlerInterface
             // For now, we'll assume it contains the user ID
             return $this->extractUserIdFromToken($matches[1]);
         }
-        
+
         return null;
     }
 
@@ -103,7 +105,7 @@ class AuthorizationRequestHandler implements RequestHandlerInterface
         if (strlen($token) > 0) {
             return $token; // Simplified for testing
         }
-        
+
         return null;
     }
 
@@ -119,15 +121,13 @@ class AuthorizationRequestHandler implements RequestHandlerInterface
         if (is_array($parsedBody) && isset($parsedBody['approve'])) {
             return (bool) $parsedBody['approve'];
         }
-        
+
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['approve'])) {
             return (bool) $queryParams['approve'];
         }
-        
+
         // Auto-approve for now (in production, you might want to show a consent screen)
         return true;
     }
-
-
 }

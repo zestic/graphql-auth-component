@@ -85,7 +85,7 @@ class AuthorizationServerFactory
             new DateInterval('PT10M') // 10 minute auth code TTL
         );
 
-        // PKCE is enabled by default for public clients
+        // PKCE is enabled by default for public clients and optional for confidential clients
         $server->enableGrantType(
             $authCodeGrant,
             new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))

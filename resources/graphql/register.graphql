@@ -3,6 +3,18 @@ input RegistrationInput {
     additionalData: JSON!
 }
 
+# Enhanced input for magic links with PKCE support
+input SendMagicLinkInput {
+    email: String!
+    # OAuth2 + PKCE parameters (optional - if not provided, creates traditional magic link)
+    clientId: String
+    codeChallenge: String
+    codeChallengeMethod: String = "S256"
+    redirectUri: String
+    scope: String
+    state: String
+}
+
 type RegistrationResponse {
     success: Boolean!
     message: String!
@@ -37,7 +49,7 @@ type ValidateRegistrationResponse {
 type Mutation {
     authenticateToken(token: String!): AuthenticateTokenResponse!
     register(input: RegistrationInput!): RegistrationResponse!
-    sendMagicLink(email: String!): MagicLinkResponse!
+    sendMagicLink(input: SendMagicLinkInput!): MagicLinkResponse!
     validateRegistration(token: String!): ValidateRegistrationResponse!
 }
 

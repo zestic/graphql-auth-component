@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
@@ -17,10 +18,14 @@ class SendMagicLink
     ) {
     }
 
-    public function send(string $email): array
+    /**
+     * Send magic link with optional PKCE context
+     * This is the primary method for v2.0 - supports both traditional and PKCE flows
+     */
+    public function send(MagicLinkContext $context): array
     {
         try {
-            if (! $user = $this->userRepository->findUserByEmail($email)) {
+            if (! $user = $this->userRepository->findUserByEmail($context->email)) {
                 return [
                     'success' => true,
                     'message' => 'Success',
@@ -28,7 +33,11 @@ class SendMagicLink
                 ];
             }
 
-            $loginToken = $this->magicLinkTokenFactory->createLoginToken((string)$user->getId());
+            // Use enhanced factory method that supports both traditional and PKCE flows
+            $loginToken = $this->magicLinkTokenFactory->createLoginTokenWithContext(
+                (string)$user->getId(),
+                $context
+            );
             $this->sendMagicLink->send($loginToken);
 
             return [

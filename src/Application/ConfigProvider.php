@@ -12,6 +12,7 @@ use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
+use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
@@ -56,6 +57,7 @@ class ConfigProvider
             ],
             'invokables' => [
                 AuthorizationRequestHandler::class => AuthorizationRequestHandler::class,
+                MagicLinkVerificationHandler::class => MagicLinkVerificationHandler::class,
                 TokenRequestHandler::class => TokenRequestHandler::class,
             ],
         ];

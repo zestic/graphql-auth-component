@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Factory;
 
+use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
@@ -27,6 +28,35 @@ class MagicLinkTokenFactory
             bin2hex(random_bytes(16)),
             MagicLinkTokenType::LOGIN,
             (string)$userId,
+        );
+
+        if ($this->magicLinkTokenRepository->create($token)) {
+            return $token;
+        }
+
+        throw new \Exception('Failed to create magic link token');
+    }
+
+    /**
+     * Create a login token with PKCE context
+     */
+    public function createLoginTokenWithContext(string|int $userId, MagicLinkContext $context): MagicLinkToken
+    {
+        $expiration = new \DateTime();
+        $expiration->modify("+{$this->config->getLoginTTLMinutes()} minutes");
+
+        // Store PKCE parameters in the payload if present
+        $payload = null;
+        if ($context->isPkceEnabled()) {
+            $payload = json_encode($context->getPkceParameters());
+        }
+
+        $token = new MagicLinkToken(
+            $expiration,
+            bin2hex(random_bytes(16)),
+            MagicLinkTokenType::LOGIN,
+            (string)$userId,
+            $payload
         );
 
         if ($this->magicLinkTokenRepository->create($token)) {

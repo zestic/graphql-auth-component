@@ -1,4 +1,4 @@
-# OAuth2 Endpoints Setup
+# OAuth2 Endpoints Setup (v2.0)
 
 This document explains how to set up the OAuth2 authorization and token endpoints in your application.
 
@@ -23,6 +23,7 @@ declare(strict_types=1);
 use Laminas\Router\Http\Literal;
 use Laminas\Router\Http\Method;
 use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
+use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
 
 return [
@@ -45,6 +46,15 @@ return [
                     'route' => '/oauth/token',
                     'defaults' => [
                         'handler' => TokenRequestHandler::class,
+                    ],
+                ],
+            ],
+            'magic-link-verify' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route' => '/magic-link/verify',
+                    'defaults' => [
+                        'handler' => MagicLinkVerificationHandler::class,
                     ],
                 ],
             ],
@@ -183,10 +193,13 @@ Error responses follow the OAuth2 specification format:
 ## Security Considerations
 
 1. **HTTPS Only**: Always use HTTPS in production
-2. **PKCE Required**: Public clients (mobile apps) must use PKCE
+2. **PKCE Recommended**:
+   - **Required** for public clients (mobile apps, SPAs)
+   - **Optional but recommended** for confidential clients (web apps)
 3. **State Parameter**: Use the `state` parameter to prevent CSRF attacks
 4. **Short-lived Codes**: Authorization codes expire in 10 minutes
 5. **Client Validation**: Confidential clients must provide valid secrets
+6. **Modern Web Apps**: Consider using `web-pkce` client type instead of confidential for enhanced security
 
 ## Testing
 

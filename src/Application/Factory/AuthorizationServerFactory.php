@@ -88,7 +88,7 @@ class AuthorizationServerFactory
         // PKCE is enabled by default for public clients
         $server->enableGrantType(
             $authCodeGrant,
-            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTtl()))
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
         );
 
         return $server;

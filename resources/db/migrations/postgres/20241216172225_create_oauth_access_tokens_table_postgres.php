@@ -42,6 +42,31 @@ class CreateOauthAccessTokensTablePostgres extends AbstractMigration
             BEFORE UPDATE ON ' . $schema . '.oauth_access_tokens
             FOR EACH ROW
             EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
+
+        // Create oauth_auth_codes table for PKCE support
+        $this->table('oauth_auth_codes', [
+            'schema' => $schema,
+            'id' => false,
+            'primary_key' => ['id'],
+            'collation' => 'default'
+        ])
+            ->addColumn('id', 'uuid', ['null' => false])
+            ->addColumn('user_id', 'uuid', ['null' => true])
+            ->addColumn('client_id', 'uuid', ['null' => false])
+            ->addColumn('scopes', 'jsonb', ['null' => true])
+            ->addColumn('redirect_uri', 'text', ['null' => false])
+            ->addColumn('revoked', 'boolean', ['default' => false])
+            ->addColumn('expires_at', 'timestamp', ['null' => false, 'timezone' => true])
+            ->addTimestamps()
+            ->addIndex('id', ['unique' => true])
+            ->addForeignKey('client_id', $schema . '.oauth_clients', 'client_id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->addForeignKey('user_id', $schema . '.users', 'id', ['delete' => 'CASCADE', 'update' => 'CASCADE'])
+            ->create();
+
+        $this->execute('CREATE TRIGGER update_oauth_auth_codes_updated_at
+            BEFORE UPDATE ON ' . $schema . '.oauth_auth_codes
+            FOR EACH ROW
+            EXECUTE FUNCTION ' . $schema . '.update_updated_at_column();');
     }
 
     public function down()

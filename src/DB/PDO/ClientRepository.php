@@ -19,13 +19,23 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
     public function create(ClientEntityInterface $clientEntity): bool
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO {$this->schema}oauth_clients (client_id, name, redirect_uri, is_confidential)
-            VALUES (:clientId, :name, :redirectUri, :isConfidential)
+            INSERT INTO {$this->schema}oauth_clients (client_id, name, client_secret, redirect_uri, is_confidential)
+            VALUES (:clientId, :name, :clientSecret, :redirectUri, :isConfidential)
         ");
+
+        // Hash client secret if provided and client is confidential
+        $clientSecret = null;
+        if ($clientEntity->isConfidential() && method_exists($clientEntity, 'getClientSecret')) {
+            $secret = $clientEntity->getClientSecret();
+            if ($secret !== null) {
+                $clientSecret = password_hash($secret, PASSWORD_DEFAULT);
+            }
+        }
 
         return $stmt->execute([
             'clientId' => $clientEntity->getIdentifier(),
             'name' => $clientEntity->getName(),
+            'clientSecret' => $clientSecret,
             'redirectUri' => json_encode($clientEntity->getRedirectUri()),
             'isConfidential' => (int) $clientEntity->isConfidential(),
         ]);
@@ -81,8 +91,10 @@ class ClientRepository extends AbstractPDORepository implements ClientRepository
             return false;
         }
 
-        if ($clientSecret && $result['is_confidential'] && ! hash_equals($result['client_secret'], $clientSecret)) {
-            return false;
+        if ($clientSecret && $result['is_confidential'] && $result['client_secret']) {
+            if (!password_verify($clientSecret, $result['client_secret'])) {
+                return false;
+            }
         }
 
         // You might want to check if the client is allowed to use the specific grant type

@@ -29,6 +29,7 @@ class CreateOauthClientTablePostgres extends AbstractMigration
                 'null' => false,
             ])
             ->addColumn('name', 'string', ['limit' => 255, 'null' => false])
+            ->addColumn('client_secret', 'string', ['limit' => 255, 'null' => true])
             ->addColumn('redirect_uri', 'jsonb', ['null' => true])
             ->addColumn('is_confidential', 'boolean', ['default' => false])
             ->addTimestamps()

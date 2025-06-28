@@ -13,6 +13,8 @@ class ClientEntity implements ClientEntityInterface
     use EntityTrait;
     use ClientTrait;
 
+    private ?string $clientSecret = null;
+
     public function setName(string $name): void
     {
         $this->name = $name;
@@ -26,5 +28,15 @@ class ClientEntity implements ClientEntityInterface
     public function setIsConfidential(bool $isConfidential): void
     {
         $this->isConfidential = $isConfidential;
+    }
+
+    public function setClientSecret(?string $clientSecret): void
+    {
+        $this->clientSecret = $clientSecret;
+    }
+
+    public function getClientSecret(): ?string
+    {
+        return $this->clientSecret;
     }
 }

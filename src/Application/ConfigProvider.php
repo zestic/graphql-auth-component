@@ -6,12 +6,14 @@ namespace Zestic\GraphQL\AuthComponent\Application;
 
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
+use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
+use Zestic\GraphQL\AuthComponent\DB\PDO\AuthCodeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\MagicLinkTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
@@ -38,6 +40,7 @@ class ConfigProvider
         return [
             'aliases' => [
                 AccessTokenRepositoryInterface::class => AccessTokenRepository::class,
+                AuthCodeRepositoryInterface::class => AuthCodeRepository::class,
                 ClientRepositoryInterface::class => ClientRepository::class,
                 MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepository::class,
                 RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,

@@ -6,7 +6,9 @@ namespace Zestic\GraphQL\AuthComponent\Application\Factory;
 
 use DateInterval;
 use League\OAuth2\Server\AuthorizationServer;
+use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
+use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Psr\Container\ContainerInterface;
@@ -38,6 +40,7 @@ class AuthorizationServerFactory
         $clientRepository = $container->get(ClientRepositoryInterface::class);
         $accessTokenRepository = $container->get(AccessTokenRepositoryInterface::class);
         $scopeRepository = $container->get(ScopeRepositoryInterface::class);
+        $authCodeRepository = $container->get(AuthCodeRepositoryInterface::class);
         $refreshTokenRepository = $container->get(RefreshTokenRepositoryInterface::class);
         $magicLinkTokenRepository = $container->get(MagicLinkTokenRepositoryInterface::class);
         $userRepository = $container->get(UserRepositoryInterface::class);
@@ -72,6 +75,19 @@ class AuthorizationServerFactory
 
         $server->enableGrantType(
             $refreshTokenGrant,
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTtl()))
+        );
+
+        // Configure Authorization Code Grant with PKCE support
+        $authCodeGrant = new AuthCodeGrant(
+            $authCodeRepository,
+            $refreshTokenRepository,
+            new DateInterval('PT10M') // 10 minute auth code TTL
+        );
+
+        // PKCE is enabled by default for public clients
+        $server->enableGrantType(
+            $authCodeGrant,
             new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTtl()))
         );
 

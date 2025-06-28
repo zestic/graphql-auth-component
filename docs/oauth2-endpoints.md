@@ -97,6 +97,219 @@ You may want to add authentication middleware to the authorization endpoint:
 ],
 ```
 
+## FastRoute Setup
+
+For applications using [FastRoute](https://github.com/nikic/FastRoute), you can set up the OAuth2 endpoints as follows:
+
+### 1. Route Definition
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use FastRoute\RouteCollector;
+use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
+use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
+use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
+
+return function (RouteCollector $r) {
+    // OAuth2 Authorization endpoint
+    $r->addRoute(['GET', 'POST'], '/oauth/authorize', AuthorizationRequestHandler::class);
+
+    // OAuth2 Token endpoint
+    $r->addRoute('POST', '/oauth/token', TokenRequestHandler::class);
+
+    // Magic Link Verification endpoint
+    $r->addRoute('GET', '/magic-link/verify', MagicLinkVerificationHandler::class);
+};
+```
+
+### 2. Dispatcher Setup
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+// Create dispatcher
+$dispatcher = \FastRoute\simpleDispatcher(function(RouteCollector $r) {
+    // Load routes from file
+    $routes = require __DIR__ . '/routes.php';
+    $routes($r);
+});
+
+// Handle request
+function handleRequest(ServerRequestInterface $request, $container): ResponseInterface
+{
+    $httpMethod = $request->getMethod();
+    $uri = $request->getUri()->getPath();
+
+    // Strip query string (?foo=bar) and decode URI
+    if (false !== $pos = strpos($uri, '?')) {
+        $uri = substr($uri, 0, $pos);
+    }
+    $uri = rawurldecode($uri);
+
+    $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
+
+    switch ($routeInfo[0]) {
+        case Dispatcher::NOT_FOUND:
+            return new \Nyholm\Psr7\Response(404, [], 'Not Found');
+
+        case Dispatcher::METHOD_NOT_ALLOWED:
+            $allowedMethods = $routeInfo[1];
+            return new \Nyholm\Psr7\Response(405, ['Allow' => implode(', ', $allowedMethods)], 'Method Not Allowed');
+
+        case Dispatcher::FOUND:
+            $handler = $routeInfo[1];
+            $vars = $routeInfo[2];
+
+            // Get handler from container
+            $handlerInstance = $container->get($handler);
+
+            // Add route variables to request attributes
+            foreach ($vars as $key => $value) {
+                $request = $request->withAttribute($key, $value);
+            }
+
+            // Handle the request
+            return $handlerInstance->handle($request);
+    }
+}
+```
+
+### 3. Integration with PSR-11 Container
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use DI\Container;
+use DI\ContainerBuilder;
+use Zestic\GraphQL\AuthComponent\Application\ConfigProvider;
+
+// Build container
+$containerBuilder = new ContainerBuilder();
+
+// Add auth component configuration
+$authConfig = (new ConfigProvider())();
+$containerBuilder->addDefinitions($authConfig['dependencies']);
+
+// Add your application dependencies
+$containerBuilder->addDefinitions([
+    // Your application services
+]);
+
+$container = $containerBuilder->build();
+
+// Handle the request
+$request = \Nyholm\Psr7Server\ServerRequestCreator::fromGlobals();
+$response = handleRequest($request, $container);
+
+// Emit response
+(new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+```
+
+### 4. Advanced Route Configuration with Groups
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use FastRoute\RouteCollector;
+
+return function (RouteCollector $r) {
+    // OAuth2 endpoints group
+    $r->addGroup('/oauth', function (RouteCollector $r) {
+        $r->addRoute(['GET', 'POST'], '/authorize', AuthorizationRequestHandler::class);
+        $r->addRoute('POST', '/token', TokenRequestHandler::class);
+    });
+
+    // Magic link endpoints group
+    $r->addGroup('/magic-link', function (RouteCollector $r) {
+        $r->addRoute('GET', '/verify', MagicLinkVerificationHandler::class);
+    });
+
+    // API endpoints group (if needed)
+    $r->addGroup('/api/v1', function (RouteCollector $r) {
+        // Your API routes here
+    });
+};
+```
+
+### 5. Middleware Integration
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        // Add authentication logic here
+        // For example, validate API keys, JWT tokens, etc.
+
+        return $handler->handle($request);
+    }
+}
+
+// Apply middleware to specific routes
+return function (RouteCollector $r) {
+    // Public OAuth2 endpoints (no auth required)
+    $r->addRoute(['GET', 'POST'], '/oauth/authorize', AuthorizationRequestHandler::class);
+    $r->addRoute('POST', '/oauth/token', TokenRequestHandler::class);
+    $r->addRoute('GET', '/magic-link/verify', MagicLinkVerificationHandler::class);
+
+    // Protected API endpoints (with auth middleware)
+    $r->addGroup('/api', function (RouteCollector $r) {
+        // These would need middleware wrapper in your dispatcher
+        $r->addRoute('GET', '/user/profile', UserProfileHandler::class);
+    });
+};
+```
+
+### 6. Error Handling
+
+```php
+<?php
+
+declare(strict_types=1);
+
+function handleRequest(ServerRequestInterface $request, $container): ResponseInterface
+{
+    try {
+        // ... dispatcher logic from above ...
+
+    } catch (\Throwable $e) {
+        // Log the error
+        error_log('Request handling error: ' . $e->getMessage());
+
+        // Return appropriate error response
+        if ($e instanceof \InvalidArgumentException) {
+            return new \Nyholm\Psr7\Response(400, [], 'Bad Request: ' . $e->getMessage());
+        }
+
+        // Generic server error
+        return new \Nyholm\Psr7\Response(500, [], 'Internal Server Error');
+    }
+}
+```
+
 ## Endpoint Usage
 
 ### Authorization Endpoint (`/oauth/authorize`)

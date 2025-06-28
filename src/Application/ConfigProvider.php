@@ -10,10 +10,13 @@ use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
+use Zestic\GraphQL\AuthComponent\Application\Factory\MagicLinkConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
+use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AuthCodeRepository;
@@ -57,8 +60,18 @@ class ConfigProvider
             ],
             'invokables' => [
                 AuthorizationRequestHandler::class => AuthorizationRequestHandler::class,
-                MagicLinkVerificationHandler::class => MagicLinkVerificationHandler::class,
                 TokenRequestHandler::class => TokenRequestHandler::class,
+            ],
+            'factories' => [
+                MagicLinkConfig::class => MagicLinkConfigFactory::class,
+                MagicLinkVerificationHandler::class => function ($container) {
+                    return new MagicLinkVerificationHandler(
+                        $container->get(MagicLinkTokenRepositoryInterface::class),
+                        $container->get(UserRepositoryInterface::class),
+                        $container->get(ReissueExpiredMagicLinkToken::class),
+                        $container->get(MagicLinkConfig::class),
+                    );
+                },
             ],
         ];
     }
@@ -81,6 +94,13 @@ class ConfigProvider
                 'loginTtl' => 10, // Default 10 minutes
                 'refreshTokenTtl' => 10080, // Default 1 week (in minutes)
                 'registrationTtl' => 1440, // Default 24 hours (in minutes)
+            ],
+            'magicLink' => [
+                'webAppUrl' => 'https://yourapp.com', // Default web app URL
+                'authCallbackPath' => '/auth/callback', // Path for auth callback
+                'magicLinkPath' => '/auth/magic-link', // Path for traditional magic links
+                'defaultSuccessMessage' => 'Authentication successful',
+                'registrationSuccessMessage' => 'Registration verified successfully',
             ],
         ];
     }

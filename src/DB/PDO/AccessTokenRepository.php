@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
+use Carbon\CarbonImmutable;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
@@ -52,7 +53,8 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
         } else {
             throw new \RuntimeException('User identifier cannot be empty');
         }
-        $accessToken->setExpiryDateTime($this->tokenConfig->getAccessTokenTTLDateTime());
+        $expiresAt = $this->tokenConfig->getAccessTokenTTLDateTime();
+        $accessToken->setExpiryDateTime($expiresAt->toDateTimeImmutable());
 
         foreach ($scopes as $scope) {
             $accessToken->addScope($scope);
@@ -120,7 +122,7 @@ class AccessTokenRepository extends AbstractPDORepository implements AccessToken
         $clientEntity = new ClientEntity();
         $clientEntity->setIdentifier($data['client_id']);
         $token->setClient($clientEntity);
-        $token->setExpiryDateTime(new \DateTimeImmutable($data['expires_at']));
+        $token->setExpiryDateTime(new CarbonImmutable($data['expires_at']));
         $token->setIdentifier($data['id']);
         $token->setScopesFromArray(json_decode($data['scopes'], true));
         $token->setRevoked((bool)$data['revoked']);

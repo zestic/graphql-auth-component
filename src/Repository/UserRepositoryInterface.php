@@ -12,7 +12,7 @@ interface UserRepositoryInterface extends OAuth2UserRepositoryInterface
 {
     public function beginTransaction(): void;
 
-    public function commit(): void;
+    public function commit(): bool;
 
     public function create(RegistrationContext $context): string|int;
 

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Factory;
 
+use Carbon\CarbonImmutable;
+use Zestic\GraphQL\AuthComponent\Context\AbstractContext;
 use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
+use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
+use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
@@ -18,68 +22,30 @@ class MagicLinkTokenFactory
     ) {
     }
 
-    public function createLoginToken(string|int $userId): MagicLinkToken
+    public function createLoginToken(string|int $userId, ClientEntity $client, MagicLinkContext $context): MagicLinkToken
     {
-        $expiration = new \DateTime();
-        $expiration->modify("+{$this->config->getLoginTTLMinutes()} minutes");
-
-        $token = new MagicLinkToken(
-            $expiration,
-            bin2hex(random_bytes(16)),
-            MagicLinkTokenType::LOGIN,
-            (string)$userId,
-        );
-
-        if ($this->magicLinkTokenRepository->create($token)) {
-            return $token;
-        }
-
-        throw new \Exception('Failed to create magic link token');
+        return $this->createMagicLinkToken($userId, $client, $context, MagicLinkTokenType::LOGIN);
     }
 
-    /**
-     * Create a login token with PKCE context
-     */
-    public function createLoginTokenWithContext(string|int $userId, MagicLinkContext $context): MagicLinkToken
+    public function createRegistrationToken(string|int $userId, ClientEntity $client, RegistrationContext $context): MagicLinkToken
     {
-        $expiration = new \DateTime();
-        $expiration->modify("+{$this->config->getLoginTTLMinutes()} minutes");
-
-        // Store PKCE parameters in the payload if present
-        $payload = null;
-        if ($context->isPkceEnabled()) {
-            $encodedPayload = json_encode($context->getPkceParameters());
-            if ($encodedPayload === false) {
-                throw new \Exception('Failed to encode PKCE parameters');
-            }
-            $payload = $encodedPayload;
-        }
-
-        $token = new MagicLinkToken(
-            $expiration,
-            bin2hex(random_bytes(16)),
-            MagicLinkTokenType::LOGIN,
-            (string)$userId,
-            $payload
-        );
-
-        if ($this->magicLinkTokenRepository->create($token)) {
-            return $token;
-        }
-
-        throw new \Exception('Failed to create magic link token');
+        return $this->createMagicLinkToken($userId, $client, $context, MagicLinkTokenType::REGISTRATION);
     }
 
-    public function createRegistrationToken(string|int $userId): MagicLinkToken
+    private function createMagicLinkToken(string|int $userId, ClientEntity $client, AbstractContext $context, MagicLinkTokenType $tokenType): MagicLinkToken
     {
-        $expiration = new \DateTime();
-        $expiration->modify("+{$this->config->getRegistrationTTLMinutes()} minutes");
+        $expiration = CarbonImmutable::now()->addMinutes($this->config->getLoginTTLMinutes());
 
         $token = new MagicLinkToken(
+            $context->get('clientId'),
+            $context->get('codeChallenge'),
+            $context->get('codeChallengeMethod'),
+            $context->get('redirectUri'),
+            $context->get('state'),
+            $context->get('email'),
             $expiration,
-            bin2hex(random_bytes(16)),
-            MagicLinkTokenType::REGISTRATION,
-            (string)$userId,
+            $tokenType,
+            $userId,
         );
 
         if ($this->magicLinkTokenRepository->create($token)) {

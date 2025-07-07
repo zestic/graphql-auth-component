@@ -4,6 +4,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.3",
+    "adriengras/pkce-php": "^1.0",
     "matomo/device-detector": "^6.4",
     "mll-lab/graphql-php-scalars": "^6.3",
     "psr/log": "^3.0",

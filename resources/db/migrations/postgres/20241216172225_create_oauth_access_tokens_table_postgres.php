@@ -72,6 +72,8 @@ class CreateOauthAccessTokensTablePostgres extends AbstractMigration
     public function down()
     {
         $schema = $this->getAdapter()->getOption('schema');
+        // Drop tables in reverse order of creation to handle foreign key constraints
+        $this->table('oauth_auth_codes', ['schema' => $schema])->drop()->save();
         $this->table('oauth_access_tokens', ['schema' => $schema])->drop()->save();
     }
 }

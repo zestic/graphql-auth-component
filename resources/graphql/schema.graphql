@@ -1,0 +1,35 @@
+input RegistrationInput {
+    email: String!
+    additionalData: JSON!
+    codeChallenge: String!
+    codeChallengeMethod: String!
+    redirectUri: String!
+    state: String!
+}
+
+input SendMagicLinkInput {
+    email: String!
+    codeChallenge: String!
+    codeChallengeMethod: String!
+    redirectUri: String!
+    state: String!
+}
+
+type RegistrationResponse {
+    success: Boolean!
+    message: String!
+    code: String!
+}
+
+type MagicLinkResponse {
+    success: Boolean!
+    message: String!
+    code: String!
+}
+
+type Mutation {
+    register(input: RegistrationInput!): RegistrationResponse!
+    sendMagicLink(input: SendMagicLinkInput!): MagicLinkResponse!
+}
+
+scalar JSON

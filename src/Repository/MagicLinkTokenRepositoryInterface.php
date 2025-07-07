@@ -14,5 +14,5 @@ interface MagicLinkTokenRepositoryInterface
 
     public function findByUnexpiredToken(string $token): ?MagicLinkToken;
 
-    public function findByToken(string $token): ?MagicLinkToken;
+    public function findByToken(string $token, bool $checkExpiry = false): ?MagicLinkToken;
 }

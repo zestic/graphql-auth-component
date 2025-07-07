@@ -39,8 +39,8 @@ class MagicLinkConfig
         if (empty($params)) {
             return $baseUrl;
         }
-
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
+
         return $baseUrl . $separator . http_build_query($params);
     }
 
@@ -63,8 +63,17 @@ class MagicLinkConfig
     /**
      * Create redirect URL for PKCE flows
      */
-    public function createPkceRedirectUrl(string $redirectUri, array $params = []): string
+    public function createPkceRedirectUrl(MagicLinkToken $magicLinkToken, string $message, string $flow = 'login'): string
     {
-        return $this->buildRedirectUrl($redirectUri, $params);
+        $params = [
+            'flow'    => $flow,
+            'success' => 'true',
+            'message' => $message,
+            'codeChallenge' => $magicLinkToken->codeChallenge,
+            'token' => $magicLinkToken->token,
+            'state' => $magicLinkToken->state,
+        ];
+
+        return $this->buildRedirectUrl($magicLinkToken->redirectUri, $params);
     }
 }

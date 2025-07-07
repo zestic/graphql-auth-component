@@ -20,11 +20,6 @@ class TokenRequestHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            // Ensure the request method is POST
-            if ($request->getMethod() !== 'POST') {
-                throw OAuthServerException::invalidRequest('grant_type', 'Token requests must use POST method');
-            }
-
             // Ensure the content type is correct
             $contentType = $request->getHeaderLine('Content-Type');
             if (! str_contains($contentType, 'application/x-www-form-urlencoded')) {

@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Application\Handler;
 
+use Carbon\CarbonImmutable;
+use League\OAuth2\Server\AuthorizationServer;
+use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
+use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
+use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
+use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
@@ -16,9 +23,13 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 /**
  * Handles magic link verification and redirects
  *
- * This handler validates magic link tokens and redirects users appropriately:
- * - For PKCE-enabled requests: redirects to mobile app with verified token
- * - For regular requests: redirects to web application or shows success page
+ * This handler validates magic link tokens and redirects users appropriately.
+ * PKCE (Proof Key for Code Exchange) is required for all magic link flows.
+ *
+ * Flow:
+ * - Validates magic link token and extracts PKCE data
+ * - For registration: redirects to client app with success message
+ * - For login: generates OAuth2 authorization code and redirects to client app
  */
 class MagicLinkVerificationHandler implements RequestHandlerInterface
 {
@@ -27,6 +38,10 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         private UserRepositoryInterface $userRepository,
         private ReissueExpiredMagicLinkToken $reissueExpiredMagicLinkToken,
         private MagicLinkConfig $config,
+        private AuthorizationServer $authorizationServer,
+        private AuthCodeRepositoryInterface $authCodeRepository,
+        private ClientRepositoryInterface $clientRepository,
+        private ScopeRepositoryInterface $scopeRepository,
     ) {
     }
 
@@ -61,15 +76,12 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
                 return $this->createErrorResponse('Invalid or expired magic link');
             }
 
-            // Handle registration verification
             if ($magicLinkToken->tokenType === MagicLinkTokenType::REGISTRATION) {
-                return $this->handleRegistrationVerification($magicLinkToken, $token);
+                return $this->handleRegistrationVerification($magicLinkToken);
             }
 
-            // Handle login magic links (both PKCE and traditional)
-            return $this->handleLoginMagicLink($magicLinkToken, $token);
-
-        } catch (\Exception) {
+            return $this->handleLoginMagicLink($magicLinkToken);
+        } catch (\Exception $e) {
             return $this->createErrorResponse('An error occurred while processing your request');
         }
     }
@@ -77,7 +89,7 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
     /**
      * Handle registration verification
      */
-    private function handleRegistrationVerification($magicLinkToken, string $token): ResponseInterface
+    private function handleRegistrationVerification(MagicLinkToken $magicLinkToken): ResponseInterface
     {
         $user = $this->userRepository->findUserById($magicLinkToken->userId);
         if (! $user) {
@@ -86,77 +98,33 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
 
         if ($user->getVerifiedAt() !== null) {
             // User already verified - redirect to success page or app
-            return $this->redirectToAuthCallback($magicLinkToken, $token, 'User already verified');
+            // TODO
+            return $this->redirectToAuthCallback($magicLinkToken, 'User already verified', 'registration');
         }
 
         try {
             // Verify the user
-            $user->setVerifiedAt(new \DateTime());
+            $user->setVerifiedAt(new CarbonImmutable());
             $this->userRepository->update($user);
-            $this->magicLinkTokenRepository->delete($magicLinkToken);
 
             // Redirect to auth callback with success
-            return $this->redirectToAuthCallback($magicLinkToken, $token, $this->config->registrationSuccessMessage);
-
+            return $this->redirectToAuthCallback($magicLinkToken, $this->config->registrationSuccessMessage, 'registration');
         } catch (\Throwable) {
             return $this->createErrorResponse('A system error occurred while verifying your registration');
         }
     }
 
-    /**
-     * Handle login magic links (both PKCE and traditional)
-     */
-    private function handleLoginMagicLink($magicLinkToken, string $token): ResponseInterface
+    private function handleLoginMagicLink(MagicLinkToken $magicLinkToken): ResponseInterface
     {
-        // Check if this is a PKCE-enabled magic link
-        $pkceData = null;
-        if ($magicLinkToken->getPayload()) {
-            $pkceData = json_decode($magicLinkToken->getPayload(), true);
-        }
-
-        if ($pkceData && isset($pkceData['redirect_uri'])) {
-            // PKCE-enabled magic link - redirect to specified app
-            return $this->redirectToMobileApp($pkceData['redirect_uri'], $token, $pkceData);
-        } else {
-            // Regular magic link - redirect to web app magic link handler
-            return $this->handleRegularMagicLink($token);
-        }
+        return $this->redirectToAuthCallback($magicLinkToken, $this->config->defaultSuccessMessage, 'login');
     }
 
-    /**
-     * Redirect to auth callback (for both registration and login)
-     */
-    private function redirectToAuthCallback($magicLinkToken, string $token, string $message): ResponseInterface
+    private function redirectToAuthCallback(MagicLinkToken $magicLinkToken, string $message, string $flow): MessageInterface
     {
-        // Check if this has PKCE data to determine redirect destination
-        $pkceData = null;
-        if ($magicLinkToken->getPayload()) {
-            $pkceData = json_decode($magicLinkToken->getPayload(), true);
-        }
-
-        if ($pkceData && isset($pkceData['redirect_uri'])) {
-            // PKCE flow - redirect to the specified redirect_uri
-            $params = [
-                'magic_link_token' => $token,
-                'message' => $message,
-            ];
-
-            // Include state parameter if present for CSRF protection
-            if (isset($pkceData['state'])) {
-                $params['state'] = $pkceData['state'];
-            }
-
-            $finalRedirectUri = $this->config->createPkceRedirectUrl($pkceData['redirect_uri'], $params);
-        } else {
-            // Traditional flow - redirect to web app auth callback
-            $params = [
-                'magic_link_token' => $token,
-                'message' => $message,
-            ];
-            $finalRedirectUri = $this->config->createAuthCallbackUrl($params);
-        }
+        $finalRedirectUri = $this->config->createPkceRedirectUrl($magicLinkToken, $message, $flow);
 
         $response = new \Nyholm\Psr7\Response(302);
+
         return $response->withHeader('Location', $finalRedirectUri);
     }
 
@@ -171,41 +139,6 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         $response->getBody()->write($html);
 
         return $response->withHeader('Content-Type', 'text/html');
-    }
-
-    /**
-     * Redirect to mobile app with verified magic link token
-     */
-    private function redirectToMobileApp(string $redirectUri, string $token, array $pkceData): ResponseInterface
-    {
-        $params = [
-            'magic_link_token' => $token,
-        ];
-
-        // Include state parameter if present for CSRF protection
-        if (isset($pkceData['state'])) {
-            $params['state'] = $pkceData['state'];
-        }
-
-        $finalRedirectUri = $redirectUri . '?' . http_build_query($params);
-
-        $response = new \Nyholm\Psr7\Response(302);
-
-        return $response->withHeader('Location', $finalRedirectUri);
-    }
-
-    /**
-     * Handle regular magic link (non-PKCE)
-     */
-    private function handleRegularMagicLink(string $token): ResponseInterface
-    {
-        // For regular magic links, redirect to the configured magic link handler
-        $params = ['token' => $token];
-        $redirectUri = $this->config->createMagicLinkUrl($params);
-
-        $response = new \Nyholm\Psr7\Response(302);
-
-        return $response->withHeader('Location', $redirectUri);
     }
 
     /**

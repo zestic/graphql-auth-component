@@ -56,6 +56,19 @@ class AuthorizationServerFactory
             $encryptionKey
         );
 
+        // Configure Authorization Code Grant (for OAuth2 standard flow)
+        $authCodeGrant = new AuthCodeGrant(
+            $authCodeRepository,
+            $refreshTokenRepository,
+            new DateInterval('PT10M') // Authorization codes expire in 10 minutes
+        );
+
+        // PKCE is enabled by default for public clients
+        $server->enableGrantType(
+            $authCodeGrant,
+            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
+        );
+
         // Configure Magic Link Grant
         $magicLinkGrant = new MagicLinkGrant(
             $magicLinkTokenRepository,
@@ -75,19 +88,6 @@ class AuthorizationServerFactory
 
         $server->enableGrantType(
             $refreshTokenGrant,
-            new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
-        );
-
-        // Configure Authorization Code Grant with PKCE support
-        $authCodeGrant = new AuthCodeGrant(
-            $authCodeRepository,
-            $refreshTokenRepository,
-            new DateInterval('PT10M') // 10 minute auth code TTL
-        );
-
-        // PKCE is enabled by default for public clients and optional for confidential clients
-        $server->enableGrantType(
-            $authCodeGrant,
             new DateInterval(sprintf('PT%dM', $tokenConfig->getAccessTokenTTLMinutes()))
         );
 

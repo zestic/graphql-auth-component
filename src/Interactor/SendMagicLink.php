@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
+use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
@@ -12,31 +13,36 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 class SendMagicLink
 {
     public function __construct(
+        private ClientRepositoryInterface $clientRepository,
         private MagicLinkTokenFactory $magicLinkTokenFactory,
         private SendMagicLinkInterface $sendMagicLink,
         private UserRepositoryInterface $userRepository,
     ) {
     }
 
-    /**
-     * Send magic link with optional PKCE context
-     * This is the primary method for v2.0 - supports both traditional and PKCE flows
-     */
     public function send(MagicLinkContext $context): array
     {
+        if (!filter_var($context->get('email'), FILTER_VALIDATE_EMAIL)) {
+            return [
+                'success' => false,
+                'message' => 'Invalid email format.',
+                'code' => 'INVALID_EMAIL_FORMAT',
+            ];
+        }
         try {
-            if (! $user = $this->userRepository->findUserByEmail($context->email)) {
+            $client = $this->clientRepository->getClientEntity($context->get('clientId'));
+            if (! $user = $this->userRepository->findUserByEmail($context->get('email'))) {
                 return [
                     'success' => true,
-                    'message' => 'Success',
-                    'code' => 'MAGIC_LINK_SUCCESS',
+                    'message' => 'Email not registered. Please complete registration first.',
+                    'code' => 'MAGIC_LINK_REGISTRATION',
                 ];
             }
 
-            // Use enhanced factory method that supports both traditional and PKCE flows
-            $loginToken = $this->magicLinkTokenFactory->createLoginTokenWithContext(
-                (string)$user->getId(),
-                $context
+            $loginToken = $this->magicLinkTokenFactory->createLoginToken(
+                (string) $user->getId(),
+                $client,
+                $context,
             );
             $this->sendMagicLink->send($loginToken);
 

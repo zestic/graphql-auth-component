@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
+use Carbon\CarbonInterface;
+
 class User implements UserInterface
 {
     public string|int|null $systemId = null;
@@ -14,7 +16,7 @@ class User implements UserInterface
         public ?string $displayName,
         public string $email,
         public string|int $id,
-        public ?\DateTimeInterface $verifiedAt = null,
+        public ?CarbonInterface $verifiedAt = null,
     ) {
     }
 
@@ -53,12 +55,12 @@ class User implements UserInterface
         return $this->verifiedAt !== null;
     }
 
-    public function getVerifiedAt(): ?\DateTimeInterface
+    public function getVerifiedAt(): ?CarbonInterface
     {
         return $this->verifiedAt;
     }
 
-    public function setVerifiedAt(\DateTimeInterface $verifiedAt): void
+    public function setVerifiedAt(CarbonInterface $verifiedAt): void
     {
         $this->verifiedAt = $verifiedAt;
     }

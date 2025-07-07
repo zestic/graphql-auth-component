@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
+use Carbon\CarbonImmutable;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use Zestic\GraphQL\AuthComponent\Entity\RefreshTokenEntity;
@@ -25,7 +26,7 @@ class RefreshTokenRepository extends AbstractPDORepository implements RefreshTok
         /** @var non-empty-string $identifier */
         $identifier = $this->generateUniqueIdentifier();
         $refreshTokenEntity->setIdentifier($identifier);
-        $refreshTokenEntity->setExpiryDateTime($this->tokenConfig->getRefreshTokenTTLDateTime());
+        $refreshTokenEntity->setExpiryDateTime($this->tokenConfig->getRefreshTokenTTLDateTime()->toDateTimeImmutable());
 
         return $refreshTokenEntity;
     }
@@ -106,7 +107,7 @@ class RefreshTokenRepository extends AbstractPDORepository implements RefreshTok
         $token->setAccessToken($data['access_token_id']);
         $token->setClientIdentifier($data['client_id']);
         $token->setUserIdentifier($data['user_id']);
-        $token->setExpiryDateTime(new \DateTimeImmutable($data['expires_at']));
+        $token->setExpiryDateTime(new CarbonImmutable($data['expires_at']));
 
         return $token;
     }

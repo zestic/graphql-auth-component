@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
-use DateTimeImmutable;
+use Carbon\CarbonImmutable;
 
 class TokenConfig
 {
@@ -21,9 +21,9 @@ class TokenConfig
         return $this->accessTokenTTLMinutes;
     }
 
-    public function getAccessTokenTTLDateTime(): DateTimeImmutable
+    public function getAccessTokenTTLDateTime(): CarbonImmutable
     {
-        return new DateTimeImmutable("+ $this->accessTokenTTLMinutes minutes");
+        return new CarbonImmutable("+ $this->accessTokenTTLMinutes minutes");
     }
 
     public function getAccessTokenTTLDateTimeString(): string
@@ -36,9 +36,9 @@ class TokenConfig
         return $this->loginTTLMinutes;
     }
 
-    public function getLoginTTLDateTime(): DateTimeImmutable
+    public function getLoginTTLDateTime(): CarbonImmutable
     {
-        return new DateTimeImmutable("+ $this->loginTTLMinutes minutes");
+        return new CarbonImmutable("+ $this->loginTTLMinutes minutes");
     }
 
     public function getLoginTTLDateTimeString(): string
@@ -51,9 +51,9 @@ class TokenConfig
         return $this->refreshTokenTTLMinutes;
     }
 
-    public function getRefreshTokenTTLDateTime(): DateTimeImmutable
+    public function getRefreshTokenTTLDateTime(): CarbonImmutable
     {
-        return new DateTimeImmutable("+ $this->refreshTokenTTLMinutes minutes");
+        return new CarbonImmutable("+ $this->refreshTokenTTLMinutes minutes");
     }
 
     public function getRefreshTokenTTLDateTimeString(): string
@@ -66,9 +66,9 @@ class TokenConfig
         return $this->registrationTTLMinutes;
     }
 
-    public function getRegistrationTTLDateTime(): DateTimeImmutable
+    public function getRegistrationTTLDateTime(): CarbonImmutable
     {
-        return new DateTimeImmutable("+ $this->registrationTTLMinutes minutes");
+        return new CarbonImmutable("+ $this->registrationTTLMinutes minutes");
     }
 
     public function getRegistrationTTLDateTimeString(): string

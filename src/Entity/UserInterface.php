@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Entity;
 
+use Carbon\CarbonInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserEntityInterface;
 
 interface UserInterface extends OAuth2UserEntityInterface
@@ -14,9 +15,9 @@ interface UserInterface extends OAuth2UserEntityInterface
 
     public function isVerified(): bool;
 
-    public function getVerifiedAt(): ?\DateTimeInterface;
+    public function getVerifiedAt(): ?CarbonInterface;
 
-    public function setVerifiedAt(\DateTimeInterface $verifiedAt): void;
+    public function setVerifiedAt(CarbonInterface $verifiedAt): void;
 
     public function getDisplayName(): ?string;
 

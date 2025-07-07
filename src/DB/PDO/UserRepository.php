@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\DB\PDO;
 
+use Carbon\CarbonImmutable;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface as OAuth2UserInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
@@ -24,9 +25,9 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
         $this->pdo->beginTransaction();
     }
 
-    public function commit(): void
+    public function commit(): bool
     {
-        $this->pdo->commit();
+        return $this->pdo->commit();
     }
 
     public function create(RegistrationContext $context): string|int
@@ -36,19 +37,13 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
             'INSERT INTO ' . $this->schema . 'users (id, email, display_name, additional_data, verified_at)
             VALUES (:id, :email, :display_name, :additional_data, :verified_at)'
         );
-        $additionalData = $context->data;
-
-        // If the only field is displayName, store empty array
-        // Otherwise, keep all fields including displayName
-        if (count($additionalData) === 1 && isset($additionalData['displayName'])) {
-            $additionalData = [];
-        }
+        $additionalData = $context->get('additionalData');
 
         try {
             $stmt->execute([
                 'id' => $id,
                 'email' => $context->get('email'),
-                'display_name' => $context->get('displayName'),
+                'display_name' => $additionalData['displayName'],
                 'additional_data' => json_encode($additionalData),
                 'verified_at' => null,
             ]);
@@ -149,7 +144,7 @@ class UserRepository extends AbstractPDORepository implements UserRepositoryInte
             $userData['display_name'],
             $userData['email'],
             $userData['id'],
-            $userData['verified_at'] ? new \DateTimeImmutable($userData['verified_at']) : null,
+            $userData['verified_at'] ? new CarbonImmutable($userData['verified_at']) : null,
         );
         $user->setSystemId($userData['system_id'] ?? null);
 

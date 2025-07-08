@@ -5,24 +5,24 @@
   "require": {
     "php": "^8.3",
     "adriengras/pkce-php": "^1.0",
+    "league/oauth2-server": "^9.1",
     "matomo/device-detector": "^6.4",
     "mll-lab/graphql-php-scalars": "^6.3",
+    "nesbot/carbon": "^3.10",
+    "nyholm/psr7": "^1.8",
     "psr/log": "^3.0",
-    "webonyx/graphql-php": "^15.0",
     "robmorgan/phinx": "^0.15.4 | ^0.16",
     "symfony/yaml": " ^6.4|^7.0",
     "symfony/dotenv": " ^6.4|^7.0",
-    "league/oauth2-server": "^9.1",
-    "nyholm/psr7": "^1.8",
-    "ramsey/uuid": "^4.7"
+    "ramsey/uuid": "^4.7",
+    "webonyx/graphql-php": "^15.0"
   },
   "require-dev": {
     "ext-pdo": "*",
     "ext-uopz": "*",
-    "friendsofphp/php-cs-fixer": "^3.18",  
+    "friendsofphp/php-cs-fixer": "^3.18",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^11.4",
-    "slope-it/clock-mock": "^0.4.0"
+    "phpunit/phpunit": "^11.4"
   },
   "autoload": {
     "psr-4": {

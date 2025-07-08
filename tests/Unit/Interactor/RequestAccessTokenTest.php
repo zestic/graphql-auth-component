@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use SlopeIt\ClockMock\ClockMock;
+use Carbon\CarbonImmutable;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 
 class RequestAccessTokenTest extends TestCase
@@ -23,12 +23,12 @@ class RequestAccessTokenTest extends TestCase
     {
         $this->authServer = $this->createMock(AuthorizationServer::class);
         $this->requestAccessToken = new RequestAccessToken($this->authServer);
-        ClockMock::freeze(new \DateTime('2024-06-05'));
+        CarbonImmutable::setTestNow('2024-06-05 00:00:00');
     }
 
     protected function tearDown(): void
     {
-        ClockMock::reset();
+        CarbonImmutable::setTestNow();
         parent::tearDown();
     }
 

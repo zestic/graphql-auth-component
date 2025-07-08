@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Entity;
 
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\TestCase;
-use SlopeIt\ClockMock\ClockMock;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
 
 class TokenConfigTest extends TestCase
@@ -13,18 +13,21 @@ class TokenConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Set Carbon test time to a fixed point for consistent testing
+        CarbonImmutable::setTestNow('2024-06-05 00:00:00');
+
         $this->tokenConfig = new TokenConfig(
             accessTokenTTLMinutes: 60,
             loginTTLMinutes: 30,
             refreshTokenTTLMinutes: 90,
             registrationTTLMinutes: 120
         );
-        ClockMock::freeze(new \DateTime('2024-06-05'));
     }
 
     protected function tearDown(): void
     {
-        ClockMock::reset();
+        CarbonImmutable::setTestNow();
         parent::tearDown();
     }
 
@@ -35,17 +38,12 @@ class TokenConfigTest extends TestCase
 
     public function testGetAccessTokenTTLDateTime(): void
     {
-        $expected = (new \DateTime())->modify('+ 60 minutes');
-        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s'));
+        $this->assertEquals('2024-06-05 01:00:00', $this->tokenConfig->getAccessTokenTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetAccessTokenTTLDateTimeString(): void
     {
-        $expected = (new \DateTime())
-            ->modify('+ 60 minutes')
-            ->format('Y-m-d H:i:s');
-
-        $this->assertEquals($expected, $this->tokenConfig->getAccessTokenTTLDateTimeString());
+        $this->assertEquals('2024-06-05 01:00:00', $this->tokenConfig->getAccessTokenTTLDateTimeString());
     }
 
     public function testGetLoginTTLMinutes()
@@ -55,17 +53,12 @@ class TokenConfigTest extends TestCase
 
     public function testGetLoginTTLDateTime(): void
     {
-        $expected = (new \DateTime())->modify('+ 30 minutes');
-        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getLoginTTLDateTime()->format('Y-m-d H:i:s'));
+        $this->assertEquals('2024-06-05 00:30:00', $this->tokenConfig->getLoginTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetLoginTTLDateTimeString(): void
     {
-        $expected = (new \DateTime())
-            ->modify('+ 30 minutes')
-            ->format('Y-m-d H:i:s');
-
-        $this->assertEquals($expected, $this->tokenConfig->getLoginTTLDateTimeString());
+        $this->assertEquals('2024-06-05 00:30:00', $this->tokenConfig->getLoginTTLDateTimeString());
     }
 
     public function testGetRefreshTokenTTLMinutes()
@@ -75,17 +68,12 @@ class TokenConfigTest extends TestCase
 
     public function testGetRefreshTokenTTLDateTime(): void
     {
-        $expected = (new \DateTime())->modify('+ 90 minutes');
-        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getRefreshTokenTTLDateTime()->format('Y-m-d H:i:s'));
+        $this->assertEquals('2024-06-05 01:30:00', $this->tokenConfig->getRefreshTokenTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetRefreshTokenTTLDateTimeString(): void
     {
-        $expected = (new \DateTime())
-            ->modify('+ 90 minutes')
-            ->format('Y-m-d H:i:s');
-
-        $this->assertEquals($expected, $this->tokenConfig->getRefreshTokenTTLDateTimeString());
+        $this->assertEquals('2024-06-05 01:30:00', $this->tokenConfig->getRefreshTokenTTLDateTimeString());
     }
 
     public function testGetRegistrationTTLMinutes()
@@ -95,16 +83,11 @@ class TokenConfigTest extends TestCase
 
     public function testGetRegistrationTTLDateTime(): void
     {
-        $expected = (new \DateTime())->modify('+ 120 minutes');
-        $this->assertEquals($expected->format('Y-m-d H:i:s'), $this->tokenConfig->getRegistrationTTLDateTime()->format('Y-m-d H:i:s'));
+        $this->assertEquals('2024-06-05 02:00:00', $this->tokenConfig->getRegistrationTTLDateTime()->format('Y-m-d H:i:s'));
     }
 
     public function testGetRegistrationTTLDateTimeString(): void
     {
-        $expected = (new \DateTime())
-            ->modify('+ 120 minutes')
-            ->format('Y-m-d H:i:s');
-
-        $this->assertEquals($expected, $this->tokenConfig->getRegistrationTTLDateTimeString());
+        $this->assertEquals('2024-06-05 02:00:00', $this->tokenConfig->getRegistrationTTLDateTimeString());
     }
 }

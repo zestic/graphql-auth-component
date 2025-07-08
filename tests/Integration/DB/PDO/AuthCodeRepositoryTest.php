@@ -21,6 +21,9 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
         parent::setUp();
         $this->repository = new AuthCodeRepository(self::$pdo);
 
+        // Seed the database with required test data
+        $this->seedDatabase();
+
         // Create a test client entity
         $this->clientEntity = new ClientEntity();
         $this->clientEntity->setIdentifier(self::$testClientId);

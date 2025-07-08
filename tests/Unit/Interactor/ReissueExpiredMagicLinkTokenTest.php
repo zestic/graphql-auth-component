@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Interactor;
 
+use Carbon\CarbonImmutable;
+use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
+use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\User;
@@ -17,6 +20,8 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class ReissueExpiredMagicLinkTokenTest extends TestCase
 {
+    private ClientRepositoryInterface $clientRepository;
+
     private MagicLinkTokenFactory $magicLinkTokenFactory;
 
     private SendMagicLinkInterface $sendMagicLink;
@@ -31,13 +36,19 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->clientRepository = $this->createMock(ClientRepositoryInterface::class);
         $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
         $this->sendMagicLink = $this->createMock(SendMagicLinkInterface::class);
         $this->sendVerificationLink = $this->createMock(SendVerificationLinkInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
         $this->magicLinkTokenRepository = $this->createMock(MagicLinkTokenRepositoryInterface::class);
 
+        // Mock the client repository to return a client entity
+        $mockClient = $this->createMock(ClientEntity::class);
+        $this->clientRepository->method('getClientEntity')->willReturn($mockClient);
+
         $this->reissueExpiredMagicLinkToken = new ReissueExpiredMagicLinkToken(
+            $this->clientRepository,
             $this->magicLinkTokenFactory,
             $this->sendMagicLink,
             $this->sendVerificationLink,
@@ -49,19 +60,33 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
     public function testReissueExpiredLoginToken(): void
     {
         $expiredToken = new MagicLinkToken(
-            new \DateTime('-1 hour'),
-            'expired_token',
-            MagicLinkTokenType::LOGIN,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('-1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $expiredToken->token = 'expired_token';
 
         $user = new User([], 'Test User', 'test@example.com', 'user123');
         $newToken = new MagicLinkToken(
-            new \DateTime('+1 hour'),
-            'new_token',
-            MagicLinkTokenType::LOGIN,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $newToken->token = 'new_token';
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')
@@ -70,7 +95,7 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
 
         $this->magicLinkTokenFactory->expects($this->once())
             ->method('createLoginToken')
-            ->with('user123')
+            ->with('user123', $this->anything(), $this->anything())
             ->willReturn($newToken);
 
         $this->sendMagicLink->expects($this->once())
@@ -93,19 +118,33 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
     public function testReissueExpiredRegistrationToken(): void
     {
         $expiredToken = new MagicLinkToken(
-            new \DateTime('-1 hour'),
-            'expired_token',
-            MagicLinkTokenType::REGISTRATION,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('-1 hour'),
+            tokenType: MagicLinkTokenType::REGISTRATION,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $expiredToken->token = 'expired_token';
 
         $user = new User(['displayName' => 'Test User'], 'Test User', 'test@example.com', 'user123');
         $newToken = new MagicLinkToken(
-            new \DateTime('+1 hour'),
-            'new_token',
-            MagicLinkTokenType::REGISTRATION,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::REGISTRATION,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $newToken->token = 'new_token';
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')
@@ -114,7 +153,7 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
 
         $this->magicLinkTokenFactory->expects($this->once())
             ->method('createRegistrationToken')
-            ->with('user123')
+            ->with('user123', $this->anything(), $this->anything())
             ->willReturn($newToken);
 
         $this->sendVerificationLink->expects($this->once())
@@ -137,11 +176,18 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
     public function testReissueWithUserNotFound(): void
     {
         $expiredToken = new MagicLinkToken(
-            new \DateTime('-1 hour'),
-            'expired_token',
-            MagicLinkTokenType::LOGIN,
-            'nonexistent_user'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('-1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'nonexistent_user'
         );
+        // Override the generated token with the expected test token
+        $expiredToken->token = 'expired_token';
 
         $this->userRepository->expects($this->once())
             ->method('findUserById')
@@ -160,19 +206,33 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
     public function testReissueWithEmailSendFailure(): void
     {
         $expiredToken = new MagicLinkToken(
-            new \DateTime('-1 hour'),
-            'expired_token',
-            MagicLinkTokenType::LOGIN,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('-1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $expiredToken->token = 'expired_token';
 
         $user = new User([], 'Test User', 'test@example.com', 'user123');
         $newToken = new MagicLinkToken(
-            new \DateTime('+1 hour'),
-            'new_token',
-            MagicLinkTokenType::LOGIN,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $newToken->token = 'new_token';
 
         $this->userRepository->method('findUserById')->willReturn($user);
         $this->magicLinkTokenFactory->method('createLoginToken')->willReturn($newToken);
@@ -190,11 +250,18 @@ class ReissueExpiredMagicLinkTokenTest extends TestCase
     public function testReissueWithException(): void
     {
         $expiredToken = new MagicLinkToken(
-            new \DateTime('-1 hour'),
-            'expired_token',
-            MagicLinkTokenType::LOGIN,
-            'user123'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('-1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user123'
         );
+        // Override the generated token with the expected test token
+        $expiredToken->token = 'expired_token';
 
         $this->userRepository->method('findUserById')
             ->willThrowException(new \RuntimeException('Database error'));

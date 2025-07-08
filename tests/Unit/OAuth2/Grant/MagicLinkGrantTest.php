@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\OAuth2\Grant;
 
+use Carbon\CarbonImmutable;
 use DateInterval;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
@@ -18,6 +19,7 @@ use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\UserInterface;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
@@ -73,12 +75,30 @@ class MagicLinkGrantTest extends TestCase
         $scopeEntity = $this->createMock(ScopeEntityInterface::class);
         $accessTokenEntity = $this->createMock(AccessTokenEntityInterface::class);
         $refreshTokenEntity = $this->createMock(RefreshTokenEntityInterface::class);
-        $magicLinkToken = $this->createMock(MagicLinkToken::class);
+        // Create a real MagicLinkToken with valid PKCE values
+        // For testing, we'll use a known code_verifier and its corresponding challenge
+        $codeVerifier = 'test_code_verifier';
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+        $magicLinkToken = new MagicLinkToken(
+            clientId: 'location_1',
+            codeChallenge: $codeChallenge,
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user_id'
+        );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = 'valid_token';
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn([
             'token' => 'valid_token',
             'client_id' => 'location_1',
+            'code_verifier' => 'test_code_verifier',
         ]);
 
         $responseType = $this->createMock(ResponseTypeInterface::class);
@@ -86,8 +106,6 @@ class MagicLinkGrantTest extends TestCase
         $this->clientRepository->method('getClientEntity')->willReturn($clientEntity);
         $this->clientRepository->method('validateClient')->willReturn(true);
         $this->magicLinkTokenRepository->method('findByUnexpiredToken')->willReturn($magicLinkToken);
-        $magicLinkToken->method('isExpired')->willReturn(false);
-        $magicLinkToken->method('getUserId')->willReturn('user_id');
 
         $this->userRepository->method('findUserById')->willReturn($userEntity);
         $this->scopeRepository->method('finalizeScopes')->willReturn([$scopeEntity]);

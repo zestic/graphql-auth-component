@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Interactor;
 
+use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
+use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
@@ -15,6 +17,8 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class RegisterUserTest extends TestCase
 {
+    private ClientRepositoryInterface $clientRepository;
+
     private MagicLinkTokenFactory $magicLinkTokenFactory;
 
     private SendVerificationLinkInterface $sendRegistrationVerification;
@@ -27,12 +31,18 @@ class RegisterUserTest extends TestCase
 
     protected function setUp(): void
     {
+        $this->clientRepository = $this->createMock(ClientRepositoryInterface::class);
         $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
         $this->sendRegistrationVerification = $this->createMock(SendVerificationLinkInterface::class);
         $this->userCreatedHook = $this->createMock(UserCreatedHookInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
 
+        // Mock the client repository to return a client entity
+        $mockClient = $this->createMock(ClientEntity::class);
+        $this->clientRepository->method('getClientEntity')->willReturn($mockClient);
+
         $this->registerUser = new RegisterUser(
+            $this->clientRepository,
             $this->magicLinkTokenFactory,
             $this->sendRegistrationVerification,
             $this->userCreatedHook,
@@ -42,7 +52,11 @@ class RegisterUserTest extends TestCase
 
     public function testSuccessfulRegistration()
     {
-        $context = new RegistrationContext('test@zestic.com', ['displayName' => 'Test User']);
+        $context = new RegistrationContext([
+            'clientId' => 'test-client',
+            'email' => 'test@zestic.com',
+            'additionalData' => ['displayName' => 'Test User']
+        ]);
         $userId = '123';
         $token = $this->createMock(MagicLinkToken::class);
 
@@ -65,7 +79,11 @@ class RegisterUserTest extends TestCase
 
     public function testRegistrationWithExistingEmail()
     {
-        $context = new RegistrationContext('existing@zestic.com', []);
+        $context = new RegistrationContext([
+            'clientId' => 'test-client',
+            'email' => 'existing@zestic.com',
+            'additionalData' => []
+        ]);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(true);
         $this->userRepository->expects($this->never())->method('beginTransaction');
@@ -81,7 +99,11 @@ class RegisterUserTest extends TestCase
 
     public function testRegistrationWithSystemError()
     {
-        $context = new RegistrationContext('test@zestic.com', []);
+        $context = new RegistrationContext([
+            'clientId' => 'test-client',
+            'email' => 'test@zestic.com',
+            'additionalData' => []
+        ]);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
@@ -98,7 +120,11 @@ class RegisterUserTest extends TestCase
 
     public function testUserCreatedHookIsCalledWithCorrectParameters()
     {
-        $context = new RegistrationContext('hook@zestic.com', ['displayName' => 'Hook User', 'customField' => 'value']);
+        $context = new RegistrationContext([
+            'clientId' => 'test-client',
+            'email' => 'hook@zestic.com',
+            'additionalData' => ['displayName' => 'Hook User', 'customField' => 'value']
+        ]);
         $userId = 'hook-user-123';
         $token = $this->createMock(MagicLinkToken::class);
 

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Factory;
 
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\MagicLinkConfigFactory;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 
 class MagicLinkConfigFactoryTest extends TestCase
 {
@@ -62,8 +65,22 @@ class MagicLinkConfigFactoryTest extends TestCase
         $this->assertEquals('https://example.com/auth/magic-link?token=def456', $magicLinkUrl);
 
         // Test PKCE redirect URL
-        $pkceUrl = $config->createPkceRedirectUrl('myapp://auth/callback', ['token' => 'ghi789']);
-        $this->assertEquals('myapp://auth/callback?token=ghi789', $pkceUrl);
+        $magicLinkToken = new MagicLinkToken(
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'myapp://auth/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::LOGIN,
+            userId: 'user-123'
+        );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = 'ghi789';
+
+        $pkceUrl = $config->createPkceRedirectUrl($magicLinkToken, 'Test message');
+        $this->assertEquals('myapp://auth/callback?flow=login&success=true&message=Test+message&codeChallenge=test-challenge&token=ghi789&state=test-state', $pkceUrl);
     }
 
     public function testBuildRedirectUrlWithExistingQuery(): void

@@ -2,6 +2,7 @@
 
 namespace Tests\Integration\DB\PDO;
 
+use Carbon\CarbonImmutable;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
@@ -22,7 +23,10 @@ class UserRepositoryTest extends DatabaseTestCase
         $displayName = 'Test User';
         $additionalData = ['displayName' => $displayName, 'referredById' => 2345];
 
-        $context = new RegistrationContext($email, $additionalData);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => $additionalData
+        ]);
 
         $userId = $this->userRepository->create($context);
 
@@ -36,7 +40,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertNotFalse($user);
         $this->assertEquals($email, $user['email']);
         $this->assertEquals($displayName, $user['display_name']);
-        $this->assertEquals($context->data, json_decode($user['additional_data'], true));
+        $this->assertEquals($context->get('additionalData'), json_decode($user['additional_data'], true));
         $this->assertNull($user['verified_at']);
     }
 
@@ -44,7 +48,10 @@ class UserRepositoryTest extends DatabaseTestCase
     {
         $email = 'testEmptyData@zestic.com';
         $displayName = 'Test User';
-        $context = new RegistrationContext($email, ['displayName' => $displayName]);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => ['displayName' => $displayName]
+        ]);
 
         $userId = $this->userRepository->create($context);
 
@@ -58,14 +65,17 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->assertNotFalse($user);
         $this->assertEquals($email, $user['email']);
         $this->assertEquals($displayName, $user['display_name']);
-        $this->assertEquals(json_encode([]), $user['additional_data']);
+        $this->assertEquals($context->get('additionalData'), json_decode($user['additional_data'], true));
         $this->assertNull($user['verified_at']);
     }
 
     public function testEmailExists()
     {
         $email = 'existing@zestic.com';
-        $context = new RegistrationContext($email, ['displayName' => 'Test User']);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => ['displayName' => 'Test User']
+        ]);
         $this->userRepository->create($context);
 
         $this->assertTrue($this->userRepository->emailExists($email));
@@ -78,7 +88,10 @@ class UserRepositoryTest extends DatabaseTestCase
         $displayName = 'Find Test User';
         $additionalData = ['displayName' => $displayName, 'age' => 30];
 
-        $context = new RegistrationContext($email, $additionalData);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => $additionalData
+        ]);
         $userId = $this->userRepository->create($context);
 
         $foundUser = $this->userRepository->findUserByEmail($email);
@@ -101,7 +114,10 @@ class UserRepositoryTest extends DatabaseTestCase
         $displayName = 'Find Test User';
         $additionalData = ['displayName' => $displayName, 'age' => 30];
 
-        $context = new RegistrationContext($email, $additionalData);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => $additionalData
+        ]);
         $userId = $this->userRepository->create($context);
 
         $foundUser = $this->userRepository->findUserById($userId);
@@ -124,7 +140,10 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->userRepository->beginTransaction();
 
         $email = 'transaction_test@zestic.com';
-        $context = new RegistrationContext($email, ['displayName' => 'Transaction Test']);
+        $context = new RegistrationContext([
+            'email' => $email,
+            'additionalData' => ['displayName' => 'Transaction Test']
+        ]);
         $userId = $this->userRepository->create($context);
 
         $this->userRepository->commit();
@@ -137,7 +156,10 @@ class UserRepositoryTest extends DatabaseTestCase
         $this->userRepository->beginTransaction();
 
         $rollbackEmail = 'rollback_test@zestic.com';
-        $rollbackContext = new RegistrationContext($rollbackEmail, ['displayName' => 'Rollback Test']);
+        $rollbackContext = new RegistrationContext([
+            'email' => $rollbackEmail,
+            'additionalData' => ['displayName' => 'Rollback Test']
+        ]);
         $this->userRepository->create($rollbackContext);
 
         // Verify the user exists before rollback
@@ -152,7 +174,10 @@ class UserRepositoryTest extends DatabaseTestCase
 
         // Test that operations outside of a transaction are committed automatically
         $autoCommitEmail = 'auto_commit@zestic.com';
-        $autoCommitContext = new RegistrationContext($autoCommitEmail, ['displayName' => 'Auto Commit Test']);
+        $autoCommitContext = new RegistrationContext([
+            'email' => $autoCommitEmail,
+            'additionalData' => ['displayName' => 'Auto Commit Test']
+        ]);
         $this->userRepository->create($autoCommitContext);
 
         $autoCommitUser = $this->userRepository->findUserByEmail($autoCommitEmail);
@@ -172,7 +197,7 @@ class UserRepositoryTest extends DatabaseTestCase
         // Modify user data
         $user->displayName = 'Updated Name';
         $user->additionalData['new_field'] = 'new value';
-        $user->verifiedAt = new \DateTimeImmutable();
+        $user->verifiedAt = CarbonImmutable::now();
 
         // Update the user
         $result = $this->userRepository->update($user);

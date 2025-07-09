@@ -2,6 +2,7 @@
 
 namespace Tests\Integration\DB\PDO;
 
+use Carbon\CarbonImmutable;
 use Tests\Integration\DatabaseTestCase;
 use Zestic\GraphQL\AuthComponent\DB\PDO\MagicLinkTokenRepository;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
@@ -20,11 +21,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
     public function testCreateMagicLinkToken(): void
     {
         $token = new MagicLinkToken(
-            new \DateTime('+1 hour'),
-            'test_token',
-            MagicLinkTokenType::REGISTRATION,
-            '550e8400-e29b-41d4-a716-446655440003'
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse('+1 hour'),
+            tokenType: MagicLinkTokenType::REGISTRATION,
+            userId: '550e8400-e29b-41d4-a716-446655440003'
         );
+        // Override the generated token with the expected test token
+        $token->token = 'test_token';
         $result = $this->repository->create($token);
         $this->assertTrue($result);
         // Verify the token was created
@@ -46,11 +54,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $expiration = new \DateTimeImmutable('+1 hour');
         $tokenType = MagicLinkTokenType::REGISTRATION;
         $magicLinkToken = new MagicLinkToken(
-            $expiration,
-            $token,
-            $tokenType,
-            $userId
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse($expiration->format('Y-m-d H:i:s')),
+            tokenType: $tokenType,
+            userId: $userId
         );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = $token;
         $this->repository->create($magicLinkToken);
         // Act
         $result = $this->repository->delete($magicLinkToken);
@@ -65,11 +80,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         // Test deleting by string
         $anotherToken = 'another_test_token_'.uniqid();
         $anotherMagicLinkToken = new MagicLinkToken(
-            $expiration,
-            $anotherToken,
-            $tokenType,
-            $userId
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse($expiration->format('Y-m-d H:i:s')),
+            tokenType: $tokenType,
+            userId: $userId
         );
+        // Override the generated token with the expected test token
+        $anotherMagicLinkToken->token = $anotherToken;
         $this->repository->create($anotherMagicLinkToken);
         $result = $this->repository->delete($anotherToken);
         $this->assertTrue($result);
@@ -86,11 +108,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $expiration = new \DateTimeImmutable('+1 hour');
         $tokenType = MagicLinkTokenType::REGISTRATION;
         $magicLinkToken = new MagicLinkToken(
-            $expiration,
-            $token,
-            $tokenType,
-            $userId
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse($expiration->format('Y-m-d H:i:s')),
+            tokenType: $tokenType,
+            userId: $userId
         );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = $token;
         $this->repository->create($magicLinkToken);
         // Act
         $foundToken = $this->repository->findByUnexpiredToken($token);
@@ -121,11 +150,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         $expirationFromDb = new \DateTimeImmutable($result['expiration']);
         $magicLinkToken = new MagicLinkToken(
-            $expirationFromDb,
-            $token,
-            $tokenType,
-            $userId
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse($expirationFromDb->format('Y-m-d H:i:s')),
+            tokenType: $tokenType,
+            userId: $userId
         );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = $token;
         $this->repository->create($magicLinkToken);
         // Ensure some time has passed
         sleep(1);
@@ -154,11 +190,18 @@ class MagicLinkTokenRepositoryTest extends DatabaseTestCase
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         $expirationFromDb = new \DateTimeImmutable($result['expiration']);
         $magicLinkToken = new MagicLinkToken(
-            $expirationFromDb,
-            $token,
-            $tokenType,
-            $userId
+            clientId: 'test-client',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            redirectUri: 'https://example.com/callback',
+            state: 'test-state',
+            email: 'test@example.com',
+            expiration: CarbonImmutable::parse($expirationFromDb->format('Y-m-d H:i:s')),
+            tokenType: $tokenType,
+            userId: $userId
         );
+        // Override the generated token with the expected test token
+        $magicLinkToken->token = $token;
         $this->repository->create($magicLinkToken);
         // Ensure some time has passed
         sleep(1);

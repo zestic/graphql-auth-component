@@ -93,7 +93,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.4'
-        extensions: json, curl
+        extensions: json, curl, uopz
         tools: composer:v2
     
     - name: Cache Composer packages
@@ -106,7 +106,7 @@ jobs:
           ${{ runner.os }}-php-8.4-
     
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-dev
+      run: composer install --prefer-dist --no-progress
     
     - name: Run security audit
       run: composer security-audit
@@ -122,6 +122,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.4'
+        extensions: uopz
         tools: composer:v2
 
     - name: Cache Composer packages
@@ -134,7 +135,7 @@ jobs:
           ${{ runner.os }}-php-8.4-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --ignore-platform-req=ext-uopz
+      run: composer install --prefer-dist --no-progress
 
     - name: Check composer.json format
       run: composer normalize-check

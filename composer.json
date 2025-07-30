@@ -1,7 +1,7 @@
 {
   "name": "zestic/graphql-auth-component",
-  "type": "library",
   "license": "Apache-2.0",
+  "type": "library",
   "require": {
     "php": "^8.3",
     "adriengras/pkce-php": "^1.0",
@@ -11,10 +11,10 @@
     "nesbot/carbon": "^3.10",
     "nyholm/psr7": "^1.8",
     "psr/log": "^3.0",
-    "robmorgan/phinx": "^0.15.4 | ^0.16",
-    "symfony/yaml": " ^6.4|^7.0",
-    "symfony/dotenv": " ^6.4|^7.0",
     "ramsey/uuid": "^4.7",
+    "robmorgan/phinx": "^0.15.4 || ^0.16",
+    "symfony/dotenv": "^6.4 || ^7.0",
+    "symfony/yaml": "^6.4 || ^7.0",
     "webonyx/graphql-php": "^15.0"
   },
   "require-dev": {
@@ -32,8 +32,13 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/",
-      "Migrations\\": "resources/db/migrations/"
+      "Migrations\\": "resources/db/migrations/",
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true
     }
   },
   "scripts": {
@@ -44,19 +49,19 @@
     "cs-check": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --dry-run --diff",
     "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix",
     "generate-keys": "php bin/generate-oauth-keys.php",
+    "normalize-check": "composer normalize --dry-run --diff",
     "phpstan": "phpstan analyse -c phpstan.neon.dist",
+    "security-audit": "composer audit",
     "test": [
       "@test:unit",
       "@test:mysql",
       "@test:pgsql"
     ],
     "test:coverage": "XDEBUG_MODE=coverage phpunit --testsuite Coverage --coverage-html coverage-report --coverage-text",
-    "test:coverage:unit": "XDEBUG_MODE=coverage phpunit --testsuite Unit --coverage-html coverage-report/unit --coverage-text",
     "test:coverage:clover": "XDEBUG_MODE=coverage phpunit --testsuite Coverage --coverage-clover coverage.xml",
+    "test:coverage:unit": "XDEBUG_MODE=coverage phpunit --testsuite Unit --coverage-html coverage-report/unit --coverage-text",
     "test:mysql": "phpunit --testsuite Integration-MySQL",
     "test:pgsql": "phpunit --testsuite Integration-PostgreSQL",
-    "test:unit": "phpunit --testsuite Unit",
-    "security-audit": "composer audit",
-    "normalize-check": "composer normalize --dry-run --diff"
+    "test:unit": "phpunit --testsuite Unit"
   }
 }

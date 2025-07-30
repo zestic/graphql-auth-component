@@ -98,7 +98,7 @@ jobs:
     
     - name: Cache Composer packages
       id: composer-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: vendor
         key: ${{ runner.os }}-php-8.4-${{ hashFiles('**/composer.lock') }}
@@ -106,7 +106,7 @@ jobs:
           ${{ runner.os }}-php-8.4-
     
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer install --prefer-dist --no-progress --no-dev
     
     - name: Run security audit
       run: composer security-audit
@@ -126,7 +126,7 @@ jobs:
 
     - name: Cache Composer packages
       id: composer-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: vendor
         key: ${{ runner.os }}-php-8.4-${{ hashFiles('**/composer.lock') }}
@@ -134,7 +134,7 @@ jobs:
           ${{ runner.os }}-php-8.4-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer install --prefer-dist --no-progress --ignore-platform-req=ext-uopz
 
     - name: Check composer.json format
       run: composer normalize-check

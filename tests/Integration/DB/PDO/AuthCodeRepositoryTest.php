@@ -16,6 +16,23 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
 
     private ClientEntity $clientEntity;
 
+    /**
+     * Generate a UUID compatible with both MySQL and PostgreSQL
+     */
+    private function generateUuid(): string
+    {
+        // For PostgreSQL compatibility, generate a proper UUID
+        // For MySQL, this will work as a string
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -41,8 +58,11 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
 
     public function testPersistNewAuthCode(): void
     {
+        // Generate a proper UUID for PostgreSQL compatibility
+        $authCodeId = $this->generateUuid();
+
         $authCode = $this->repository->getNewAuthCode();
-        $authCode->setIdentifier('test_auth_code_123');
+        $authCode->setIdentifier($authCodeId);
         $authCode->setUserIdentifier(self::$testUserId);
         $authCode->setClient($this->clientEntity);
         $authCode->setExpiryDateTime(new \DateTimeImmutable('+10 minutes'));
@@ -60,11 +80,11 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
 
         // Verify the auth code was persisted
         $stmt = self::$pdo->prepare('SELECT * FROM oauth_auth_codes WHERE id = ?');
-        $stmt->execute(['test_auth_code_123']);
+        $stmt->execute([$authCodeId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($result);
-        $this->assertEquals('test_auth_code_123', $result['id']);
+        $this->assertEquals($authCodeId, $result['id']);
         $this->assertEquals(self::$testUserId, $result['user_id']);
         $this->assertEquals(self::$testClientId, $result['client_id']);
         $this->assertEquals('https://example.com/callback', $result['redirect_uri']);
@@ -75,9 +95,12 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
 
     public function testRevokeAuthCode(): void
     {
+        // Generate a proper UUID for PostgreSQL compatibility
+        $authCodeId = $this->generateUuid();
+
         // First, persist an auth code
         $authCode = $this->repository->getNewAuthCode();
-        $authCode->setIdentifier('test_revoke_code');
+        $authCode->setIdentifier($authCodeId);
         $authCode->setUserIdentifier(self::$testUserId);
         $authCode->setClient($this->clientEntity);
         $authCode->setExpiryDateTime(new \DateTimeImmutable('+10 minutes'));
@@ -86,11 +109,11 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
         $this->repository->persistNewAuthCode($authCode);
 
         // Now revoke it
-        $this->repository->revokeAuthCode('test_revoke_code');
+        $this->repository->revokeAuthCode($authCodeId);
 
         // Verify it was revoked
         $stmt = self::$pdo->prepare('SELECT revoked FROM oauth_auth_codes WHERE id = ?');
-        $stmt->execute(['test_revoke_code']);
+        $stmt->execute([$authCodeId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertNotFalse($result);
@@ -99,23 +122,27 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
 
     public function testIsAuthCodeRevoked(): void
     {
+        // Generate UUIDs for PostgreSQL compatibility
+        $nonExistentId = $this->generateUuid();
+        $validCodeId = $this->generateUuid();
+
         // Test with non-existent auth code
-        $this->assertTrue($this->repository->isAuthCodeRevoked('non_existent_code'));
+        $this->assertTrue($this->repository->isAuthCodeRevoked($nonExistentId));
 
         // Test with valid, non-revoked auth code
         $authCode = $this->repository->getNewAuthCode();
-        $authCode->setIdentifier('test_valid_code');
+        $authCode->setIdentifier($validCodeId);
         $authCode->setUserIdentifier(self::$testUserId);
         $authCode->setClient($this->clientEntity);
         $authCode->setExpiryDateTime(new \DateTimeImmutable('+10 minutes'));
         $authCode->setRedirectUri('https://example.com/callback');
 
         $this->repository->persistNewAuthCode($authCode);
-        $this->assertFalse($this->repository->isAuthCodeRevoked('test_valid_code'));
+        $this->assertFalse($this->repository->isAuthCodeRevoked($validCodeId));
 
         // Test with revoked auth code
-        $this->repository->revokeAuthCode('test_valid_code');
-        $this->assertTrue($this->repository->isAuthCodeRevoked('test_valid_code'));
+        $this->repository->revokeAuthCode($validCodeId);
+        $this->assertTrue($this->repository->isAuthCodeRevoked($validCodeId));
     }
 
     public function testGenerateUniqueIdentifier(): void

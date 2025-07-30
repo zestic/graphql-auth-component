@@ -127,7 +127,7 @@ class AuthCodeRepositoryTest extends DatabaseTestCase
         $this->assertIsString($identifier2);
         $this->assertEquals(36, strlen($identifier1)); // UUID v4 length with hyphens
         $this->assertNotEquals($identifier1, $identifier2); // Should be unique
-        
+
         // Verify it's a valid UUID format
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',

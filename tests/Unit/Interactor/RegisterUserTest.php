@@ -55,7 +55,7 @@ class RegisterUserTest extends TestCase
         $context = new RegistrationContext([
             'clientId' => 'test-client',
             'email' => 'test@zestic.com',
-            'additionalData' => ['displayName' => 'Test User']
+            'additionalData' => ['displayName' => 'Test User'],
         ]);
         $userId = '123';
         $token = $this->createMock(MagicLinkToken::class);
@@ -82,7 +82,7 @@ class RegisterUserTest extends TestCase
         $context = new RegistrationContext([
             'clientId' => 'test-client',
             'email' => 'existing@zestic.com',
-            'additionalData' => []
+            'additionalData' => [],
         ]);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(true);
@@ -102,7 +102,7 @@ class RegisterUserTest extends TestCase
         $context = new RegistrationContext([
             'clientId' => 'test-client',
             'email' => 'test@zestic.com',
-            'additionalData' => []
+            'additionalData' => [],
         ]);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
@@ -123,7 +123,7 @@ class RegisterUserTest extends TestCase
         $context = new RegistrationContext([
             'clientId' => 'test-client',
             'email' => 'hook@zestic.com',
-            'additionalData' => ['displayName' => 'Hook User', 'customField' => 'value']
+            'additionalData' => ['displayName' => 'Hook User', 'customField' => 'value'],
         ]);
         $userId = 'hook-user-123';
         $token = $this->createMock(MagicLinkToken::class);

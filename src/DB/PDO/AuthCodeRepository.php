@@ -106,8 +106,9 @@ class AuthCodeRepository extends AbstractPDORepository implements AuthCodeReposi
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if (! $result) {
             error_log("AuthCodeRepository::getAuthCodeEntityByIdentifier - No result found for identifier: {$identifier}");
+
             return null;
         }
 
@@ -139,8 +140,7 @@ class AuthCodeRepository extends AbstractPDORepository implements AuthCodeReposi
         if ($result['scopes']) {
             $scopes = json_decode($result['scopes'], true);
             foreach ($scopes as $scopeIdentifier) {
-                $scope = new \Zestic\GraphQL\AuthComponent\Entity\ScopeEntity();
-                $scope->setIdentifier($scopeIdentifier);
+                $scope = new \Zestic\GraphQL\AuthComponent\Entity\ScopeEntity($scopeIdentifier);
                 $authCode->addScope($scope);
             }
         }

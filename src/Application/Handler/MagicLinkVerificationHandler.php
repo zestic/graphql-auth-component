@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Application\Handler;
 
 use Carbon\CarbonImmutable;
-use League\OAuth2\Server\AuthorizationServer;
-use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
-use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
-use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -38,10 +33,6 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         private UserRepositoryInterface $userRepository,
         private ReissueExpiredMagicLinkToken $reissueExpiredMagicLinkToken,
         private MagicLinkConfig $config,
-        private AuthorizationServer $authorizationServer,
-        private AuthCodeRepositoryInterface $authCodeRepository,
-        private ClientRepositoryInterface $clientRepository,
-        private ScopeRepositoryInterface $scopeRepository,
     ) {
     }
 
@@ -69,6 +60,7 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
                         return $this->createErrorResponse($reissueResult['message']);
                     }
                 }
+
                 return $this->createErrorResponse('Invalid or expired magic link');
             }
 
@@ -119,7 +111,7 @@ class MagicLinkVerificationHandler implements RequestHandlerInterface
         return $this->redirectToAuthCallback($magicLinkToken, $this->config->defaultSuccessMessage, 'login');
     }
 
-    private function redirectToAuthCallback(MagicLinkToken $magicLinkToken, string $message, string $flow): MessageInterface
+    private function redirectToAuthCallback(MagicLinkToken $magicLinkToken, string $message, string $flow): ResponseInterface
     {
         $finalRedirectUri = $this->config->createPkceRedirectUrl($magicLinkToken, $message, $flow);
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Factory;
 
 use Carbon\CarbonImmutable;
+use League\OAuth2\Server\Entities\ClientEntityInterface;
 use Zestic\GraphQL\AuthComponent\Context\AbstractContext;
 use Zestic\GraphQL\AuthComponent\Context\MagicLinkContext;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
-use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkTokenType;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
@@ -22,17 +22,17 @@ class MagicLinkTokenFactory
     ) {
     }
 
-    public function createLoginToken(string|int $userId, ClientEntity $client, MagicLinkContext $context): MagicLinkToken
+    public function createLoginToken(string|int $userId, ClientEntityInterface $client, MagicLinkContext $context): MagicLinkToken
     {
         return $this->createMagicLinkToken($userId, $client, $context, MagicLinkTokenType::LOGIN);
     }
 
-    public function createRegistrationToken(string|int $userId, ClientEntity $client, RegistrationContext $context): MagicLinkToken
+    public function createRegistrationToken(string|int $userId, ClientEntityInterface $client, RegistrationContext $context): MagicLinkToken
     {
         return $this->createMagicLinkToken($userId, $client, $context, MagicLinkTokenType::REGISTRATION);
     }
 
-    private function createMagicLinkToken(string|int $userId, ClientEntity $client, AbstractContext $context, MagicLinkTokenType $tokenType): MagicLinkToken
+    private function createMagicLinkToken(string|int $userId, ClientEntityInterface $client, AbstractContext $context, MagicLinkTokenType $tokenType): MagicLinkToken
     {
         $expiration = CarbonImmutable::now()->addMinutes($this->config->getLoginTTLMinutes());
 
@@ -45,7 +45,7 @@ class MagicLinkTokenFactory
             $context->get('email'),
             $expiration,
             $tokenType,
-            $userId,
+            (string) $userId,
         );
 
         if ($this->magicLinkTokenRepository->create($token)) {

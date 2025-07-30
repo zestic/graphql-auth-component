@@ -25,7 +25,7 @@ class UserRepositoryTest extends DatabaseTestCase
 
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => $additionalData
+            'additionalData' => $additionalData,
         ]);
 
         $userId = $this->userRepository->create($context);
@@ -50,7 +50,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $displayName = 'Test User';
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => ['displayName' => $displayName]
+            'additionalData' => ['displayName' => $displayName],
         ]);
 
         $userId = $this->userRepository->create($context);
@@ -74,7 +74,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $email = 'existing@zestic.com';
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => ['displayName' => 'Test User']
+            'additionalData' => ['displayName' => 'Test User'],
         ]);
         $this->userRepository->create($context);
 
@@ -90,7 +90,7 @@ class UserRepositoryTest extends DatabaseTestCase
 
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => $additionalData
+            'additionalData' => $additionalData,
         ]);
         $userId = $this->userRepository->create($context);
 
@@ -116,7 +116,7 @@ class UserRepositoryTest extends DatabaseTestCase
 
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => $additionalData
+            'additionalData' => $additionalData,
         ]);
         $userId = $this->userRepository->create($context);
 
@@ -142,7 +142,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $email = 'transaction_test@zestic.com';
         $context = new RegistrationContext([
             'email' => $email,
-            'additionalData' => ['displayName' => 'Transaction Test']
+            'additionalData' => ['displayName' => 'Transaction Test'],
         ]);
         $userId = $this->userRepository->create($context);
 
@@ -158,7 +158,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $rollbackEmail = 'rollback_test@zestic.com';
         $rollbackContext = new RegistrationContext([
             'email' => $rollbackEmail,
-            'additionalData' => ['displayName' => 'Rollback Test']
+            'additionalData' => ['displayName' => 'Rollback Test'],
         ]);
         $this->userRepository->create($rollbackContext);
 
@@ -176,7 +176,7 @@ class UserRepositoryTest extends DatabaseTestCase
         $autoCommitEmail = 'auto_commit@zestic.com';
         $autoCommitContext = new RegistrationContext([
             'email' => $autoCommitEmail,
-            'additionalData' => ['displayName' => 'Auto Commit Test']
+            'additionalData' => ['displayName' => 'Auto Commit Test'],
         ]);
         $this->userRepository->create($autoCommitContext);
 

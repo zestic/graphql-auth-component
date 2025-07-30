@@ -15,7 +15,8 @@ class AuthCodeEntity implements AuthCodeEntityInterface
     use EntityTrait;
     use TokenEntityTrait;
 
-    private ?string $codeChallenge       = null;
+    private ?string $codeChallenge = null;
+
     private ?string $codeChallengeMethod = null;
 
     public function getCodeChallenge(): ?string

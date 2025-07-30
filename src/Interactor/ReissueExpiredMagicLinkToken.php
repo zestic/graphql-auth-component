@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
+use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
@@ -63,6 +64,9 @@ class ReissueExpiredMagicLinkToken
     {
         // Get the client entity
         $client = $this->clientRepository->getClientEntity($expiredToken->clientId);
+        if (! $client) {
+            throw new \Exception('Invalid client for expired token');
+        }
 
         return match ($expiredToken->tokenType) {
             MagicLinkTokenType::LOGIN => $this->createLoginToken($expiredToken, $client),
@@ -70,7 +74,7 @@ class ReissueExpiredMagicLinkToken
         };
     }
 
-    private function createLoginToken(MagicLinkToken $expiredToken, $client): MagicLinkToken
+    private function createLoginToken(MagicLinkToken $expiredToken, ClientEntityInterface $client): MagicLinkToken
     {
         $context = new MagicLinkContext([
             'clientId' => $expiredToken->clientId,
@@ -84,7 +88,7 @@ class ReissueExpiredMagicLinkToken
         return $this->magicLinkTokenFactory->createLoginToken($expiredToken->getUserId(), $client, $context);
     }
 
-    private function createRegistrationToken(MagicLinkToken $expiredToken, $client): MagicLinkToken
+    private function createRegistrationToken(MagicLinkToken $expiredToken, ClientEntityInterface $client): MagicLinkToken
     {
         $context = new RegistrationContext([
             'clientId' => $expiredToken->clientId,
@@ -112,7 +116,7 @@ class ReissueExpiredMagicLinkToken
         // Create a registration context from the user data
         $context = new RegistrationContext([
             'email' => $user->getEmail(),
-            'additionalData' => $user->getAdditionalData() + ['displayName' => $user->getDisplayName()]
+            'additionalData' => $user->getAdditionalData() + ['displayName' => $user->getDisplayName()],
         ]);
 
         $this->sendVerificationLink->send($context, $token);

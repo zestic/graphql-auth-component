@@ -66,10 +66,7 @@ class MagicLinkConfig
     public function createPkceRedirectUrl(MagicLinkToken $magicLinkToken, string $message, string $flow = 'login'): string
     {
         $params = [
-            'flow'    => $flow,
-            'success' => 'true',
-            'message' => $message,
-            'codeChallenge' => $magicLinkToken->codeChallenge,
+            'flow' => $flow,
             'token' => $magicLinkToken->token,
             'state' => $magicLinkToken->state,
         ];

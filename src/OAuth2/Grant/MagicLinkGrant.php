@@ -54,7 +54,7 @@ class MagicLinkGrant extends AbstractGrant
         $user = $this->validateUser($request, $client);
 
         // Validate PKCE if present
-        $this->validatePkce($request, $client);
+        $this->validatePkce($request);
 
         $finalizedScopes = $this->scopeRepository->finalizeScopes($scopes, $this->getIdentifier(), $client, $user->getIdentifier());
 

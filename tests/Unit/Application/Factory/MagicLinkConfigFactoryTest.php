@@ -80,7 +80,7 @@ class MagicLinkConfigFactoryTest extends TestCase
         $magicLinkToken->token = 'ghi789';
 
         $pkceUrl = $config->createPkceRedirectUrl($magicLinkToken, 'Test message');
-        $this->assertEquals('myapp://auth/callback?flow=login&success=true&message=Test+message&codeChallenge=test-challenge&token=ghi789&state=test-state', $pkceUrl);
+        $this->assertEquals('myapp://auth/callback?flow=login&token=ghi789&state=test-state', $pkceUrl);
     }
 
     public function testBuildRedirectUrlWithExistingQuery(): void

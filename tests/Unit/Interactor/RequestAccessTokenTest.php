@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Interactor;
 
+use Carbon\CarbonImmutable;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
-use Carbon\CarbonImmutable;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 
 class RequestAccessTokenTest extends TestCase

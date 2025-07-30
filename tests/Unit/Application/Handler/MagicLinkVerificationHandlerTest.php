@@ -23,13 +23,21 @@ use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 class MagicLinkVerificationHandlerTest extends TestCase
 {
     private MagicLinkVerificationHandler $handler;
+
     private MagicLinkTokenRepositoryInterface $magicLinkTokenRepository;
+
     private UserRepositoryInterface $userRepository;
+
     private ReissueExpiredMagicLinkToken $reissueExpiredMagicLinkToken;
+
     private MagicLinkConfig $config;
+
     private AuthorizationServer $authorizationServer;
+
     private AuthCodeRepositoryInterface $authCodeRepository;
+
     private ClientRepositoryInterface $clientRepository;
+
     private ScopeRepositoryInterface $scopeRepository;
 
     protected function setUp(): void
@@ -109,7 +117,8 @@ class MagicLinkVerificationHandlerTest extends TestCase
         $location = $response->getHeaderLine('Location');
         $this->assertStringContainsString('/auth/callback', $location);
         $this->assertStringContainsString('token=' . $token, $location);
-        $this->assertStringContainsString('Registration+verified+successfully', $location);
+        $this->assertStringContainsString('flow=registration', $location);
+        $this->assertStringContainsString('state=test-state', $location);
     }
 
     public function testHandleLoginMagicLinkWithPkce(): void

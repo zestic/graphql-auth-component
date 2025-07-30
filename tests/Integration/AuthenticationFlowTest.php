@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use DateInterval;
 use Defuse\Crypto\Key;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\CryptKey;
@@ -25,7 +26,6 @@ use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Interactor\RequestAccessToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\UserCreatedNullHook;
-
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\MagicLinkGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\Grant\RefreshTokenGrant;
 use Zestic\GraphQL\AuthComponent\OAuth2\OAuthConfig;
@@ -37,6 +37,8 @@ class AuthenticationFlowTest extends DatabaseTestCase
     private string $clientId;
 
     private string $clientSecret = 'test_secret';
+
+    private string $codeVerifier = 'test_code_verifier';
 
     private AccessTokenRepository $accessTokenRepository;
 
@@ -145,12 +147,12 @@ class AuthenticationFlowTest extends DatabaseTestCase
             $this->refreshTokenRepository,
             $this->userRepository,
         );
-        $this->authorizationServer->enableGrantType($magicLinkGrant);
+        $this->authorizationServer->enableGrantType($magicLinkGrant, new DateInterval('PT1H'));
 
         $refreshTokenGrant = new RefreshTokenGrant(
             $this->refreshTokenRepository,
         );
-        $this->authorizationServer->enableGrantType($refreshTokenGrant);
+        $this->authorizationServer->enableGrantType($refreshTokenGrant, new DateInterval('PT1H'));
 
         $this->authenticateToken = new AuthenticateToken(
             $this->authorizationServer,
@@ -230,10 +232,13 @@ class AuthenticationFlowTest extends DatabaseTestCase
                 return true;
             });
 
+        // Generate proper PKCE values for testing
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $this->codeVerifier, true)), '+/', '-_'), '=');
+
         $context = new MagicLinkContext([
             'email' => self::TEST_EMAIL,
             'clientId' => $this->clientId,
-            'codeChallenge' => 'test-challenge',
+            'codeChallenge' => $codeChallenge,
             'codeChallengeMethod' => 'S256',
             'redirectUri' => 'https://example.com/callback',
             'state' => 'test-state',
@@ -248,7 +253,7 @@ class AuthenticationFlowTest extends DatabaseTestCase
 
     public function authenticateToken(array $data): array
     {
-        $authResult = $this->authenticateToken->authenticate($data['MagicLinkToken']->token);
+        $authResult = $this->authenticateToken->authenticate($data['MagicLinkToken']->token, $this->codeVerifier);
 
         $this->assertArrayHasKey('accessToken', $authResult);
         $this->assertArrayHasKey('refreshToken', $authResult);

@@ -22,15 +22,24 @@ class SendMagicLink
 
     public function send(MagicLinkContext $context): array
     {
-        if (!filter_var($context->get('email'), FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($context->get('email'), FILTER_VALIDATE_EMAIL)) {
             return [
                 'success' => false,
                 'message' => 'Invalid email format.',
                 'code' => 'INVALID_EMAIL_FORMAT',
             ];
         }
+
         try {
             $client = $this->clientRepository->getClientEntity($context->get('clientId'));
+            if (! $client) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid client',
+                    'code' => 'INVALID_CLIENT',
+                ];
+            }
+
             if (! $user = $this->userRepository->findUserByEmail($context->get('email'))) {
                 return [
                     'success' => true,

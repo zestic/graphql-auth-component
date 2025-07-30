@@ -24,7 +24,7 @@ class AuthenticateToken
     ) {
     }
 
-    public function authenticate(string $token): array
+    public function authenticate(string $token, ?string $codeVerifier = null): array
     {
         $magicLinkToken = $this->magicLinkTokenRepository->findByUnexpiredToken($token);
         if (! $magicLinkToken) {
@@ -50,6 +50,11 @@ class AuthenticateToken
                 'client_secret' => $this->oauthConfig->getClientSecret(),
                 'token' => $token,
             ];
+
+            // Add code_verifier for PKCE validation if provided
+            if ($codeVerifier !== null) {
+                $body['code_verifier'] = $codeVerifier;
+            }
 
             $request = new ServerRequest('POST', new Uri('http://example.com/token'));
             $request = $request

@@ -13,15 +13,10 @@ use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\MagicLinkConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler;
-use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkSendHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
-use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
-use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
-use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
-use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
-use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AuthCodeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ClientRepository;
@@ -29,7 +24,11 @@ use Zestic\GraphQL\AuthComponent\DB\PDO\MagicLinkTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\RefreshTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
+use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
+use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
+use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\UserCreatedNullHook;
 use Zestic\GraphQL\AuthComponent\Repository\MagicLinkTokenRepositoryInterface;
 use Zestic\GraphQL\AuthComponent\Repository\RefreshTokenRepositoryInterface;
@@ -79,15 +78,6 @@ class ConfigProvider
                         $container->get(UserRepositoryInterface::class),
                         $container->get(ReissueExpiredMagicLinkToken::class),
                         $container->get(MagicLinkConfig::class),
-                        $container->get(AuthorizationServer::class),
-                        $container->get(AuthCodeRepositoryInterface::class),
-                        $container->get(ClientRepositoryInterface::class),
-                        $container->get(ScopeRepositoryInterface::class),
-                    );
-                },
-                MagicLinkSendHandler::class => function ($container) {
-                    return new MagicLinkSendHandler(
-                        $container->get(SendMagicLink::class),
                     );
                 },
                 SendMagicLink::class => function ($container) {

@@ -32,6 +32,13 @@ class RegisterUser
             ];
         }
         $client = $this->clientRepository->getClientEntity($context->get('clientId'));
+        if (! $client) {
+            return [
+                'success' => false,
+                'message' => 'Invalid client',
+                'code' => 'INVALID_CLIENT',
+            ];
+        }
 
         try {
             $this->userRepository->beginTransaction();

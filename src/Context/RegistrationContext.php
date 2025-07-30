@@ -9,7 +9,7 @@ class RegistrationContext extends AbstractContext
     public function toArray(): array
     {
         return [
-            'email'          => $this->data['email'],
+            'email' => $this->data['email'],
             'additionalData' => $this->data['additionalData'],
         ];
     }

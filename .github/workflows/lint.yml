@@ -43,7 +43,7 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: Run PHPStan
-        run: composer analyse
+        run: composer phpstan
 
   php-cs-fixer:
     name: PHP CS Fixer

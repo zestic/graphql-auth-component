@@ -1,7 +1,7 @@
 {
   "name": "zestic/graphql-auth-component",
   "type": "library",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "require": {
     "php": "^8.3",
     "adriengras/pkce-php": "^1.0",
@@ -20,6 +20,7 @@
   "require-dev": {
     "ext-pdo": "*",
     "ext-uopz": "*",
+    "ergebnis/composer-normalize": "^2.42",
     "friendsofphp/php-cs-fixer": "^3.18",
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^11.4"
@@ -54,6 +55,8 @@
     "test:coverage:clover": "XDEBUG_MODE=coverage phpunit --testsuite Coverage --coverage-clover coverage.xml",
     "test:mysql": "phpunit --testsuite Integration-MySQL",
     "test:pgsql": "phpunit --testsuite Integration-PostgreSQL",
-    "test:unit": "phpunit --testsuite Unit"
+    "test:unit": "phpunit --testsuite Unit",
+    "security-audit": "composer audit",
+    "normalize-check": "composer normalize --dry-run --diff"
   }
 }

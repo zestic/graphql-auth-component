@@ -1,5 +1,11 @@
 # Auth Component
 
+[![Test](https://github.com/zestic/graphql-auth-component/actions/workflows/test.yml/badge.svg)](https://github.com/zestic/graphql-auth-component/actions/workflows/test.yml)
+[![Lint](https://github.com/zestic/graphql-auth-component/actions/workflows/lint.yml/badge.svg)](https://github.com/zestic/graphql-auth-component/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/zestic/graphql-auth-component/branch/main/graph/badge.svg)](https://codecov.io/gh/zestic/graphql-auth-component)
+[![PHP Version](https://img.shields.io/packagist/php-v/zestic/graphql-auth-component)](https://packagist.org/packages/zestic/graphql-auth-component)
+[![License](https://img.shields.io/packagist/l/zestic/graphql-auth-component)](https://github.com/zestic/graphql-auth-component/blob/main/LICENSE)
+
 A GraphQL authentication component with OAuth2 support, magic link authentication, and JWT tokens.
 
 ## Setup

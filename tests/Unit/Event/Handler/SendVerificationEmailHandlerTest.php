@@ -18,9 +18,13 @@ use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
 class SendVerificationEmailHandlerTest extends TestCase
 {
     private ClientRepositoryInterface $clientRepository;
+
     private MagicLinkTokenFactory $magicLinkTokenFactory;
+
     private SendVerificationLinkInterface $sendVerificationLink;
+
     private LoggerInterface $logger;
+
     private SendVerificationEmailHandler $handler;
 
     protected function setUp(): void

@@ -151,12 +151,16 @@ class SimpleListenerProviderTest extends TestCase
 // Test event classes
 class TestEvent
 {
-    public function __construct(public readonly string $data) {}
+    public function __construct(public readonly string $data)
+    {
+    }
 }
 
 class AnotherTestEvent
 {
-    public function __construct(public readonly string $data) {}
+    public function __construct(public readonly string $data)
+    {
+    }
 }
 
 // Test callable class

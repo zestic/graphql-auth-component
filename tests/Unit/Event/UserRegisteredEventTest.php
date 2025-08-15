@@ -63,7 +63,7 @@ class UserRegisteredEventTest extends TestCase
         ]);
 
         $beforeCreation = new \DateTimeImmutable();
-        
+
         $event = new UserRegisteredEvent(
             userId: 'default-user',
             registrationContext: $context,
@@ -241,7 +241,7 @@ class UserRegisteredEventTest extends TestCase
         // Verify that all properties are readonly by checking they return the same instances
         $this->assertSame($context, $event->getRegistrationContext());
         $this->assertSame($occurredAt, $event->getOccurredAt());
-        
+
         // Multiple calls should return the same values
         $this->assertSame($event->getUserId(), $event->getUserId());
         $this->assertSame($event->getClientId(), $event->getClientId());

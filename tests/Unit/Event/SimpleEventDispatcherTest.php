@@ -12,6 +12,7 @@ use Zestic\GraphQL\AuthComponent\Event\SimpleEventDispatcher;
 class SimpleEventDispatcherTest extends TestCase
 {
     private ListenerProviderInterface $listenerProvider;
+
     private SimpleEventDispatcher $dispatcher;
 
     protected function setUp(): void
@@ -237,7 +238,9 @@ class SimpleEventDispatcherTest extends TestCase
 // Test event classes
 class TestDispatchEvent
 {
-    public function __construct(public readonly string $data) {}
+    public function __construct(public readonly string $data)
+    {
+    }
 }
 
 class TestStoppableEvent implements StoppableEventInterface

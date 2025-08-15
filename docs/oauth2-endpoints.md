@@ -1,4 +1,4 @@
-# OAuth2 Endpoints Setup (v2.0)
+# OAuth2 Endpoints Setup (v0.3.0)
 
 This document explains how to set up the OAuth2 authorization and token endpoints in your application.
 

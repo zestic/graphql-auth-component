@@ -1,10 +1,10 @@
-# Magic Link + PKCE Integration Guide (v2.0)
+# Magic Link + PKCE Integration Guide (v0.3.0)
 
 This guide explains how to integrate magic links with PKCE (Proof Key for Code Exchange) for secure authentication in React Native and web applications.
 
 ## Overview
 
-The magic link flow in v2.0 supports both traditional and PKCE-secured authentication:
+The magic link flow in v0.3.0 supports both traditional and PKCE-secured authentication:
 
 - **Traditional Flow**: Email → Magic Link → Web App Login (no PKCE parameters)
 - **PKCE Flow**: Email → Magic Link → App → Token Exchange (with PKCE parameters)

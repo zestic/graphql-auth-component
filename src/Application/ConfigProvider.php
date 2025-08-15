@@ -9,6 +9,8 @@ use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
 use Zestic\GraphQL\AuthComponent\Application\Factory\AuthorizationServerFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\MagicLinkConfigFactory;
 use Zestic\GraphQL\AuthComponent\Application\Factory\TokenConfigFactory;
@@ -16,6 +18,7 @@ use Zestic\GraphQL\AuthComponent\Application\Handler\AuthorizationRequestHandler
 use Zestic\GraphQL\AuthComponent\Application\Handler\MagicLinkVerificationHandler;
 use Zestic\GraphQL\AuthComponent\Application\Handler\TokenRequestHandler;
 use Zestic\GraphQL\AuthComponent\Communication\SendMagicLinkInterface;
+use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AccessTokenRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\AuthCodeRepository;
@@ -26,7 +29,12 @@ use Zestic\GraphQL\AuthComponent\DB\PDO\ScopeRepository;
 use Zestic\GraphQL\AuthComponent\DB\PDO\UserRepository;
 use Zestic\GraphQL\AuthComponent\Entity\MagicLinkConfig;
 use Zestic\GraphQL\AuthComponent\Entity\TokenConfig;
+use Zestic\GraphQL\AuthComponent\Event\Handler\SendVerificationEmailHandler;
+use Zestic\GraphQL\AuthComponent\Event\SimpleEventDispatcher;
+use Zestic\GraphQL\AuthComponent\Event\SimpleListenerProvider;
+use Zestic\GraphQL\AuthComponent\Event\UserRegisteredEvent;
 use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
 use Zestic\GraphQL\AuthComponent\Interactor\ReissueExpiredMagicLinkToken;
 use Zestic\GraphQL\AuthComponent\Interactor\SendMagicLink;
 use Zestic\GraphQL\AuthComponent\Interactor\UserCreatedNullHook;
@@ -51,6 +59,8 @@ class ConfigProvider
                 AccessTokenRepositoryInterface::class => AccessTokenRepository::class,
                 AuthCodeRepositoryInterface::class => AuthCodeRepository::class,
                 ClientRepositoryInterface::class => ClientRepository::class,
+                EventDispatcherInterface::class => SimpleEventDispatcher::class,
+                ListenerProviderInterface::class => SimpleListenerProvider::class,
                 MagicLinkTokenRepositoryInterface::class => MagicLinkTokenRepository::class,
                 RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,
                 ScopeRepositoryInterface::class => ScopeRepository::class,
@@ -93,6 +103,37 @@ class ConfigProvider
                         $container->get(TokenConfig::class),
                         $container->get(MagicLinkTokenRepositoryInterface::class),
                     );
+                },
+                RegisterUser::class => function ($container) {
+                    return new RegisterUser(
+                        $container->get(ClientRepositoryInterface::class),
+                        $container->get(EventDispatcherInterface::class),
+                        $container->get(UserCreatedHookInterface::class),
+                        $container->get(UserRepositoryInterface::class),
+                    );
+                },
+                SendVerificationEmailHandler::class => function ($container) {
+                    return new SendVerificationEmailHandler(
+                        $container->get(ClientRepositoryInterface::class),
+                        $container->get(MagicLinkTokenFactory::class),
+                        $container->get(SendVerificationLinkInterface::class),
+                    );
+                },
+                SimpleEventDispatcher::class => function ($container) {
+                    return new SimpleEventDispatcher(
+                        $container->get(ListenerProviderInterface::class),
+                    );
+                },
+                SimpleListenerProvider::class => function ($container) {
+                    $provider = new SimpleListenerProvider();
+
+                    // Register the verification email handler for UserRegisteredEvent
+                    $provider->addListener(
+                        UserRegisteredEvent::class,
+                        $container->get(SendVerificationEmailHandler::class)
+                    );
+
+                    return $provider;
                 },
             ],
         ];

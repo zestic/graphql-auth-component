@@ -99,10 +99,12 @@ class AuthenticationFlowTest extends DatabaseTestCase
         $this->sendMagicLinkEmail = $this->createMock(SendMagicLinkInterface::class);
         $this->sendVerificationEmail = $this->createMock(SendVerificationLinkInterface::class);
         $this->capturedSendArguments = [];
+        // Create a simple event dispatcher for testing
+        $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
+
         $this->registerUser = new RegisterUser(
             $this->clientRepository,
-            $magicLinkTokenFactory,
-            $this->sendVerificationEmail,
+            $eventDispatcher,
             new UserCreatedNullHook(),
             $this->userRepository,
         );

@@ -6,12 +6,11 @@ namespace Tests\Unit\Interactor;
 
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use PHPUnit\Framework\TestCase;
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
 use Zestic\GraphQL\AuthComponent\Entity\ClientEntity;
-use Zestic\GraphQL\AuthComponent\Entity\MagicLinkToken;
-use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Event\UserRegisteredEvent;
 use Zestic\GraphQL\AuthComponent\Interactor\RegisterUser;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
@@ -19,9 +18,7 @@ class RegisterUserTest extends TestCase
 {
     private ClientRepositoryInterface $clientRepository;
 
-    private MagicLinkTokenFactory $magicLinkTokenFactory;
-
-    private SendVerificationLinkInterface $sendRegistrationVerification;
+    private EventDispatcherInterface $eventDispatcher;
 
     private UserCreatedHookInterface $userCreatedHook;
 
@@ -32,8 +29,7 @@ class RegisterUserTest extends TestCase
     protected function setUp(): void
     {
         $this->clientRepository = $this->createMock(ClientRepositoryInterface::class);
-        $this->magicLinkTokenFactory = $this->createMock(MagicLinkTokenFactory::class);
-        $this->sendRegistrationVerification = $this->createMock(SendVerificationLinkInterface::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->userCreatedHook = $this->createMock(UserCreatedHookInterface::class);
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
 
@@ -43,8 +39,7 @@ class RegisterUserTest extends TestCase
 
         $this->registerUser = new RegisterUser(
             $this->clientRepository,
-            $this->magicLinkTokenFactory,
-            $this->sendRegistrationVerification,
+            $this->eventDispatcher,
             $this->userCreatedHook,
             $this->userRepository
         );
@@ -58,7 +53,6 @@ class RegisterUserTest extends TestCase
             'additionalData' => ['displayName' => 'Test User'],
         ]);
         $userId = '123';
-        $token = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
@@ -66,9 +60,18 @@ class RegisterUserTest extends TestCase
         $this->userCreatedHook->expects($this->once())
             ->method('execute')
             ->with($context, $userId);
-        $this->magicLinkTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
-        $this->sendRegistrationVerification->expects($this->once())->method('send');
         $this->userRepository->expects($this->once())->method('commit');
+
+        // Verify that UserRegisteredEvent is dispatched with correct data
+        $this->eventDispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($event) use ($context, $userId) {
+                return $event instanceof UserRegisteredEvent
+                    && $event->getUserId() === $userId
+                    && $event->getRegistrationContext() === $context
+                    && $event->getClientId() === 'test-client'
+                    && $event->getEmail() === 'test@zestic.com';
+            }));
 
         $result = $this->registerUser->register($context);
 
@@ -89,6 +92,7 @@ class RegisterUserTest extends TestCase
         $this->userRepository->expects($this->never())->method('beginTransaction');
         $this->userRepository->expects($this->never())->method('create');
         $this->userCreatedHook->expects($this->never())->method('execute');
+        $this->eventDispatcher->expects($this->never())->method('dispatch');
 
         $result = $this->registerUser->register($context);
 
@@ -110,6 +114,7 @@ class RegisterUserTest extends TestCase
         $this->userRepository->expects($this->once())->method('create')->willThrowException(new \Exception('Database error'));
         $this->userCreatedHook->expects($this->never())->method('execute');
         $this->userRepository->expects($this->once())->method('rollback');
+        $this->eventDispatcher->expects($this->never())->method('dispatch');
 
         $result = $this->registerUser->register($context);
 
@@ -126,7 +131,6 @@ class RegisterUserTest extends TestCase
             'additionalData' => ['displayName' => 'Hook User', 'customField' => 'value'],
         ]);
         $userId = 'hook-user-123';
-        $token = $this->createMock(MagicLinkToken::class);
 
         $this->userRepository->expects($this->once())->method('emailExists')->willReturn(false);
         $this->userRepository->expects($this->once())->method('beginTransaction');
@@ -140,9 +144,8 @@ class RegisterUserTest extends TestCase
                 $this->equalTo($userId)
             );
 
-        $this->magicLinkTokenFactory->expects($this->once())->method('createRegistrationToken')->willReturn($token);
-        $this->sendRegistrationVerification->expects($this->once())->method('send');
         $this->userRepository->expects($this->once())->method('commit');
+        $this->eventDispatcher->expects($this->once())->method('dispatch');
 
         $result = $this->registerUser->register($context);
 

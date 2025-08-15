@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace Zestic\GraphQL\AuthComponent\Interactor;
 
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
-use Zestic\GraphQL\AuthComponent\Communication\SendVerificationLinkInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Zestic\GraphQL\AuthComponent\Context\RegistrationContext;
 use Zestic\GraphQL\AuthComponent\Contract\UserCreatedHookInterface;
-use Zestic\GraphQL\AuthComponent\Factory\MagicLinkTokenFactory;
+use Zestic\GraphQL\AuthComponent\Event\UserRegisteredEvent;
 use Zestic\GraphQL\AuthComponent\Repository\UserRepositoryInterface;
 
 class RegisterUser
 {
     public function __construct(
         private ClientRepositoryInterface $clientRepository,
-        private MagicLinkTokenFactory $magicLinkTokenFactory,
-        private SendVerificationLinkInterface $sendRegistrationVerification,
+        private EventDispatcherInterface $eventDispatcher,
         private UserCreatedHookInterface $userCreatedHook,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -45,20 +44,16 @@ class RegisterUser
 
             $userId = $this->userRepository->create($context);
             $this->userCreatedHook->execute($context, $userId);
-            $success = $this->userRepository->commit();
-        } catch (\Exception $e) {
-            $this->userRepository->rollback();
+            $this->userRepository->commit();
 
-            return [
-                'success' => false,
-                'message' => 'Registration failed due to a system error',
-                'code' => 'SYSTEM_ERROR',
-            ];
-        }
+            // Dispatch the UserRegisteredEvent after successful registration
+            $event = new UserRegisteredEvent(
+                userId: $userId,
+                registrationContext: $context,
+                clientId: $context->get('clientId')
+            );
 
-        try {
-            $token = $this->magicLinkTokenFactory->createRegistrationToken($userId, $client, $context);
-            $this->sendRegistrationVerification->send($context, $token);
+            $this->eventDispatcher->dispatch($event);
 
             return [
                 'success' => true,
@@ -66,10 +61,12 @@ class RegisterUser
                 'code' => 'EMAIL_REGISTERED',
             ];
         } catch (\Exception $e) {
+            $this->userRepository->rollback();
+
             return [
                 'success' => false,
-                'message' => 'Registration failed due to a failure in sending the magic link',
-                'code' => 'SEND_MAGIC_LINK_FAILED',
+                'message' => 'Registration failed due to a system error',
+                'code' => 'SYSTEM_ERROR',
             ];
         }
     }
